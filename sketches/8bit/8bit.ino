@@ -22,16 +22,19 @@ void setup() {
   //  digitalWrite(TRIGGER, LOW);
 }
 
-TYPE doStuff(int i) {
-  TYPE c = a ^ bs[1-i];
-  return c;
+TYPE doStuff(int i, TYPE *b, TYPE *c) {
+  *b = a ^ bs[i];
+  *c = a ^ cs[i];
 }
 
 void loop() {
+  TYPE b,c;
   digitalWrite(TRIGGER, HIGH);
-  TYPE c = doStuff(j);
-  Serial.println(c);
+  doStuff(j, &b, &c);
   digitalWrite(TRIGGER, LOW);
+  delay(50);
+  Serial.println(b);
+  Serial.println(c);
   j = 1 - j;
-  delay(100);
+  delay(50);
 }
