@@ -26,5 +26,23 @@ def testEncodeDecode(radix):
     for src in range(2**radix):
         assert (decode(encode(src, radix), radix) == src)
 
-radix = 4
-testEncodeDecode(radix)
+def generateLUT(t, radix):
+    print("#ifndef LUT")
+    print("#define LUT")
+    print("{} lut[]".format(t), end='')
+    print(" = {")
+    for i in range(2**(2*radix)):
+        lh = decode(i, radix)
+
+        print("\t", end='')
+        for j in range(2**(2*radix)):
+            rh = decode(j, radix)
+            
+            value = encode(lh ^ rh, radix)
+            print("{}, ".format(value), end='')
+        
+        print()
+    print("};")
+    print("#endif")
+
+generateLUT("char", 4)

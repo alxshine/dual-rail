@@ -21,7 +21,7 @@ if __name__ == "__main__":
         ps.set_simple_trigger(True, ps.m.Channels.A, 0.6, ps.m.ThresholdDirections.rising)
 
         """ config """
-        num_runs = 300
+        num_runs = 3000
         num_samples = 100
         samples_start = 0
         samples_end = 100
