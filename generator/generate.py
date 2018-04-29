@@ -11,7 +11,20 @@ def encode(src, radix):
         ret += (1-bit)
     return ret
 
+def decode(src, radix):
+    ret = 0
+    mask = 2**(2*radix-1)
+    for i in range(radix):
+        bit = (src & mask) > 0
+        src = src << 2
+        ret += bit
+        if i<radix-1:
+            ret = ret << 1
+    return ret
 
-src = 0xF
-encoded = encode(src, 4)
-print("src: {:08b}, encoded: {:08b}".format(src, encoded))
+def testEncodeDecode(radix):
+    for src in range(2**radix):
+        assert (decode(encode(src, radix), radix) == src)
+
+radix = 4
+testEncodeDecode(radix)
