@@ -10,9 +10,9 @@
 #define HI 0b01010110 // 0x1 encoded
 
 TYPE a = REF;
-TYPE bs[] = {HI, LO};
+TYPE bs[] = {HI, LO, HI};
 TYPE cs[] = {LO, HI};
-int j = 0;
+int j = 1;
 
 void setup() {
   pinMode(TRIGGER, OUTPUT);
@@ -24,12 +24,14 @@ void setup() {
 }
 
 void loop() {
-  TYPE b;
+  TYPE b = bs[j];
+  TYPE c;
   digitalWrite(TRIGGER, HIGH);
-  b = dual_xor(a, bs[j]);
+  delay(10);
+  c = dual_xor(a, b);
   digitalWrite(TRIGGER, LOW);
   delay(50);
-  Serial.println((short)b);
-  j = 1 - j;
+  Serial.println((short)c);
+  j = 2 - j/2;
   delay(50);
 }

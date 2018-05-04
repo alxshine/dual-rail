@@ -8,10 +8,9 @@
 #define HI 0x1
 
 TYPE a = REF;
-TYPE bs[] = {HI, LO};
+TYPE bs[] = {HI, LO, HI};
 TYPE cs[] = {LO, HI};
-int j = 0;
-int i = 0;
+int j = 1;
 
 void setup() {
   pinMode(TRIGGER, OUTPUT);
@@ -23,12 +22,14 @@ void setup() {
 }
 
 void loop() {
-  TYPE b;
+  TYPE b = bs[j];
+  TYPE c;
   digitalWrite(TRIGGER, HIGH);
-  b = a ^ bs[j];
+  delay(10);
+  c = a ^ b;
   digitalWrite(TRIGGER, LOW);
   delay(50);
-  Serial.println(b);
-  j = 1 - j;
+  Serial.println((short)c);
+  j = 2 - j/2;
   delay(50);
 }

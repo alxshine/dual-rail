@@ -2,16 +2,14 @@
 #include<stdio.h>
 
 #define TRIGGER 2
-#define TYPE char
-#define REF 0xFF
-#define LO 0x7F
+#define TYPE int
+#define REF 0xFFFF
+#define LO 0x7FFF
 #define HI 0x1
 
 TYPE a = REF;
-TYPE bs[] = {HI, LO};
-TYPE cs[] = {LO, HI};
-int j = 0;
-int i = 0;
+TYPE bs[] = {HI, LO, HI};
+int j = 1;
 
 void setup() {
   pinMode(TRIGGER, OUTPUT);
@@ -22,16 +20,15 @@ void setup() {
   //  digitalWrite(TRIGGER, LOW);
 }
 
-TYPE doStuff(int i) {
-  TYPE c = a ^ bs[1-i];
-  return c;
-}
-
 void loop() {
+  TYPE b = bs[j];
+  TYPE c;
   digitalWrite(TRIGGER, HIGH);
-  TYPE c = doStuff(j);
-  Serial.println(c);
+  delay(10);
+  c = a ^ b;
   digitalWrite(TRIGGER, LOW);
-  j = 1 - j;
-  delay(100);
+  delay(50);
+  Serial.println(c);
+  j = 2 - j/2;
+  delay(50);
 }

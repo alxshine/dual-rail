@@ -21,11 +21,9 @@ if __name__ == "__main__":
         ps.set_simple_trigger(True, ps.m.Channels.A, 0.6, ps.m.ThresholdDirections.rising)
 
         """ config """
-        num_runs = 10
-        num_traces = 5000
-        num_samples = 100
-        samples_start = 25
-        samples_end = 75
+        num_runs = 4
+        num_traces = 10000
+        num_samples = 2000
         path = "run_{:02}.npy"
 
         if status == ps.m.pico_num("PICO_OK"):
@@ -39,7 +37,7 @@ if __name__ == "__main__":
                 all_data = np.zeros((num_traces, num_samples))
                 for i in range(num_traces):
                     print("{}/{}".format(i,num_traces))
-                    status = ps.collect_segment(segment=0, interval=25)
+                    status = ps.collect_segment(segment=0, interval=50)
                     if status == ps.m.pico_num("PICO_OK"):
                         status, all_data[i] = ps.get_buffer_volts(index=index)
 
