@@ -21,8 +21,8 @@ if __name__ == "__main__":
         ps.set_simple_trigger(True, ps.m.Channels.A, 0.6, ps.m.ThresholdDirections.rising)
 
         """ config """
-        num_runs = 4
-        num_traces = 10000
+        num_runs = 10
+        num_traces = 100000
         num_samples = 2000
         path = "run_{:02}.npy"
 
