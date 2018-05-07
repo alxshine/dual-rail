@@ -6,8 +6,8 @@ import matplotlib.pyplot as plt
 
 p_balanced = "balanced.npy"
 p_unbalanced = "unbalanced.npy"
-start_index = 1000
-end_index = 1400
+start_index = 0
+end_index = 2000
 
 try:
     index = int(sys.arv[1])
@@ -17,11 +17,15 @@ except Exception:
 balanced = np.load(p_balanced)
 unbalanced = np.load(p_unbalanced)
 
-evens = balanced[::2, start_index:end_index]
-odds = balanced[1::2, start_index:end_index]
+evens = balanced[::2, :]
+evens = evens[evens.max(axis=1) > 0]
+odds = balanced[1::2, :]
+odds = odds[odds.max(axis=1) > 0]
 
-evens_un = unbalanced[::2, start_index:end_index]
-odds_un = unbalanced[1::2, start_index:end_index]
+evens_un = unbalanced[::2, :]
+evens_un = evens_un[odds.max(axis=1) > 0]
+odds_un = unbalanced[1::2, :]
+odds_un = odds_un[odds.max(axis=1) > 0]
 
 evens_mean = evens.mean(axis=0)
 odds_mean = odds.mean(axis=0)
@@ -49,8 +53,8 @@ plt.plot(diff_un)
 
 plt.subplot(313)
 plt.title("both")
-plt.plot((diff), label="balanced")
 plt.plot((diff_un), label="unbalanced")
+plt.plot((diff), label="balanced")
 plt.ylim(ymin, ymax)
 plt.legend()
 

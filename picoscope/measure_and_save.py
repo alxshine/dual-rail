@@ -3,6 +3,7 @@
 from picosdk import ps3000a as pico
 import matplotlib.pyplot as plt
 import numpy as np
+import sys
 
 if __name__ == "__main__":
     ps = pico.Device()
@@ -21,8 +22,8 @@ if __name__ == "__main__":
         ps.set_simple_trigger(True, ps.m.Channels.A, 0.6, ps.m.ThresholdDirections.rising)
 
         """ config """
-        num_runs = 10
-        num_traces = 100000
+        num_runs = 1
+        num_traces = 10000
         num_samples = 2000
         path = "run_{:02}.npy"
 
@@ -40,6 +41,9 @@ if __name__ == "__main__":
                     status = ps.collect_segment(segment=0, interval=50)
                     if status == ps.m.pico_num("PICO_OK"):
                         status, all_data[i] = ps.get_buffer_volts(index=index)
+                    else:
+                        print(ps.m.pico_tag(status))
+                        sys.exit(-1)
 
                 np.save(path.format(r), all_data)
 
