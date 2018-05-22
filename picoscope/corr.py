@@ -96,7 +96,7 @@ except IOError:
     candidates = range(1<<8)
     corrs = np.zeros((16, len(candidates), traces.shape[1]))
     for b in range(16):
-        print("Key byte {}".format(i+1))
+        print("Key byte {}".format(b+1))
         plaintexts = ptxts[b]
         hypopowcons = np.zeros((len(plaintexts), len(candidates)))
         print("Generating hypothetical power consumptions")
