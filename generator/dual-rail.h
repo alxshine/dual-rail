@@ -1,7 +1,9 @@
 #ifndef DUAL_RAIL
 #define DUAL_RAIL
 
-#include "lut.h"
+#include "lut_xor.h"
+#include "lut_add.h"
+#include "lut_mult.h"
 
 #define ENCODED_TYPE unsigned char
 #define ENCODED_MASK 128
@@ -47,7 +49,19 @@ PLAIN_TYPE decode(ENCODED_TYPE src){
 
 ENCODED_TYPE dual_xor(ENCODED_TYPE lhs, ENCODED_TYPE rhs){
 	int index = (lhs<<8) + rhs;
-	return lut[index];
+	return d_xor[index];
 }
+
+ENCODED_TYPE dual_add(ENCODED_TYPE lhs, ENCODED_TYPE rhs){
+	int index = (lhs<<8) + rhs;
+	return d_add[index];
+}
+
+ENCODED_TYPE dual_mult(ENCODED_TYPE lhs, ENCODED_TYPE rhs){
+	int index = (lhs<<8) + rhs;
+	return d_mult[index];
+}
+
+
 
 #endif
