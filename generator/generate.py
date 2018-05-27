@@ -60,15 +60,14 @@ def generateSbox(name, t, radix):
         print("\t", end='')
         for j in range(2<<radix):
             operand = (i << radix) | j
-            lh = decode(operand, radix)
             
-            value = encode(s[lh], radix)
+            value = encode(s[operand], radix)
             print("{}, ".format(value), end='')
         
         print()
     print("};")
     print("#endif")
 
-op = lambda a,b: (int(a)*int(b))&255
+# op = lambda a,b: (int(a)*int(b))&255
 # generateLUT("d_mult", "char", 4, op)
 generateSbox("d_sbox", "char", 4)
