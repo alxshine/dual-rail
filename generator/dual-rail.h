@@ -4,6 +4,7 @@
 #include "lut_xor.h"
 #include "lut_add.h"
 #include "lut_mult.h"
+#include "lut_sbox.h"
 
 #define ENCODED_TYPE unsigned char
 #define ENCODED_MASK 128
