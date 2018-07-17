@@ -3,7 +3,7 @@
 
 #include "s_box.h"
 
-#define TRIGGER 2
+#define TRIGGER 9
 #define TYPE char
 
 TYPE key_xor = 5;
@@ -17,8 +17,8 @@ void setup() {
 }
 
 void loop() {
-
   digitalWrite(TRIGGER, HIGH);
+  delay(50);
   a = s[ptxt ^ key_xor];
 
   digitalWrite(TRIGGER, LOW);
