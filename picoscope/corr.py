@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from scipy.stats import linregress
 import sys
 
 """
@@ -82,6 +83,7 @@ except IOError:
     try:
         print("Loading traces")
         traces = np.load(filename)
+        num_samples = traces.shape[1]
     except IOError:
         print("Could not find file {}".format(filename))
         sys.exit(1)
@@ -93,28 +95,26 @@ except IOError:
         print("Could not find file {}".format(ptxtname))
         sys.exit(1)
 
-    candidates = range(1<<8)
-    corrs = np.zeros((16, len(candidates), traces.shape[1]))
-    for b in range(16):
-        print("Key byte {}".format(b+1))
-        plaintexts = ptxts[b]
-        hypopowcons = np.zeros((len(plaintexts), len(candidates)))
-        print("Generating hypothetical power consumptions")
-        for i in range(len(plaintexts)):
-            for j in range(len(candidates)):
-                hypopowcons[i,j] = popcount(Sbox[int(plaintexts[i])^candidates[j]])
+    num_candidates = 1<<4
+    candidates = range(num_candidates)
+    num_traces = len(ptxts)
+    #hypothetical power consumptions of all traces per key candidate
+    hypopowcons = np.zeros((len(candidates), num_traces))
+    for i in range(num_candidates):
+        for j in range(num_traces):
+            hypopowcons[i,j] = popcount(Sbox[candidates[i] ^ ptxts[j]])
+    
+    #calculate correlation between the hypopowcons for a candidate with all points in the traces
+    corrs = np.zeros((num_candidates, num_samples))
+    for c in candidates:
+        print("Candidate {}".format(c))
+        for j in range(num_samples):
+            print(f"Trace point {j+1}\r", end='')
+            corrs[i,j] = linregress(hypopowcons[i, :], traces[:, j]).rvalue
+        print()
 
-        temp = np.zeros((len(candidates), traces.shape[1]))
-        print("Generating correlation coefficients")
-        for i in candidates:
-            print("Key candidate {}".format(i))
-            for j in range(traces.shape[1]):
-                print("Trace point {}\r".format(j+1), end='')
-                temp[i,j]  = (np.corrcoef(traces[:,j], hypopowcons[:,i]))[0,1]
-            print()
-        corrs[b] = temp
     np.save("corr_{}".format(filename), corrs)
 
-peaks = corrs.max(axis=2)
-print("Most probable keys:".format(peaks.argmax()))
-print([peaks[i].argmax() for i in range(16)])
+for candidate in corrs:
+    plt.plot(candidate)
+plt.show()
