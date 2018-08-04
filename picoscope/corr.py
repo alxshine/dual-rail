@@ -119,5 +119,4 @@ except IOError:
 
     np.save("corr_{}".format(filename), corrs)
 
-print(corrs.shape)
-print(np.argmax(corrs.argmax(axis=1)))
+print(corrs.max(axis=1))

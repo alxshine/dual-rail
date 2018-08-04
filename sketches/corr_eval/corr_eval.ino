@@ -6,7 +6,7 @@
 #define TRIGGER 9
 #define TYPE char
 
-TYPE key_xor = 5;
+TYPE key_xor = 0;
 TYPE a;
 TYPE ptxt = 0;
 

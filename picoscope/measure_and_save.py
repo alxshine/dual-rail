@@ -7,6 +7,7 @@ from picoscope import ps3000a
 
 ps = ps3000a.PS3000a()
 print(ps.getAllUnitInfo())
+datestring = datetime.datetime.today().strftime("%Y-%m-%d")
 
 print("Setting channel A to DC 5V")
 ps.setChannel(channel="A", coupling="DC", VRange=5)
@@ -17,7 +18,7 @@ ps.setSimpleTrigger("A", threshold_V=2)
 print()
 
 num_plaintexts = 16
-captures_per_plaintext = 20
+captures_per_plaintext = 40
 n_captures = num_plaintexts * captures_per_plaintext
 print("Capturing {} plaintexts {} times each, resulting in {} traces total".format(num_plaintexts, captures_per_plaintext, n_captures))
 sample_interval = 10e-9 #10ns sampling interval
@@ -38,6 +39,11 @@ print("{} samples returned".format(numSamplesReturned))
 print("Data.shape: {}".format(data.shape))
 print("All voltage data equal: {}".format(np.all(data == data[0][0])))
 ps.stop()
-filename = "traces-{}_ptxts_{}.npy".format(num_plaintexts, datetime.datetime.today().strftime("%Y-%m-%d"))
+filename = "traces-{}_ptxts_{}.npy".format(num_plaintexts, datestring)
 print("Saving to {}".format(filename))
 np.save(filename, data)
+
+print("Generating plaintext file")
+plaintexts = np.arange(16)
+plaintexts = np.tile(plaintexts, captures_per_plaintext)
+np.save("plaintexts-{}_ptxts_{}.npy".format(num_plaintexts, datestring), plaintexts)
