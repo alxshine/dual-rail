@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy.stats import linregress
 import sys
+import pdb
 
 """
     Copyright (C) 2012 Bo Zhu http://about.bozhu.me
@@ -76,13 +76,17 @@ def popcount(x):
     return bin(x).count('1')
 
 try:
-    print("Trying to load correlation file")
+    print(f"Trying to load corr_{filename} file")
     corrs = np.load("corr_{}".format(filename))
+    print("Success, using those values")
 except IOError:
     print("Not found, generating one")
     try:
         print("Loading traces")
         traces = np.load(filename)
+        num_samples_to_skip = 1000
+        print(f"Skipping the first {num_samples_to_skip} samples")
+        traces = traces[:,num_samples_to_skip:]
         num_samples = traces.shape[1]
     except IOError:
         print("Could not find file {}".format(filename))
@@ -110,11 +114,10 @@ except IOError:
         print("Candidate {}".format(c))
         for j in range(num_samples):
             print(f"Trace point {j+1}\r", end='')
-            corrs[i,j] = linregress(hypopowcons[i, :], traces[:, j]).rvalue
+            corrs[c,j] = np.corrcoef(hypopowcons[c, :], traces[:, j])[0,1]
         print()
 
     np.save("corr_{}".format(filename), corrs)
 
-for candidate in corrs:
-    plt.plot(candidate)
-plt.show()
+print(corrs.shape)
+print(np.argmax(corrs.argmax(axis=1)))
