@@ -18,7 +18,7 @@ ps.setSimpleTrigger("A", threshold_V=2)
 print()
 
 num_plaintexts = 16
-captures_per_plaintext = 40
+captures_per_plaintext = 100
 n_captures = num_plaintexts * captures_per_plaintext
 print("Capturing {} plaintexts {} times each, resulting in {} traces total".format(num_plaintexts, captures_per_plaintext, n_captures))
 sample_interval = 10e-9 #10ns sampling interval

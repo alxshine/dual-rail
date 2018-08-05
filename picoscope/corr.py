@@ -60,6 +60,11 @@ InvSbox = (
     0x17, 0x2B, 0x04, 0x7E, 0xBA, 0x77, 0xD6, 0x26, 0xE1, 0x69, 0x14, 0x63, 0x55, 0x21, 0x0C, 0x7D,
 )
 
+specialLut = (
+    0x0000, 0x0001, 0x0003, 0x0007, 0x000F, 0x001F, 0x003F, 0x007F,
+    0x00FF, 0x01FF, 0x03FF, 0x07FF, 0x0FFF, 0x1FFF, 0x3FFF, 0x7FFF
+)
+
 """ end of copyrighted part """
 
 try:
@@ -84,9 +89,6 @@ except IOError:
     try:
         print("Loading traces")
         traces = np.load(filename)
-        num_samples_to_skip = 1000
-        print(f"Skipping the first {num_samples_to_skip} samples")
-        traces = traces[:,num_samples_to_skip:]
         num_samples = traces.shape[1]
     except IOError:
         print("Could not find file {}".format(filename))
@@ -104,9 +106,9 @@ except IOError:
     num_traces = len(ptxts)
     #hypothetical power consumptions of all traces per key candidate
     hypopowcons = np.zeros((len(candidates), num_traces))
-    for i in range(num_candidates):
+    for c in candidates:
         for j in range(num_traces):
-            hypopowcons[i,j] = popcount(Sbox[candidates[i] ^ ptxts[j]])
+            hypopowcons[c,j] = popcount(specialLut[c ^ ptxts[j]])
     
     #calculate correlation between the hypopowcons for a candidate with all points in the traces
     corrs = np.zeros((num_candidates, num_samples))
@@ -119,4 +121,11 @@ except IOError:
 
     np.save("corr_{}".format(filename), corrs)
 
-print(corrs.max(axis=1))
+start_sample = 200
+end_sample = 3000
+print("Using samples {} to {}".format(start_sample, end_sample))
+corrs = corrs[:, start_sample:end_sample]
+print(f"Points of maximum correlation: {corrs.argmax(axis=1)}")
+print(f"Maximum correlation value: {corrs.max(axis=1)}")
+plt.scatter(range(16), corrs.max(axis=1))
+plt.show()
