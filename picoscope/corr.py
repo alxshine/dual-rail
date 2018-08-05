@@ -60,11 +60,6 @@ InvSbox = (
     0x17, 0x2B, 0x04, 0x7E, 0xBA, 0x77, 0xD6, 0x26, 0xE1, 0x69, 0x14, 0x63, 0x55, 0x21, 0x0C, 0x7D,
 )
 
-specialLut = (
-    0x0000, 0x0001, 0x0003, 0x0007, 0x000F, 0x001F, 0x003F, 0x007F,
-    0x00FF, 0x01FF, 0x03FF, 0x07FF, 0x0FFF, 0x1FFF, 0x3FFF, 0x7FFF
-)
-
 """ end of copyrighted part """
 
 try:
@@ -108,7 +103,7 @@ except IOError:
     hypopowcons = np.zeros((len(candidates), num_traces))
     for c in candidates:
         for j in range(num_traces):
-            hypopowcons[c,j] = popcount(specialLut[c ^ ptxts[j]])
+            hypopowcons[c,j] = popcount(Sbox[c ^ ptxts[j]])
     
     #calculate correlation between the hypopowcons for a candidate with all points in the traces
     corrs = np.zeros((num_candidates, num_samples))
