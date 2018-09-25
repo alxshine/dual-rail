@@ -8,35 +8,33 @@ ps = ps3000a.PS3000a()
 print(ps.getAllUnitInfo())
 
 print("Setting channel A to DC 5V")
-ps.setChannel(channel="A", coupling="DC", VRange=5)
+aRange = ps.setChannel(channel="A", coupling="DC", VRange=5)
+print("Range of channel A: {}".format(aRange))
 print("Setting channel B to DC 1V")
-ps.setChannel(channel="B", coupling="DC", VRange=1)
+bRange = ps.setChannel(channel='B', coupling='DC', VRange=0.5, VOffset=-0.1, enabled=True)
+print("Range of channel B: {}".format(bRange))
 print("Setting trigger on channel A for 2V")
 ps.setSimpleTrigger("A", threshold_V=2)
 print()
 
-num_plaintexts = 16
-captures_per_plaintext = 20
-n_captures = num_plaintexts * captures_per_plaintext
-print("Capturing {} plaintexts {} times each, resulting in {} traces total".format(num_plaintexts, captures_per_plaintext, n_captures))
-sample_interval = 10e-9 #10ns sampling interval
-sample_duration = 100e-6
-print("Sampling interval {}ns, sample duration {}ms".format(sample_interval*1e9, sample_duration*1e6))
+sample_interval = 100e-9 
+sample_duration = 15e-3
+print("Sampling interval {}s, sample duration {}s".format(sample_interval, sample_duration))
 
-ps.setSamplingInterval(sample_interval, sample_duration)
+actualSamplingInterval, nSamples, maxSamples = ps.setSamplingInterval(sample_interval, sample_duration)
+print("Sampling interval: {}s".format(actualSamplingInterval))
+print("Number of samples: {}".format(nSamples))
+print("MaxSamples: {}".format(maxSamples))
 
-samples_per_segment = ps.memorySegments(n_captures)
-ps.setNoOfCaptures(n_captures)
-
-print("Starting block capture")
+print("Starting capture")
 ps.runBlock()
 ps.waitReady()
-print("Block capture done")
-data, numSamplesReturned, _ = ps.getDataRawBulk(channel='B')
-print("{} samples returned".format(numSamplesReturned))
+print("Capture done")
+data  = ps.getDataV(channel='B')
 print("Data.shape: {}".format(data.shape))
-print("All voltage data equal: {}".format(np.all(data == data[0][0])))
+print("All voltage data equal: {}".format(np.all(data == data[0])))
+print("Number of unique voltage values: {}".format(len(np.unique(data))))
 ps.stop()
-for row in data:
-    plt.plot(row)
+ps.close()
+plt.plot(data)
 plt.show()

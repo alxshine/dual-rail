@@ -116,10 +116,6 @@ except IOError:
 
     np.save("corr_{}".format(filename), corrs)
 
-start_sample = 200
-end_sample = 3000
-print("Using samples {} to {}".format(start_sample, end_sample))
-corrs = corrs[:, start_sample:end_sample]
 print(f"Points of maximum correlation: {corrs.argmax(axis=1)}")
 print(f"Maximum correlation value: {corrs.max(axis=1)}")
 plt.scatter(range(16), corrs.max(axis=1))

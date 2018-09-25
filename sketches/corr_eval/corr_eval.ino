@@ -6,7 +6,7 @@
 #define TRIGGER 9
 #define TYPE char
 
-TYPE key_xor = 0;
+TYPE key_xor = 7;
 TYPE a;
 TYPE ptxt = 0;
 
@@ -18,13 +18,12 @@ void setup() {
 
 void loop() {
   digitalWrite(TRIGGER, HIGH);
-  delay(50);
+  delay(10);
   a = s[ptxt ^ key_xor];
 
   digitalWrite(TRIGGER, LOW);
-  delay(50);
   Serial.println(short(a));
   //keep it within the 4bit range
   ptxt = (ptxt + 1) % (1 << 4);
-  delay(50);
+  delay(100);
 }

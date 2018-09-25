@@ -6,7 +6,6 @@ void setup() {
   pinMode(PIN, OUTPUT);
   Serial.begin(19200);
   digitalWrite(PIN, HIGH);
-  delay(5000);
 }
 
 void loop() {
