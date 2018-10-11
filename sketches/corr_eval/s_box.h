@@ -1,11 +1,29 @@
-#ifndef SBOX
-#define SBOX
+#pragma once
 
-const unsigned char s[64] =
-{
-  14,  0,  4, 15, 13,  7,  1,  4,  2, 14, 15,  2, 11, 13,  8,  1,
-   3, 10, 10,  6,  6, 12, 12, 11,  5,  9,  9,  5,  0,  3,  7,  8,
-   4, 15,  1, 12, 14,  8,  8,  2, 13,  4,  6,  9,  2,  1, 11,  7,
-  15,  5, 12, 11,  9,  3,  7, 14,  3, 10, 10,  0,  5,  6,  0, 13};
+#include <stdint.h>
 
-#endif
+#define ROTL8(x,shift) ((uint8_t) ((x) << (shift)) | ((x) >> (8 - (shift))))
+
+void initialize_aes_sbox(uint8_t sbox[256]) {
+  uint8_t p = 1, q = 1;
+  
+  /* loop invariant: p * q == 1 in the Galois field */
+  do {
+    /* multiply p by 3 */
+    p = p ^ (p << 1) ^ (p & 0x80 ? 0x1B : 0);
+
+    /* divide q by 3 (equals multiplication by 0xf6) */
+    q ^= q << 1;
+    q ^= q << 2;
+    q ^= q << 4;
+    q ^= q & 0x80 ? 0x09 : 0;
+
+    /* compute the affine transformation */
+    uint8_t xformed = q ^ ROTL8(q, 1) ^ ROTL8(q, 2) ^ ROTL8(q, 3) ^ ROTL8(q, 4);
+
+    sbox[p] = xformed ^ 0x63;
+  } while (p != 1);
+
+  /* 0 is a special case since it has no inverse */
+  sbox[0] = 0x63;
+}
