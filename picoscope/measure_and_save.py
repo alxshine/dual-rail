@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import time
 import datetime
+import os
 
 from picoscope import ps3000a
 
@@ -17,8 +18,8 @@ print("Setting trigger on channel A for 2V")
 ps.setSimpleTrigger("A", threshold_V=2)
 print()
 
-num_plaintexts = 16
-captures_per_plaintext = 100
+num_plaintexts = 256
+captures_per_plaintext = 5
 n_captures = num_plaintexts * captures_per_plaintext
 print("Capturing {} plaintexts {} times each, resulting in {} traces total".format(num_plaintexts, captures_per_plaintext, n_captures))
 sample_interval = 100e-9
@@ -39,11 +40,14 @@ for i in range(n_captures):
     data[i] = ps.getDataV(channel='B')
 print("Capture done")
 ps.stop()
-filename = "traces-{}_ptxts_{}.npy".format(num_plaintexts, datestring)
-print("Saving to {}".format(filename))
-np.save(filename, data)
+dirName = "traces-{}_ptxts_{}.npy".format(num_plaintexts, datestring)
+if not os.path.isdir(dirName):
+    os.makedirs(dirName)
+
+print("Saving to {}".format(dirName))
+np.save(f"{dirName}/traces.npy", data)
 
 print("Generating plaintext file")
 plaintexts = np.arange(16)
 plaintexts = np.tile(plaintexts, captures_per_plaintext)
-np.save("plaintexts-{}_ptxts_{}.npy".format(num_plaintexts, datestring), plaintexts)
+np.save(f"{dirName}/plaintexts.npy", plaintexts)
