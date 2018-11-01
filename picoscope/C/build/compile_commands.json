@@ -1,7 +1,0 @@
-[
-{
-  "directory": "/home/bambusbjorn/Projects/dual-rail/picoscope/C/build",
-  "command": "/usr/bin/c++   -I/opt/picoscope/include  -g -std=c++17 -Wall -Wextra   -o CMakeFiles/Pico.dir/pico.cpp.o -c /home/bambusbjorn/Projects/dual-rail/picoscope/C/pico.cpp",
-  "file": "/home/bambusbjorn/Projects/dual-rail/picoscope/C/pico.cpp"
-}
-]
