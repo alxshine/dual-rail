@@ -67,23 +67,25 @@ AllKeyCors = function(ptxts,keys,traces,powerModel = hammingWeight){
 parseTracesPTxts<-function(tracefile,ptxtfile,tracelength,cutoff=tracelength) {
   
   foo<-readLines(tracefile)
-  bar<-readLines(ptxtfile)
-  
   .parseTrace<-function(line) {
     line<-strtoi(unlist(strsplit(line,",")))
     if (length(line)==tracelength) return(line[1:cutoff]) else return(rep.int(0,cutoff))
   }
   
-  .parsePTxt<-function(line) {
-    tmp<-unlist(strsplit(line,""))
-    return(sapply(tmp,function (c) as.integer(charToRaw(c))))
-  }
-  
   traces<<-matrix(unlist(lapply(foo,.parseTrace)),nrow=cutoff)
-  ptxts<<-sapply(bar,.parsePTxt)
+  ptxts<<-parsePtxts(ptxtfile)
   
   lengths<-which(apply(traces,2,function(c) {max(c)==0}))
   ptxts<<-ptxts[,-lengths]
   traces<<-traces[,-lengths]
   traces<<-t(traces)
+}
+
+parsePtxts<-function(ptxtfile){
+  lines = readLines(ptxtfile)
+  .parsePtxt=function(line){
+    return(strtoi(strsplit(line,",")))
+  }
+  
+  return(sapply(lines,.parsePtxt))
 }
