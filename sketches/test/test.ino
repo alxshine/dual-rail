@@ -1,7 +1,7 @@
 
 #include<stdio.h>
 
-#define TRIGGER 2
+#define TRIGGER 7
 #define TYPE int
 #define REF 0xFFFF
 #define LO 0x7FFF

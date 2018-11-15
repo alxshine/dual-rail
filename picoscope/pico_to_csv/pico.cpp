@@ -31,14 +31,9 @@ Pico::Pico()
     throw status;
 
   std::cout << "Calculating the timebase\n";
-  uint32_t timebase = 2; // the arduino runs at 84MHz, so once every 12ns, which
-                         // means I need half that
-  int32_t noSamplesBefore = 100;
-  int32_t noSamplesAfter = 250e3;
-  uint32_t noSamples = noSamplesBefore + noSamplesAfter;
   float actualIntervalInNs;
   int32_t maxAvailableSamples;
-  status = ps3000aGetTimebase2(picoHandle, timebase, noSamples,
+  status = ps3000aGetTimebase2(picoHandle, timebase, numSamples,
                                &actualIntervalInNs, 0, &maxAvailableSamples, 0);
 
   if (status != PICO_OK)
@@ -90,3 +85,46 @@ Pico::~Pico()
   ps3000aStop(picoHandle);
 }
 
+std::vector<short> Pico::runBlockingCapture()
+{
+  printf("Running capture\n");
+  int32_t timeIndisposedAfterCapture;
+  PICO_STATUS status =
+      ps3000aRunBlock(picoHandle, noSamplesBefore, noSamplesAfter, timebase, 0,
+                      &timeIndisposedAfterCapture, 0, NULL, NULL);
+  if (status != PICO_OK)
+    throw status;
+  printf("Capture started, afterwards the scope will take %dms to copy\n",
+         timeIndisposedAfterCapture);
+
+  int16_t ready = 0;
+  do {
+    status = ps3000aIsReady(picoHandle, &ready);
+    if (status != PICO_OK)
+      throw status;
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  } while (!ready);
+
+  printf("Capture is done\n");
+
+  // create buffer for the result
+  printf("Setting data buffer\n");
+  int bufferLength = numSamples * sizeof(int16_t);
+  std::vector<short> buffer(bufferLength, 0);
+  //memset(buffer, 0, bufferLength);
+  status = ps3000aSetDataBuffer(picoHandle, PS3000A_CHANNEL_B, buffer.data(),
+                                bufferLength, 0, PS3000A_RATIO_MODE_NONE);
+  if (status != PICO_OK)
+    throw status;
+
+  printf("Getting values\n");
+  int16_t overflow;
+  status = ps3000aGetValues(picoHandle, 0, &numSamples, 1,
+                            PS3000A_RATIO_MODE_NONE, 0, &overflow);
+  if (status != PICO_OK)
+    throw status;
+  printf("%d samples returned\n", numSamples);
+  if (overflow)
+    printf("an overflow occured: %04x\n", overflow);
+  return buffer;
+}

@@ -1,7 +1,8 @@
 cmake_minimum_required (VERSION 2.6)
 project (Pico)
 
-set(CMAKE_CXX_FLAGS "-g -std=c++17 -Wall -Wextra")
+set(CXX_STANDARD 17)
+set(CMAKE_CXX_FLAGS "-g -Wall -Wextra")
 set(default_build_type "Release")
 set(CMAKE_EXPORT_COMPILE_COMMANDS on)
 
