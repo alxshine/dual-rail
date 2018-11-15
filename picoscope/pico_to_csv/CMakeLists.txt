@@ -8,5 +8,5 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS on)
 include_directories("/opt/picoscope/include/")
 link_directories("/opt/picoscope/lib")
 
-add_executable(Pico pico.cpp)
+add_executable(Pico main.cpp pico.cpp)
 target_link_libraries(Pico ps3000a)
