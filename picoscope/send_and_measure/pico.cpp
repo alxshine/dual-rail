@@ -94,24 +94,24 @@ void Pico::startCapture() {
 }
 
 std::vector<short> Pico::retrieveData() {
+  printf("Retrieving data, waiting for capture to end\n");
   int16_t ready = 0;
   PICO_STATUS status;
   do {
     status = ps3000aIsReady(picoHandle, &ready);
     if (status != PICO_OK)
       throw status;
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    if(!ready)
+      std::this_thread::sleep_for(std::chrono::milliseconds(100));
   } while (!ready);
 
   printf("Capture is done\n");
 
   // create buffer for the result
   printf("Setting data buffer\n");
-  int bufferLength = numSamples * sizeof(int16_t);
-  std::vector<short> buffer(bufferLength, 0);
-  // memset(buffer, 0, bufferLength);
+  std::vector<short> buffer(numSamples, 0);
   status = ps3000aSetDataBuffer(picoHandle, PS3000A_CHANNEL_B, buffer.data(),
-                                bufferLength, 0, PS3000A_RATIO_MODE_NONE);
+                                numSamples, 0, PS3000A_RATIO_MODE_NONE);
   if (status != PICO_OK)
     throw status;
 

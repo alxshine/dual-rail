@@ -12,7 +12,7 @@ Tty::Tty(std::string deviceName, int baudRateFlag) {
   newConfig.c_lflag = 0;
 
   newConfig.c_cc[VTIME] = 0; // inter-character timer unused
-  newConfig.c_cc[VMIN] = 4;  // blocking read until 5 chars received
+  newConfig.c_cc[VMIN] = 20;  // blocking read until 5 chars received
 
   tcgetattr(fd, &oldConfig);
   tcflush(fd, TCIFLUSH);

@@ -1,6 +1,7 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <thread>
 
 #include "tty.hpp"
 #include "tty_utils.hpp"
@@ -26,9 +27,10 @@ int main(int argc, char *argv[])
 
   char buffer[16];
   for(auto i = 0; i<atoi(argv[1]); i++){
+    cout << "Run " << i+1 << endl;
     randFill(buffer, 16);
     for(auto j = 0; j<16; j++){
-      plaintextStream << buffer[j];
+      plaintextStream << (static_cast<unsigned int>(buffer[j]) & 0xff);
       if(j < 15)
         plaintextStream << ",";
     }
@@ -36,6 +38,8 @@ int main(int argc, char *argv[])
     plaintextStream.flush();
 
     p.startCapture();
+    this_thread::sleep_for(150ms);
+    cout << "Sending plaintext" << endl;
     t.write(buffer);
     auto trace = p.retrieveData();
     auto size = trace.size();
@@ -45,7 +49,6 @@ int main(int argc, char *argv[])
         traceStream << ",";
     }
     traceStream << endl;
-    traceStream.flush();
   }
 
   return 0;
