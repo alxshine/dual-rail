@@ -30,7 +30,7 @@ int main(int argc, char *argv[]) {
   }
   cout << "Writing preamble" << endl;
   headerFile << "#ifndef PLAINTEXTS_H\n#define PLAINTEXTS_H\n\n";
-  headerFile << "char plaintexts[" << num << "] = {\n";
+  headerFile << "char *plaintexts[" << num << "] = {\n";
 
   auto textFileName = "plaintexts.txt";
   cout << "Opening " << textFileName << endl;
@@ -62,6 +62,6 @@ int main(int argc, char *argv[]) {
   }
 
   cout << "Writing postamble" << endl;
-  headerFile << "}\n#endif";
+  headerFile << "};\n#endif";
   return 0;
 }
