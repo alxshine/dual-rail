@@ -46,7 +46,9 @@ HypotheticPowerConsumption = function (ptxts,keys,powerModel = hammingWeight) {
 
 #Calculates highest correlation figure per key byte hypothesis given hypothetical and actual power consumptions
 KeyCors = function(hypopowcon,traces){
-  return(apply(cor(hypopowcon,traces),1,max))
+  tmp = cor(hypopowcon, traces)
+  tmp[is.na(tmp)] = 0
+  return(apply(tmp,1,max))
 }
 
 
@@ -82,33 +84,8 @@ parseTracesPTxts<-function(tracefile,ptxtfile,tracelength,cutoff=tracelength) {
   traces<<-matrix(unlist(lapply(foo,.parseTrace)),nrow=cutoff)
   ptxts<<-sapply(bar,.parsePTxt)
   
-  lengths<-which(apply(traces,2,function(c) {max(c)==0}))
-  ptxts<<-ptxts[,-lengths]
-  traces<<-traces[,-lengths]
+  # lengths<-which(apply(traces,2,function(c) {max(c)==0}))
+  # ptxts<<-ptxts[,-lengths]
+  # traces<<-traces[,-lengths]
   traces<<-t(traces)
 }
-
-# #Parse trace and plaintext files
-# parseTracesPTxts<-function(tracefile,ptxtfile,tracelength,cutoff=tracelength) {
-#   
-#   foo<-readLines(tracefile)
-#   .parseTrace<-function(line) {
-#     line<-strtoi(unlist(strsplit(line,",")))
-#     if (length(line)==tracelength) return(line[1:cutoff]) else return(rep.int(0,cutoff))
-#   }
-#   
-#   traces<<-matrix(unlist(lapply(foo,.parseTrace)),nrow=cutoff)
-#   ptxts<<-parsePtxts(ptxtfile)
-#   
-#   traces<<-t(traces)
-#   # ptxts<<-t(ptxts)
-# }
-# 
-# parsePtxts<-function(ptxtfile){
-#   lines = readLines(ptxtfile)
-#   .parsePtxt=function(line){
-#     return(strtoi(unlist(strsplit(line,","))))
-#   }
-#   
-#   return(sapply(lines,.parsePtxt))
-# }

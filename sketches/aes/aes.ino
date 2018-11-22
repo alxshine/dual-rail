@@ -11,14 +11,14 @@ int i;
 void setup() {
   // put your setup code here, to run once:
   pinMode(OUTPIN, OUTPUT);
-  Serial.setTimeout(100000);
   Serial.begin(115200);
-  srand(micros());
+  delay(5000);
 }
 
 void loop() {
-  const uint8_t* plaintext = (uint8_t*)plaintexts[i];
+  const uint8_t* plaintext = (uint8_t*)plaintexts[i++];
   digitalWrite(OUTPIN, HIGH);
   AES128_ECB_encrypt(plaintext, key, buf);
   digitalWrite(OUTPIN, LOW);
+  delay(200);
 }

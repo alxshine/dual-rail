@@ -26,7 +26,7 @@ Pico::Pico() {
 
   std::cout << "Configuring channel B\n";
   status = ps3000aSetChannel(picoHandle, PS3000A_CHANNEL_B, 1, PS3000A_AC,
-                             PS3000A_20MV, 0);
+                             PS3000A_200MV, 0);
   if (status != PICO_OK)
     throw status;
 

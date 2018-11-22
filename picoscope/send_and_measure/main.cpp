@@ -19,28 +19,14 @@ int main(int argc, char *argv[])
     return 1;
   }
 
-  Tty t{DEVICE, BAUDRATE};
   Pico p;
 
-  ofstream plaintextStream{"plaintexts.csv", ios::trunc};
   ofstream traceStream{"traces.csv", ios::trunc};
 
-  char buffer[16];
   for(auto i = 0; i<atoi(argv[1]); i++){
     cout << "Run " << i+1 << endl;
-    randFill(buffer, 16);
-    for(auto j = 0; j<16; j++){
-      plaintextStream << (static_cast<unsigned int>(buffer[j]) & 0xff);
-      if(j < 15)
-        plaintextStream << ",";
-    }
-    plaintextStream << endl;
-    plaintextStream.flush();
 
     p.startCapture();
-    this_thread::sleep_for(150ms);
-    cout << "Sending plaintext" << endl;
-    t.write(buffer);
     auto trace = p.retrieveData();
     auto size = trace.size();
     for (unsigned k = 0; k < size; ++k) {
