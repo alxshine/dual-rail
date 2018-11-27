@@ -5,14 +5,11 @@ void print_uart0(const char *s) {
  *UART0DR = (unsigned int)(*s); /* Transmit char */
  s++; /* Next char */
  }
+ *UART0DR = (unsigned int)('\n');
 }
 
-void other_test(){
-	for (int i = 0; i < 10; ++i) {
-		print_uart0("Hello world!\n");
-	}
-}
- 
+char plaintext[17]= "}Dr*Le1/rXc9c_q|\0";
+
 void c_entry() {
-	other_test();
+	print_uart0(plaintext);
 }
