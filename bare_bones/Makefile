@@ -1,7 +1,7 @@
 CROSS_COMPILE ?= arm-none-eabi
 
 CPU = -mcpu=arm926ej-s
-COPTS = -Wall -Werror -std=gnu99
+COPTS = -Wall -Werror -std=gnu99 -ggdb
 
 all: test.bin
 
@@ -15,7 +15,11 @@ test.o: test.c
 	$(CROSS_COMPILE)-gcc -c $(CPU) $(COPTS) test.c -o test.o
 
 startup.o: startup.s
-	$(CROSS_COMPILE)-as $(CPU) startup.s -o startup.o
+	$(CROSS_COMPILE)-as -ggdb $(CPU) startup.s -o startup.o
 
 run: test.bin
-	qemu-system-arm -M versatilepb -m 128M -nographic -kernel test.bin
+	qemu-system-arm -S -M versatilepb -m 128M -nographic -kernel test.bin
+
+.PHONY: clean
+clean:
+	rm *.o *.bin *.elf
