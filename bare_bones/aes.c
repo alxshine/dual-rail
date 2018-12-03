@@ -1,5 +1,4 @@
-#include <stdio.h>
-#include <string.h>
+#include "print.h"
 
 #include "plaintexts.h"
 #include "tinyAES.h"
@@ -12,7 +11,6 @@ uint8_t buf[16];
 int main() {
   for (int i = 0; i < 5; ++i) {
     const uint8_t *plaintext = (uint8_t *)plaintexts[i++];
-  	char printText[17];
   	memcpy(printText, plaintext, 16);
   	printText[16] = 0;
   	printf("Plaintext %d: %s\n", i, printText);

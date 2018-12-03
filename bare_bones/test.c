@@ -1,15 +1,7 @@
-volatile unsigned int * const UART0DR = (unsigned int *)0x101f1000;
- 
-void print_uart0(const char *s) {
- while(*s != '\0') { /* Loop until end of string */
- *UART0DR = (unsigned int)(*s); /* Transmit char */
- s++; /* Next char */
- }
- *UART0DR = (unsigned int)('\n');
-}
+#include "print.h"
 
 char plaintext[17]= "}Dr*Le1/rXc9c_q|\0";
 
 void c_entry() {
-	print_uart0(plaintext);
+	print_uart0("Hello, World");
 }
