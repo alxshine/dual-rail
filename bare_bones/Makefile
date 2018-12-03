@@ -3,13 +3,13 @@ CROSS_COMPILE ?= arm-none-eabi
 CPU = -mcpu=arm926ej-s
 COPTS = -Wall -Werror -std=gnu99 -ggdb
 
-all: test.bin
+all: test.bin aes.bin
 
 %.bin: %.elf
 	$(CROSS_COMPILE)-objcopy -O binary $< $@
 
-%.elf: %.o startup.ld startup.o
-	$(CROSS_COMPILE)-ld -T startup.ld $< startup.o -o $@
+%.elf: %.o startup.ld startup.o tinyAES.o
+	$(CROSS_COMPILE)-ld -T startup.ld $< startup.o tinyAES.o -o $@
 
 %.o: %.c print.h
 	$(CROSS_COMPILE)-gcc -c $(CPU) $(COPTS) $< -o $@
