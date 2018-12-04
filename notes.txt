@@ -1,0 +1,6 @@
+referenced by hw/arm/arm.h
+referenced by memory.c
+log data accesses: exec/memory.c
+log address bus: exec/memory.c
+
+register definition: target/arm/cpu.h
