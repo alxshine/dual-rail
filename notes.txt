@@ -3,4 +3,8 @@ referenced by memory.c
 log data accesses: exec/memory.c
 log address bus: exec/memory.c
 
-register definition: target/arm/cpu.h
+register definition: target/arm/cpu.h: ARMISARegisters CPUARMState
+some operations happen in target/arm/helper.c:
+-address translation: get_phys_addr
+
+translate.c has all the actual operations
