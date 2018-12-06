@@ -7,4 +7,5 @@ register definition: target/arm/cpu.h: ARMISARegisters CPUARMState
 some operations happen in target/arm/helper.c:
 -address translation: get_phys_addr
 
-translate.c has all the actual operations
+The operations happen in tcg/tcg-op.c where I can check the operands
+Load/store happens in tcg_gen_ldst_op_... the rest is easily findable by name

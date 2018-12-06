@@ -2,4 +2,6 @@
 *.o
 *.bin
 *.gdb_history
+*.ll
 trace-*
+**/latex-build
