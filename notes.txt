@@ -9,3 +9,5 @@ some operations happen in target/arm/helper.c:
 
 The operations happen in tcg/tcg-op.c where I can check the operands
 Load/store happens in tcg_gen_ldst_op_... the rest is easily findable by name
+
+TCGv_i32_d

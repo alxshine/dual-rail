@@ -65,7 +65,7 @@ Instead of performing a power analysis attack on an actual 32bit ARM processor t
 \qemu{} is a generic and open source machine emulator and virtualizer\cite{bellard2005qemu}, and allows me to run ARM code on any machine.
 Because it is open source I can also modify the executed operations and test all values passed to them for balancing.
 This allows me to create a robust and exact evaluation framework for my thesis.
-\qemu{} does emulate the desired architecture directly, but instead dynamically translates the machine code instructions into instructions understandable by the host architecture.
+\qemu{} does not emulate the desired architecture directly, but instead dynamically translates the machine code instructions into instructions understandable by the host architecture.
 By hooking into this translation I can observe the values for \emph{any} operation independent of the emulated architecture, allowing me to possibly extend my observations to architectures other than ARM.
 
 \section{Summary}
@@ -76,6 +76,6 @@ The performance of this transformation will be evaluated with \qemu{} by checkin
 
 If the results are good the general nature of an IR transformation pass and my evaluation strategy with \qemu{} would allow for extension to other languages and architectures, possibly for every front- and back-end of the LLVM compiler.
 
-\bibliographystyle{plain}
+\bibliographystyle{unsrt}
 \bibliography{sources.bib}
 \end{document}
