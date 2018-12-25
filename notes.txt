@@ -12,3 +12,12 @@ Load/store happens in tcg_gen_ldst_op_... the rest is easily findable by name
 
 TCGv_i32_d
 there is a function that dumps all registers (tcg_dump_ops), I can probably learn how to access values from there
+it in turn uses tcg_get_arg_str to generate the actual output line from the argument pointer
+
+
+SUCCESS
+all operations are created in tcg_gen_op2, registers and memory are pointers (still need to find out which is which) and immediates are their actual values
+I can correlate this with the dump list
+
+The execution should be somewhere that accesses the memory for all the QTAILQ stuff.
+This is probably just the translation thread, the execution thread is somewhere else.
