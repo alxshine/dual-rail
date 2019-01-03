@@ -1,0 +1,401 @@
+ ld_i32 tmp5,env,$0xffffffffffffffe4
+ movi_i32 tmp6,$0x0
+ brcond_i32 tmp5,tmp6,lt,$L0
+
+ ---- 00000000 00000000 00000000
+ movi_i32 tmp5,$0x0
+ mov_i32 r0,tmp5
+
+ ---- 00000004 00000000 00000000
+ movi_i32 tmp5,$0xc
+ ld_i32 tmp5,env,$0xffffffffffffffe4
+ movi_i32 tmp6,$0x0
+ brcond_i32 tmp5,tmp6,lt,$L0
+
+ ---- 00000000 00000000 00000000
+ movi_i32 tmp5,$0x0
+ mov_i32 r0,tmp5
+
+ ---- 00000004 00000000 00000e04
+ movi_i32 tmp5,$0xc
+ movi_i32 tmp6,$0x4
+ add_i32 tmp5,tmp5,tmp6
+ mov_i32 tmp7,tmp5
+ qemu_ld_i32 tmp6,tmp7,leul,1
+ mov_i32 r1,tmp6
+
+ ---- 00000008 00000000 00000000
+ movi_i32 tmp5,$0x10
+ ld_i32 tmp5,env,$0xffffffffffffffe4
+ movi_i32 tmp6,$0x0
+ brcond_i32 tmp5,tmp6,lt,$L0
+
+ ---- 00000000 00000000 00000000
+ movi_i32 tmp5,$0x0
+ mov_i32 r0,tmp5
+
+ ---- 00000004 00000000 00000e04
+ movi_i32 tmp5,$0xc
+ movi_i32 tmp6,$0x4
+ add_i32 tmp5,tmp5,tmp6
+ mov_i32 tmp7,tmp5
+ qemu_ld_i32 tmp6,tmp7,leul,1
+ mov_i32 r1,tmp6
+
+ ---- 00000008 00000000 00000e08
+ movi_i32 tmp5,$0x10
+ movi_i32 tmp6,$0x4
+ add_i32 tmp5,tmp5,tmp6
+ mov_i32 tmp7,tmp5
+ qemu_ld_i32 tmp6,tmp7,leul,1
+ mov_i32 r2,tmp6
+
+ ---- 0000000c 00000000 00000000
+ movi_i32 tmp5,$0x14
+ ld_i32 tmp5,env,$0xffffffffffffffe4
+ movi_i32 tmp6,$0x0
+ brcond_i32 tmp5,tmp6,lt,$L0
+
+ ---- 00010000 00000000 00000000
+ movi_i32 tmp5,$0x10008
+ ld_i32 tmp5,env,$0xffffffffffffffe4
+ movi_i32 tmp6,$0x0
+ brcond_i32 tmp5,tmp6,lt,$L0
+
+ ---- 000100e4 00000000 00000000
+ mov_i32 tmp5,r13
+ ld_i32 tmp5,env,$0xffffffffffffffe4
+ movi_i32 tmp6,$0x0
+ brcond_i32 tmp5,tmp6,lt,$L0
+
+ ---- 000100e4 00000000 00000000
+ mov_i32 tmp5,r13
+ movi_i32 tmp6,$0xfffffffffffffff8
+ add_i32 tmp5,tmp5,tmp6
+ mov_i32 tmp6,r11
+ mov_i32 tmp7,tmp5
+ qemu_st_i32 tmp6,tmp7,leul,1
+ ld_i32 tmp5,env,$0xffffffffffffffe4
+ movi_i32 tmp6,$0x0
+ brcond_i32 tmp5,tmp6,lt,$L0
+
+ ---- 000100e4 00000000 00000000
+ mov_i32 tmp5,r13
+ movi_i32 tmp6,$0xfffffffffffffff8
+ add_i32 tmp5,tmp5,tmp6
+ mov_i32 tmp6,r11
+ mov_i32 tmp7,tmp5
+ qemu_st_i32 tmp6,tmp7,leul,1
+ movi_i32 tmp6,$0x4
+ add_i32 tmp5,tmp5,tmp6
+ mov_i32 tmp6,r14
+ mov_i32 tmp7,tmp5
+ qemu_st_i32 tmp6,tmp7,leul,1
+ ld_i32 tmp5,env,$0xffffffffffffffe4
+ movi_i32 tmp6,$0x0
+ brcond_i32 tmp5,tmp6,lt,$L0
+
+ ---- 000100e4 00000000 00000000
+ mov_i32 tmp5,r13
+ movi_i32 tmp6,$0xfffffffffffffff8
+ add_i32 tmp5,tmp5,tmp6
+ mov_i32 tmp6,r11
+ mov_i32 tmp7,tmp5
+ qemu_st_i32 tmp6,tmp7,leul,1
+ movi_i32 tmp6,$0x4
+ add_i32 tmp5,tmp5,tmp6
+ mov_i32 tmp6,r14
+ mov_i32 tmp7,tmp5
+ qemu_st_i32 tmp6,tmp7,leul,1
+ movi_i32 tmp6,$0xfffffffffffffffc
+ add_i32 tmp5,tmp5,tmp6
+ mov_i32 r13,tmp5
+
+ ---- 000100e8 00000000 00000000
+ movi_i32 tmp5,$0x4
+ mov_i32 tmp6,r13
+ add_i32 tmp6,tmp6,tmp5
+ mov_i32 r11,tmp6
+
+ ---- 000100ec 00000000 00000000
+ movi_i32 tmp5,$0x100f4
+ ld_i32 tmp5,env,$0xffffffffffffffe4
+ movi_i32 tmp6,$0x0
+ brcond_i32 tmp5,tmp6,lt,$L0
+
+ ---- 00010084 00000000 00000000
+ mov_i32 tmp5,r13
+ ld_i32 tmp5,env,$0xffffffffffffffe4
+ movi_i32 tmp6,$0x0
+ brcond_i32 tmp5,tmp6,lt,$L0
+
+ ---- 00010084 00000000 00000e2c
+ mov_i32 tmp5,r13
+ movi_i32 tmp6,$0xfffffffffffffffc
+ add_i32 tmp5,tmp5,tmp6
+ mov_i32 tmp6,r11
+ mov_i32 tmp7,tmp5
+ qemu_st_i32 tmp6,tmp7,leul,1
+ mov_i32 r13,tmp5
+
+ ---- 00010088 00000000 00000000
+ movi_i32 tmp5,$0x0
+ mov_i32 tmp6,r13
+ add_i32 tmp6,tmp6,tmp5
+ mov_i32 r11,tmp6
+
+ ---- 0001008c 00000000 00000000
+ movi_i32 tmp5,$0xc
+ mov_i32 tmp6,r13
+ sub_i32 tmp6,tmp6,tmp5
+ mov_i32 r13,tmp6
+
+ ---- 00010090 00000000 00000000
+ mov_i32 tmp5,r11
+ ld_i32 tmp5,env,$0xffffffffffffffe4
+ movi_i32 tmp6,$0x0
+ brcond_i32 tmp5,tmp6,lt,$L0
+
+ ---- 000100b4 00000000 00000000
+ mov_i32 tmp5,r11
+ ld_i32 tmp5,env,$0xffffffffffffffe4
+ movi_i32 tmp6,$0x0
+ brcond_i32 tmp5,tmp6,lt,$L0
+
+ ---- 00010098 00000000 00000000
+ mov_i32 tmp5,r11
+ ld_i32 tmp5,env,$0xffffffffffffffe4
+ movi_i32 tmp6,$0x0
+ brcond_i32 tmp5,tmp6,lt,$L0
+
+ ---- 00010098 00000000 00000e0c
+ mov_i32 tmp5,r11
+ movi_i32 tmp6,$0xfffffffffffffff8
+ add_i32 tmp5,tmp5,tmp6
+ mov_i32 tmp7,tmp5
+ qemu_ld_i32 tmp6,tmp7,leul,1
+ mov_i32 r3,tmp6
+
+ ---- 0001009c 00000000 00000c08
+ mov_i32 tmp5,r3
+ mov_i32 tmp7,tmp5
+ qemu_ld_i32 tmp6,tmp7,ub,1
+ mov_i32 r2,tmp6
+
+ ---- 000100a0 00000000 00000000
+ movi_i32 tmp5,$0x100a8
+ ld_i32 tmp5,env,$0xffffffffffffffe4
+ movi_i32 tmp6,$0x0
+ brcond_i32 tmp5,tmp6,lt,$L0
+
+ ---- 00010098 00000000 00000e0c
+ mov_i32 tmp5,r11
+ movi_i32 tmp6,$0xfffffffffffffff8
+ add_i32 tmp5,tmp5,tmp6
+ mov_i32 tmp7,tmp5
+ qemu_ld_i32 tmp6,tmp7,leul,1
+ mov_i32 r3,tmp6
+
+ ---- 0001009c 00000000 00000c08
+ mov_i32 tmp5,r3
+ mov_i32 tmp7,tmp5
+ qemu_ld_i32 tmp6,tmp7,ub,1
+ mov_i32 r2,tmp6
+
+ ---- 000100a0 00000000 00000e0c
+ movi_i32 tmp5,$0x100a8
+ movi_i32 tmp6,$0x38
+ add_i32 tmp5,tmp5,tmp6
+ mov_i32 tmp7,tmp5
+ qemu_ld_i32 tmp6,tmp7,leul,1
+ mov_i32 r3,tmp6
+
+ ---- 000100a4 00000000 00000e08
+ mov_i32 tmp5,r3
+ mov_i32 tmp6,r2
+ mov_i32 tmp7,tmp5
+ qemu_st_i32 tmp6,tmp7,leul,1
+
+ ---- 000100a8 00000000 00000000
+ mov_i32 tmp5,r11
+ ld_i32 tmp5,env,$0xffffffffffffffe4
+ movi_i32 tmp6,$0x0
+ brcond_i32 tmp5,tmp6,lt,$L0
+
+ ---- 00010098 00000000 00000e0c
+ mov_i32 tmp5,r11
+ movi_i32 tmp6,$0xfffffffffffffff8
+ add_i32 tmp5,tmp5,tmp6
+ mov_i32 tmp7,tmp5
+ qemu_ld_i32 tmp6,tmp7,leul,1
+ mov_i32 r3,tmp6
+
+ ---- 0001009c 00000000 00000c08
+ mov_i32 tmp5,r3
+ mov_i32 tmp7,tmp5
+ qemu_ld_i32 tmp6,tmp7,ub,1
+ mov_i32 r2,tmp6
+
+ ---- 000100a0 00000000 00000e0c
+ movi_i32 tmp5,$0x100a8
+ movi_i32 tmp6,$0x38
+ add_i32 tmp5,tmp5,tmp6
+ mov_i32 tmp7,tmp5
+ qemu_ld_i32 tmp6,tmp7,leul,1
+ mov_i32 r3,tmp6
+
+ ---- 000100a4 00000000 00000e08
+ mov_i32 tmp5,r3
+ mov_i32 tmp6,r2
+ mov_i32 tmp7,tmp5
+ qemu_st_i32 tmp6,tmp7,leul,1
+
+ ---- 000100a8 00000000 00000e0c
+ mov_i32 tmp5,r11
+ movi_i32 tmp6,$0xfffffffffffffff8
+ add_i32 tmp5,tmp5,tmp6
+ mov_i32 tmp7,tmp5
+ qemu_ld_i32 tmp6,tmp7,leul,1
+ mov_i32 r3,tmp6
+
+ ---- 000100ac 00000000 00000000
+ movi_i32 tmp5,$0x1
+ mov_i32 tmp6,r3
+ add_i32 tmp6,tmp6,tmp5
+ mov_i32 r3,tmp6
+
+ ---- 000100b0 00000000 00000000
+ mov_i32 tmp5,r11
+ ld_i32 tmp5,env,$0xffffffffffffffe4
+ movi_i32 tmp6,$0x0
+ brcond_i32 tmp5,tmp6,lt,$L0
+
+ ---- 00010098 00000000 00000e0c
+ mov_i32 tmp5,r11
+ movi_i32 tmp6,$0xfffffffffffffff8
+ add_i32 tmp5,tmp5,tmp6
+ mov_i32 tmp7,tmp5
+ qemu_ld_i32 tmp6,tmp7,leul,1
+ mov_i32 r3,tmp6
+
+ ---- 0001009c 00000000 00000c08
+ mov_i32 tmp5,r3
+ mov_i32 tmp7,tmp5
+ qemu_ld_i32 tmp6,tmp7,ub,1
+ mov_i32 r2,tmp6
+
+ ---- 000100a0 00000000 00000e0c
+ movi_i32 tmp5,$0x100a8
+ movi_i32 tmp6,$0x38
+ add_i32 tmp5,tmp5,tmp6
+ mov_i32 tmp7,tmp5
+ qemu_ld_i32 tmp6,tmp7,leul,1
+ mov_i32 r3,tmp6
+
+ ---- 000100a4 00000000 00000e08
+ mov_i32 tmp5,r3
+ mov_i32 tmp6,r2
+ mov_i32 tmp7,tmp5
+ qemu_st_i32 tmp6,tmp7,leul,1
+
+ ---- 000100a8 00000000 00000e0c
+ mov_i32 tmp5,r11
+ movi_i32 tmp6,$0xfffffffffffffff8
+ add_i32 tmp5,tmp5,tmp6
+ mov_i32 tmp7,tmp5
+ qemu_ld_i32 tmp6,tmp7,leul,1
+ mov_i32 r3,tmp6
+
+ ---- 000100ac 00000000 00000000
+ movi_i32 tmp5,$0x1
+ mov_i32 tmp6,r3
+ add_i32 tmp6,tmp6,tmp5
+ mov_i32 r3,tmp6
+
+ ---- 000100b0 00000000 00000e0c
+ mov_i32 tmp5,r11
+ movi_i32 tmp6,$0xfffffffffffffff8
+ add_i32 tmp5,tmp5,tmp6
+ mov_i32 tmp6,r3
+ mov_i32 tmp7,tmp5
+ qemu_st_i32 tmp6,tmp7,leul,1
+
+ ---- 000100b4 00000000 00000000
+ mov_i32 tmp5,r11
+ ld_i32 tmp5,env,$0xffffffffffffffe4
+ movi_i32 tmp6,$0x0
+ brcond_i32 tmp5,tmp6,lt,$L0
+
+ ---- 000100c4 00000000 00000000
+ movi_i32 tmp5,$0x100cc
+ ld_i32 tmp5,env,$0xffffffffffffffe4
+ movi_i32 tmp6,$0x0
+ brcond_i32 tmp5,tmp6,lt,$L0
+
+ ---- 000100c4 00000000 00000e0c
+ movi_i32 tmp5,$0x100cc
+ movi_i32 tmp6,$0x14
+ add_i32 tmp5,tmp5,tmp6
+ mov_i32 tmp7,tmp5
+ qemu_ld_i32 tmp6,tmp7,leul,1
+ mov_i32 r3,tmp6
+
+ ---- 000100c8 00000000 00000000
+ movi_i32 tmp5,$0xa
+ mov_i32 r2,tmp5
+
+ ---- 000100cc 00000000 00000e08
+ mov_i32 tmp5,r3
+ mov_i32 tmp6,r2
+ mov_i32 tmp7,tmp5
+ qemu_st_i32 tmp6,tmp7,leul,1
+
+ ---- 000100d0 00000000 00000000
+ mov_i32 tmp5,r0
+ mov_i32 r0,tmp5
+
+ ---- 000100d4 00000000 00000000
+ movi_i32 tmp5,$0x0
+ mov_i32 tmp6,r11
+ add_i32 tmp6,tmp6,tmp5
+ mov_i32 r13,tmp6
+
+ ---- 000100d8 00000000 00000e2c
+ mov_i32 tmp5,r13
+ mov_i32 tmp7,tmp5
+ qemu_ld_i32 tmp6,tmp7,leul,1
+ ld_i32 tmp5,env,$0xffffffffffffffe4
+ movi_i32 tmp6,$0x0
+ brcond_i32 tmp5,tmp6,lt,$L0
+
+ ---- 000100f4 00000000 00000000
+ mov_i32 tmp5,r0
+ mov_i32 r0,tmp5
+
+ ---- 000100f8 00000000 00000000
+ mov_i32 tmp5,r13
+ mov_i32 tmp7,tmp5
+ qemu_ld_i32 tmp6,tmp7,leul,1
+ mov_i32 r11,tmp6
+ ld_i32 tmp5,env,$0xffffffffffffffe4
+ movi_i32 tmp6,$0x0
+ brcond_i32 tmp5,tmp6,lt,$L0
+
+ ---- 000100f4 00000000 00000000
+ mov_i32 tmp5,r0
+ mov_i32 r0,tmp5
+
+ ---- 000100f8 00000000 00000000
+ mov_i32 tmp5,r13
+ mov_i32 tmp7,tmp5
+ qemu_ld_i32 tmp6,tmp7,leul,1
+ mov_i32 r11,tmp6
+ movi_i32 tmp6,$0x4
+ add_i32 tmp5,tmp5,tmp6
+ mov_i32 tmp7,tmp5
+ qemu_ld_i32 tmp6,tmp7,leul,1
+ movi_i32 tmp7,$0xfffffffffffffffe
+ and_i32 pc,tmp6,tmp7
+ movi_i32 tmp7,$0x1
+ and_i32 tmp6,tmp6,tmp7
+ st_i32 tmp6,env,$0x218

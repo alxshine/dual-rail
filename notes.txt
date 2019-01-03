@@ -21,3 +21,12 @@ I can correlate this with the dump list
 
 The execution should be somewhere that accesses the memory for all the QTAILQ stuff.
 This is probably just the translation thread, the execution thread is somewhere else.
+
+tcg/arm/tcg-target.inc.c: I believe this contains the functions that are actually called for operators
+
+The main execution loop starts in cpu_exec in accel/tcg/cpu-exec.c
+Operations are executed in tcg/tci.c::tcg_qemu_tb_exec
+
+SUCCESS
+By using the TCG interpreter (TCI), i can easily find the values used in computation
+I added a sample printf in tcg/tci.c +626

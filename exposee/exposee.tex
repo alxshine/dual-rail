@@ -1,12 +1,14 @@
 \documentclass{article}
 \usepackage[a4paper]{geometry}
 \usepackage{cleveref}
+\usepackage{tikz}
+\usepackage{caption, subcaption}
 
 \newcommand{\qemu}{QEMU}
 
 \title{%
-	Master Thesis Proposal\\
-	\large Dual rail logic in software as LLVM-IR transformation}
+  Master Thesis Proposal\\
+  \large Dual rail logic in software as LLVM-IR transformation}
 \author{Alexander Schl\"ogl}
 
 \begin{document}
@@ -17,7 +19,62 @@ Thus, as the power consumption is directly related to the bits in intermediate r
 If the device is running a cryptographic operation, this can result in a leakage of keys.
 This is known as a power analysis side channel attack. \cite{kocher1999differential}
 
-There exist many defenses against this form of attack, one of which is dual rail logic. \cite{sokolov2005design}
+There exist multiple defenses against this form of attack, the most common of which is masking\cite{messerges2000securing}.
+Masking strategies exist in various forms and are named after the operation by which the mask is combined with the key (e.g. XOR and multiplicative masking).
+A simplified example of using masked values for substitution boxes is shown in \Cref{fig:masking}.
+Using masking requires a recomputation of lookup operations, such as substitution boxes, for every possible mask.
+
+\begin{figure}[h]
+  \centering
+  \begin{subfigure}[b]{0.45\textwidth}
+    \centering
+    \begin{tikzpicture}
+      \node at (-3, 0) (in) {$input$};
+      \node at (0,0) [rectangle, draw, minimum size=1cm] (S) {$S$};
+      \node at (3, 0) (out) {$output$};
+      \node at (-2, -1.1) {}; %for vertical alignment of the subfigures
+
+      \draw[->] (in) -- (S);
+      \draw[->] (S) -- (out);
+    \end{tikzpicture}
+    \caption{Unmasked substitution}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}[b]{0.45\textwidth}
+    \centering
+    \begin{tikzpicture}
+      \node at (-3, 0) (in) {$input$};
+      \node at (-1.5, -1) (m) {$mask$};
+      \node at (-1.5,0) [circle, draw, minimum size=2mm] {};
+      \draw (-1.5,0.17) -- (-1.5,-0.17);
+      \node at (0,0) [rectangle, draw, minimum size=1cm] (S) {$S'$};
+      \node at (3, 0) (out) {$output$};
+      \node at (1.5, -1) (um) {$mask$};
+      \draw (1.5,0.17) -- (1.5,-0.17);
+      \node at (1.5,0) [circle, draw, minimum size=2mm] {};
+
+      \draw[->] (in) -- (S);
+      \draw[->] (S) -- (out);
+      \draw[->] (m) -- (-1.5, -0.17);
+      \draw[->] (um) -- (1.5, -0.17);
+    \end{tikzpicture}
+    \caption{Masked substitution with unmasking}
+  \end{subfigure}
+
+  \caption{Simplified masked substitution}
+  \label{fig:masking}
+\end{figure}
+
+% When a random mask is used for each cryptographic operation, an attacker can only try to attack the value of the masked key.
+% As the possible combinations multiply for each captured trace, the number of possibilities (and with it the amount of analysis work required) increases exponentially.
+% While storing multiple lookup tables increases the memory footprint of a program, it is often outweighed by the increased work an attacker needs.
+While the memory required increases linearly with the number of masks, the amount of extra analysis for an attacker increases exponentially, often making the trade-off well worth it.
+Masking also has the benefit of having a constant execution time impact, making it robust against timing attacks.
+The main drawback of masking however, is its lack of generality.
+Logical masking does not work with arithmetic operations, and vice versa. %TODO: cite
+Also, masking must be built in to the cryptographic algorithm used, and is not generally applicable to all programs.
+
+A more general defense against power analysis is dual rail logic. \cite{sokolov2005design}
 In dual rail logic the bits are always balanced, i.e. the number of 1 bits is always constant.
 This is achieved by duplicating the circuitry and computing the result $x$ as well as its inverse $\bar{x}$.
 While this is a very robust defense against power analysis, it also requires a substantial increase in circuitry size (in fact, the required size is almost doubled), which makes it unsuitable for small applications like e.g. key cards.
@@ -32,10 +89,11 @@ In case full balancing cannot be achieved for all these, I will try to balance t
 
 My thesis will consist of three major parts, which will be discussed in the following:
 \begin{enumerate}
-	\item Finding a suitable balanced arithmetic
-	\item Creating the transformation pass
-	\item Evaluating the result
+\item Finding a suitable balanced arithmetic
+\item Creating the transformation pass
+\item Evaluating the result
 \end{enumerate}
+
 
 \section{Finding a suitable balanced arithmetic}
 Using a balanced representation of values makes standard arithmetic unusable, as that would result in unbalanced intermediate values, losing the robustness of the balanced representation.
@@ -79,3 +137,5 @@ If the results are good the general nature of an IR transformation pass and my e
 \bibliographystyle{unsrt}
 \bibliography{sources.bib}
 \end{document}
+
+% LocalWords:  QEMU
