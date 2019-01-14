@@ -11,13 +11,17 @@
     "cleveref"
     "tikz"
     "caption"
-    "subcaption")
+    "subcaption"
+    "arev")
    (TeX-add-symbols
-    "qemu")
+    "qemu"
+    "dual"
+    "llvm")
    (LaTeX-add-labels
     "sec:background"
+    "sec:methodology"
     "sec:related-work"
-    "sec:intended-methodology")
+    "sec:difficulties")
    (LaTeX-add-bibliographies
     "sources.bib"))
  :latex)

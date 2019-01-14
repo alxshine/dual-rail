@@ -4,7 +4,12 @@
 \usepackage{tikz}
 \usepackage{caption, subcaption}
 
+\usepackage{arev}
+
 \newcommand{\qemu}{QEMU}
+\newcommand{\dual}{Dual-Rail-Logic}
+\newcommand{\llvm}{LLVM}
+\newcommand{\exposee}{proposal}
 
 \title{%
   Master Thesis Proposal\\
@@ -18,24 +23,53 @@
 Embedded devices very rarely utilize instruction level parallelism.
 Thus, as the power consumption is directly related to the bits in intermediate results that are set to 1, their power consumption directly reflects their computation results without much noise.
 If the device is running a cryptographic operation, this can result in a leakage of keys.
-This is known as a power analysis side channel attack. \cite{kocher1999differential}
+This is known as a power analysis side channel attack\cite{kocher1999differential}.
 
-While there exist many different defenses against this, both in software and in hardware, the most versatile of them is Dual-Rail-Logic. \cite{sokolov2005design}
-Unlike most other defense mechanisms, Dual-Rail-Logic can be applied to any program.
-Unfortunately, using Dual-Rail-Logic requires alterations to the hardware, and almost doubles the required circuitry size, making it unsuitable for small embedded applications like e.g. SmartCards.
-In order to create a way of hardening \emph{any} application against side channel attacks, even when there are tight constraints on space, I would like to implement Dual-Rail-Logic in software.
+While there exist many different defenses against this, both in software and in hardware, the most versatile of them is \dual{}\cite{sokolov2005design}.
+Unlike most other defense mechanisms, \dual{} can be applied to any program, and works by calculating the inverse result $\bar{x}$ for each intermediate result $x$.
+This way, the power consumption (which is directly linked to the number of $1$s in the result) is always the same, and the program is thus more robust against power analysis.
+Unfortunately, using \dual{} requires alterations to the hardware, and almost doubles the required circuitry size.
+This requirement makes it unsuitable for small embedded applications like e.g. SmartCards.
+In order to create a way of hardening \emph{any} application against power analysis attacks, even when there are tight constraints on space, I would like to implement \dual{} in software.
+\\
+\\
+To do this, I want to find a way to represent a balanced 8-bit arithmetic in a 32-bit architecture.
+While representing $\bar{x}$ and $x$ should in theory only halve the word size, I will need additional space to represent carry bits and (new) intermediate steps in the registers as well, so the word size will probably be reduced to a quarter.
+The idea is to find a balancing scheme that allows me to perform all arithmetic and logic operations present in the intermediate representation (IR) of the \llvm{} compiler.
+Ideally, this scheme has no unbalanced intermediate results at all and utilizes no table lookups.
+
+After finding such a balancing scheme and arithmetic, I want to transform the original code into balanced code in a custom \llvm{} optimization pass.
+This pass will transform the IR code of the original program into my balanced arithmetic operation by operation.
+Keeping the performance impact of this transformation as low as possible - both during compile and run-time - will be a major concern.
+
+Finally I need a way of evaluating my work.
+For this I assume a perfect attacker capable of observing the power signature of every intermediate value.
+The robustness against such an attacker is then represented by the number of unbalanced values during the execution, as well as the ratio of balanced vs. unbalanced values.
+To find this number I run the resulting code in the \qemu{} emulator, and observe the result of every operation.
+This allows me to easily test my work in a controlled environment and without any additional hardware.
+\\
+\\
+The rest of this \exposee{} is organized as follows:
+\Cref{sec:background} covers \dual{}, as well as the \llvm{} and \qemu{} projects.
+In \Cref{sec:methodology} I present my intended approach in full, and in \Cref{sec:difficulties} I discuss problems that might arise during implementation.
+\Cref{sec:related-work} discusses previous work that has been done in similar directions.
 
 \section{Background}
 \label{sec:background}
+aoeu
+
+\section{Intended Methodology}
+\label{sec:methodology}
 aoeu
 
 \section{Related Work}
 \label{sec:related-work}
 aoeu
 
-\section{Intended Methodology}
-\label{sec:intended-methodology}
+\section{Possible Difficulties}
+\label{sec:difficulties}
 aoeu
+
 
 \bibliographystyle{plain}
 \bibliography{sources.bib}
