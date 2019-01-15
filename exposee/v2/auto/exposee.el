@@ -8,10 +8,11 @@
     "article"
     "art10"
     "geometry"
-    "cleveref"
     "tikz"
     "caption"
     "subcaption"
+    "hyperref"
+    "cleveref"
     "sansmathfonts"
     "fontenc")
    (TeX-add-symbols
@@ -22,9 +23,13 @@
    (LaTeX-add-labels
     "sec:background"
     "fig:llvm"
+    "sec:qemu"
     "sec:methodology"
-    "sec:related-work"
-    "sec:difficulties")
+    "fig:byte"
+    "fig:bit"
+    "fig:schemes"
+    "sec:difficulties"
+    "sec:related-work")
    (LaTeX-add-bibliographies
     "sources.bib"))
  :latex)

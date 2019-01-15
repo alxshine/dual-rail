@@ -7,6 +7,7 @@
     "bellard2005qemu"
     "messerges2000securing"
     "lattner2010llvm"
-    "lattner2004llvm"))
+    "lattner2004llvm"
+    "arduino"))
  :bibtex)
 
