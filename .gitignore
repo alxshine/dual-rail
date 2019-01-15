@@ -5,3 +5,4 @@
 *.ll
 trace-*
 **/latex-build
+**.out

@@ -45,7 +45,7 @@ Ideally, this scheme has no unbalanced intermediate results at all and utilizes 
 
 After finding such a balancing scheme and arithmetic, I want to transform the original code into balanced code in a custom \llvm{} optimization pass.
 This pass will transform the IR code of the original program into my balanced arithmetic operation by operation.
-Keeping the performance impact of this transformation as low as possible - both during compile and run-time - will be a major concern.
+Keeping the performance impact of this transformation as low as possible - both during compile and runtime - will be a major concern.
 
 Finally I need a way of evaluating my work.
 For this I assume a perfect attacker capable of observing the power signature of every intermediate value.
@@ -58,6 +58,7 @@ The rest of this \exposee{} is organized as follows:
 \Cref{sec:background} covers \dual{} as well as the \llvm{} and \qemu{} projects.
 In \Cref{sec:methodology} I present my intended approach in full, and in \Cref{sec:difficulties} I discuss problems that might arise during implementation.
 \Cref{sec:related-work} discusses previous work that has been done in similar directions.
+\Cref{sec:conclusion-schedule} offers a final discussion and justification of my thesis project.
 
 \section{Background}
 \label{sec:background}
@@ -224,13 +225,25 @@ However, if no single transformation compromises correctness, neither will the c
 The optimization pass also has potential for problems, as the performance impact of the transformations can prove to be too prohibitive.
 If that is the case I need to find a way to either make my balancing work with the existing optimizers of \llvm{} or implement some optimization strategies myself.
 
-The most difficult part of creating the evaluation code will probably remain getting my bearings in the \qemu{} code base.
+The most difficult part of creating the evaluation code will probably remain getting my bearings in the \qemu{} code base, but that has already happened.
 By now I have an understanding of the threading model and general architecture of the project, and I am confident I can add any required modifications in a reasonable amount of time.
 
 \section{Related Work}
 \label{sec:related-work}
+The only paper applying defensive techniques in the compiler itself is by Junod et al.\cite{junod2015obfuscator}.
+They integrate a number of software obfuscation techniques, as well as software integrity checks into \llvm{} as optimization passes.
+Their approach is very close to my master thesis, however the goal is entirely different.
+Junod et al. work on defending programs against reverse engineering and tampering at runtime.
+Some of their passes are available online, so that can be used as a tutorial for more complex passes with more interaction with high level data structures like the syntax-tree and the control-flow-graph.
 
+Another paper that works very closely with both \llvm{} and \qemu{} is Lyu et al.\cite{lyu2014dbill}.
+They combine the \llvm{} optimizer with \qemu{} to extend static analysis tools utilizing the \llvm{} IR to different target architectures, enabling powerful desktop machines to run the analysis instead of small embedded devices.
 
+\section{Conclusion}
+\label{sec:conclusion-schedule}
+If successful and without prohibitive performance impacts my thesis would allow generating binaries that are hardened against power analysis, and that for many different platforms.
+Even if not, future research on this topic can provide more security for any embedded developer, even without the knowledge needed to incorporate masking schemes etc.
+I believe that security needs more frameworks along the lines of OpenMP\cite{dagum1998openmp}, to help programmers without security knowledge write secure programs, and so I believe that this thesis would be a good start.
 
 \bibliographystyle{plain}
 \bibliography{sources.bib}
