@@ -6,3 +6,4 @@
 trace-*
 **/latex-build
 **.out
+.ipynb_checkpoints
