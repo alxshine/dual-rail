@@ -2,6 +2,9 @@ import numpy as np
 
 wordsize = 8
 word_max = 1<<8
+word_filter = word_max - 1
+scheme1_filter = word_filter << 3*wordsize | word_filter << wordsize
+scheme2_filter = word_filter << 3*wordsize | word_filter
 
 def bit_not(n, numbits = wordsize):
     return (1 << numbits) - 1 - n
@@ -13,21 +16,24 @@ def hammingWeight(val):
         val >>= 1
     return weight
 
-def cycle_left(x, i=1):
+vHW = np.vectorize(hammingWeight)
+
+def cycle_left(x, i=1, total_size = 4*wordsize):
     for i in range(i):
-        dropping_bit = x & (1<<wordsize-1)
+        dropping_bit = x & (1<<total_size-1)
+        dropping_bit >>= total_size - 1
         x <<= 1
-        x |= dropping_bit >> wordsize-1
-    filter = (2<<wordsize) -1
-    x &= filter
+        x |= dropping_bit
+    bit_filter = (1<<total_size) - 1
+    x &= bit_filter
     return x
 
-def cycle_right(x, i=1):
+def cycle_right(x, i=1, total_size = 4*wordsize):
     for i in range(i):
         dropping_bit = x & 1
         x >>= 1
-        x |= dropping_bit << wordsize -1
-    filter = (2<<wordsize) - 1
+        x |= dropping_bit << total_size -1
+    filter = (1<<total_size) - 1
     x &= filter
     return x
 
