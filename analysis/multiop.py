@@ -77,18 +77,3 @@ class MultiStepOperation:
 
         plt.show()
 
-o1 = BinaryOperation(0,1,lambda x,y: x|y)
-o2 = BinaryOperation(0,1,lambda x,y: x&y)
-
-m = MultiStepOperation([
-    BinaryOperation(0,1,lambda x,y: x|y), #2
-    BinaryOperation(0,1,lambda x,y: x&y), #3
-    UnaryOperation(3, lambda x: x>>wordsize), #4
-    BinaryOperation(2,4, lambda x,y: x|y), #5
-    UnaryOperation(5, lambda x: x & scheme2_filter), #6
-    UnaryOperation(6, lambda x: cycle_left(x, wordsize)), #7
-    BinaryOperation(6,7, lambda x,y: x|y), #8
-    UnaryOperation(8, lambda x: x & scheme1_filter) #9
-])
-m.execute()
-m.visualize()
