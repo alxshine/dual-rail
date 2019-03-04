@@ -84,5 +84,5 @@ class MultiStepOperation:
             for j in range(word_max):
                 r = equivalentUnbalancedFunction(i, j)
                 if r != uResults[i*word_max + j]:
-                    incorrectResults[(i,j)] = r
+                    incorrectResults[(i,j)] = (r, uResults[i*word_max + j])
         return incorrectResults
