@@ -1,8 +1,9 @@
 import numpy as np
 
 wordsize = 8
-word_max = 1<<8
+word_max = 1<<wordsize
 word_filter = word_max - 1
+full_filter = (1<<4*wordsize) - 1
 scheme1_filter = word_filter << 3*wordsize | word_filter << wordsize
 scheme2_filter = word_filter << 3*wordsize | word_filter
 
@@ -11,9 +12,10 @@ def bit_not(n, numbits = wordsize):
 
 def hammingWeight(val):
     weight = 0
-    while val != 0:
-        weight += val & 1
-        val >>= 1
+    for i in range(4*wordsize):
+        mask = 1<<i
+        current_bit = val & mask
+        weight += current_bit >> i
     return weight
 
 vHW = np.vectorize(hammingWeight)
