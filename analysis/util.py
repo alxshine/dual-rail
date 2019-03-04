@@ -39,6 +39,10 @@ def cycle_right(x, i=1, total_size = 4*wordsize):
     x &= filter
     return x
 
+def bit_sub(x, y):
+    r = x + bit_not(y) + 1
+    return r & full_filter
+
 def getWeightDistributionUnbalanced(operation):
     weights = np.zeros((wordsize+1))
     for v1 in range(1<<wordsize):
