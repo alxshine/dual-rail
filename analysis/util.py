@@ -55,3 +55,9 @@ def getWeightDistributionBalanced(operation):
             w = hammingWeight(operation(x1, x2))
             weights[w] += 1
     return weights
+
+def unbalanceScheme1(x):
+    ret = x & word_filter << 3*wordsize
+    return ret >> 3*wordsize
+
+vUS1 = np.vectorize(unbalanceScheme1)

@@ -77,3 +77,12 @@ class MultiStepOperation:
 
         plt.show()
 
+    def testCorrectness(self, equivalentUnbalancedFunction):
+        uResults = vUS1(self.results[-1])
+        incorrectResults = {}
+        for i in range(word_max):
+            for j in range(word_max):
+                r = equivalentUnbalancedFunction(i, j)
+                if r != uResults[i*word_max + j]:
+                    incorrectResults[(i,j)] = r
+        return incorrectResults

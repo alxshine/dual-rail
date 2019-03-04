@@ -9,4 +9,6 @@ m = MultiStepOperation([
     UnaryOperation(6, lambda x: x & scheme1_filter) #7
 ])
 m.execute()
+incorrectResults = m.testCorrectness(lambda x,y: x|y)
+print(f"Number of incorrect results: {len(incorrectResults.keys())}")
 m.visualize()

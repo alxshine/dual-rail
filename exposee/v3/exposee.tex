@@ -32,7 +32,7 @@ This is known as a power analysis side channel attack\cite{kocher1999differentia
 While there exist many different defenses against this, both in software and in hardware, the most versatile of them is \dual{}\cite{sokolov2005design}.
 Unlike most other defense mechanisms, \dual{} can be applied to any program, and works by calculating the inverse result $\bar{x}$ for each intermediate result $x$.
 This way, the power consumption (which is directly linked to the number of $1$s in the result) is always the same, and the program is thus more robust against power analysis.
-Unfortunately, using \dual{} requires alterations to the hardware, and almost doubles the required circuitry size.
+Unfortunately, using \dual{} requires a significant overhead, doubling the circuit size or more\cite{baddam2008path}.
 This requirement makes it unsuitable for small embedded applications like e.g. SmartCards.
 In order to create a way of hardening \emph{any} application against power analysis attacks, even when there are tight constraints on space, I would like to implement something similar to \dual{} in software.
 By balancing the values on the data bus, the registers, and the address bus, in this order of priority, I can harden execution against power analysis.
@@ -82,7 +82,7 @@ This generability makes a reliable implementation of \dual{} very desirable.
 
 \subsection{\llvm{}}
 The \llvm{} compiler infrastructure project\cite{lattner2004llvm} itself consists of a number of subprojects.
-The \lc{} libraries provide source- and target-independent optimization and code-generation for many different CPUs.\cite{lattner2010llvm}
+The \lc{} libraries provide source- and target-independent optimization, as well as code-generation for many different CPUs.\cite{lattner2010llvm}
 It achieves this great versatility by working on IR code, which in turn is generated from source code by compilers for the respective language.
 This architecture is shown in \Cref{fig:llvm}.
 As visible, the optimization passes transform IR into IR, which makes all of them optional and the addition of new passes fairly easy.
@@ -187,13 +187,15 @@ Much nicer to work with is the variant in \Cref{fig:byte}, as the balancing part
 \end{figure}
 
 The largest problem of using balanced values is that no operation in the ALU will work on them anymore.
-This means that I have to find ways to execute all arithmetic and logic operations without generating unbalanced intermediate values.
+This means that I have to find ways to execute all arithmetic and logic operations while keeping the number of unbalanced intermediate values to a minimum.
 The simplest way to implement this would be lookup tables, but the size these would require makes this impossible, especially for embedded applications.
 A lookup table for 8 bits of data would contain $2^8\cdot2^8=65536$ entries, but this would have unbalanced indices, and require extraction of the unbalanced values before the lookup.
 To avoid this the table would need $2^{16}\cdot2^{16}$ entries or 4.2GB of memory, making lookup tables unusable.
 
 So I will have to try and find a chain of intermediate steps to calculate all operations of the \llvm{} IR without creating unbalanced intermediate values.
 While this may not entirely be possible, at least a decrease in unbalanced values can be achieved.
+Even if the intermediate values are not completely balanced, the distribution of their power consumption might be narrower than that of a regular result.
+I have created an evaluation framework for this, and preliminary results show that this is indeed the case.
 
 \subsection{Implementing the optimization pass}
 Once I have found a (more) balanced chain of operations for each \llvm{} IR operation, I can create the optimization pass.
@@ -220,7 +222,7 @@ For now, the current evaluation code is sufficient and provides enough mechanism
 \section{Possible Difficulties}
 \label{sec:difficulties}
 Finding replacements for all operations will be the most difficult part of this thesis.
-As I want all intermediate results to be balanced, I might have to switch between different balancing schemes depending on the operation or location of the data.
+As I want to minimize the number of unbalanced intermediate results, I might have to switch between different balancing schemes depending on the operation or location of the data.
 Correctness of the new operations will also be an issue.
 I will need to prove the correctness of the transformations to and from the balanced representation, as well as for all operations.
 However, if no single transformation compromises correctness, neither will the collection of all transformations.
@@ -245,8 +247,8 @@ They combine the \llvm{} optimizer with \qemu{} to extend static analysis tools 
 \section{Conclusion}
 \label{sec:conclusion-schedule}
 If successful and without prohibitive performance impacts my thesis would allow generating binaries that are hardened against power analysis, and that for many different platforms.
-Even if not, future research on this topic can provide more security for any embedded developer, even without the knowledge needed to incorporate masking schemes etc.
-I believe that security needs more frameworks along the lines of OpenMP\cite{dagum1998openmp}, to help programmers without security knowledge write secure programs, and so I believe that this thesis would be a good start.
+Even if not, future research on this topic can provide more security for any embedded developer, even without the knowledge needed to incorporate masking schemes and other defensive mechanisms.
+I believe that security needs more frameworks along the lines of OpenMP\cite{dagum1998openmp}, to help programmers without security knowledge write secure programs, and that this thesis would be a step in the right direction.
 
 \bibliographystyle{plain}
 \bibliography{sources.bib}
