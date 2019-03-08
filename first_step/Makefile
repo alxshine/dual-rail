@@ -13,6 +13,7 @@ all: program.bin
 
 %.o: %.c
 	$(CROSS_COMPILE)-gcc -c $(CPU) $(COPTS) $< -o $@
+	$(CROSS_COMPILE)-gcc -c -S $(CPU) $(COPTS) $< -o $<.s
 
 startup.o: startup.s
 	$(CROSS_COMPILE)-as -ggdb $(CPU) startup.s -o startup.o
