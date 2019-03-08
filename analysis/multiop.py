@@ -66,8 +66,9 @@ class MultiStepOperation:
     def getFinalResults(self):
         return self.results[-1]
 
-    def visualize(self):
+    def visualize(self, title):
         plt.figure()
+        plt.title(title)
         for opIndex in range(len(self.ops)):
             plt.subplot(len(self.ops), 1, opIndex+1)
             resultIndex = opIndex + 2
