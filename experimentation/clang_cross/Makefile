@@ -1,9 +1,8 @@
 CROSS_COMPILE ?= arm-none-eabi
-
-CPU = #-mcpu=arm926ej-s
-COPTS = -Wall -Werror -std=gnu99 -ggdb -O0
 CLANGOPTS = -target armv7--none-eabi
-#CLANGOPTS = -target armv7a-linux-gnueabihf 
+
+PLUGINS=$(wildcard ../../passes/build/**/*.so)
+PASSES= -hello
 
 all: program.bin
 
@@ -20,7 +19,7 @@ optimized.S: optimized.ll
 	llc $< -o $@
 
 optimized.ll: program.ll
-	opt $< -S -o $@
+	opt -load="$(PLUGINS)" $(PASSES) $< -S -o $@
 
 program.ll: program.c
 	clang $(CLANGOPTS) -S -emit-llvm $<
@@ -34,3 +33,4 @@ run: program.bin
 .PHONY: clean
 clean:
 	rm -f *.o *.bin *.elf *.ll optimized.S
+test:
