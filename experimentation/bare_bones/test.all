@@ -1,0 +1,89 @@
+; ModuleID = 'test.c'
+source_filename = "test.c"
+target datalayout = "e-m:e-p:32:32-i64:64-v128:64:128-a:0:32-n32-S64"
+target triple = "armv7--none-eabi"
+
+@UART0DR = dso_local constant i32* inttoptr (i32 270471168 to i32*), align 4
+@plaintext = dso_local global [17 x i8] c"}Dr*Le1/rXc9c_q|\00", align 1
+
+; Function Attrs: noinline nounwind optnone
+define dso_local void @printn_uart0(i8*, i32) #0 {
+  %3 = alloca i8*, align 4 		 ;allocate memory for a char*
+  %4 = alloca i32, align 4		 ;int n, function parameter
+  %5 = alloca i32, align 4 		 ;int i, running variable of for-loop
+  store i8* %0, i8** %3, align 4	 ;store &s, needed to load s from memory
+  store i32 %1, i32* %4, align 4
+  store i32 0, i32* %5, align 4		;store all parameters on the stack
+  br label %6
+
+; <label>:6:                                      ; preds = %15, %2
+  %7 = load i32, i32* %5, align 4 		  ;comparison in for
+  %8 = load i32, i32* %4, align 4
+  %9 = icmp slt i32 %7, %8			;i<n (signed)
+  br i1 %9, label %10, label %18
+
+; <label>:10:                                     ; preds = %6
+  %11 = load i8*, i8** %3, align 4		  ;load s from memory (is a char*)
+  %12 = getelementptr inbounds i8, i8* %11, i32 1 ;&s[1] => s+1 (pointer arithmetic)
+  store i8* %12, i8** %3, align 4      	    	  ;s = s+1 (stored at memory pointed to by %3)
+  %13 = load i8, i8* %11, align 1		  ;load *s from memory
+  %14 = zext i8 %13 to i32			  ;zero-extend char to int (cast in printn_uart0)
+  store volatile i32 %14, i32* inttoptr (i32 270471168 to i32*), align 4 ;store %14 at UART0DP
+  br label %15
+
+; <label>:15:                                     ; preds = %10
+  %16 = load i32, i32* %5, align 4
+  %17 = add nsw i32 %16, 1			  ;i++
+  store i32 %17, i32* %5, align 4
+  br label %6
+
+; <label>:18:                                     ; preds = %6
+  store volatile i32 10, i32* inttoptr (i32 270471168 to i32*), align 4 ;*UART0DR = '\n' (no cast here due to type definition)
+  ret void
+}
+
+; Function Attrs: noinline nounwind optnone
+define dso_local void @print_uart0(i8*) #0 {
+  %2 = alloca i8*, align 4
+  store i8* %0, i8** %2, align 4		;store *s on stack => char**
+  br label %3
+
+; <label>:3:                                      ; preds = %8, %1
+  %4 = load i8*, i8** %2, align 4
+  %5 = load i8, i8* %4, align 1			;comparison in while
+  %6 = zext i8 %5 to i32
+  %7 = icmp ne i32 %6, 0
+  br i1 %7, label %8, label %14
+
+; <label>:8:                                      ; preds = %3
+  %9 = load i8*, i8** %2, align 4		;load s from stack  
+  %10 = load i8, i8* %9, align 1		;load *s
+  %11 = zext i8 %10 to i32     			;cast to unsigned int
+  store volatile i32 %11, i32* inttoptr (i32 270471168 to i32*), align 4 ;store at *UART0DR
+  %12 = load i8*, i8** %2, align 4	     	;load s from stack (again)
+  %13 = getelementptr inbounds i8, i8* %12, i32 1     ;calculate &s[1] => s++
+  store i8* %13, i8** %2, align 4      	    	;store s+1 on stack
+  br label %3
+
+; <label>:14:                                     ; preds = %3
+  store volatile i32 10, i32* inttoptr (i32 270471168 to i32*), align 4 ;print '\n'
+  ret void
+}
+
+; Function Attrs: noinline nounwind optnone
+define dso_local void @c_entry() #0 {
+  call void @print_uart0(i8* getelementptr inbounds ([17 x i8], [17 x i8]* @plaintext, i32 0, i32 0)) ; see below:
+  ;%0 = (char[17]*) plaintext => char**
+  ;%1 = %0[0] => char* (plaintext)
+  ;%2 = &(%1[0]) (bc. of pointer arithmetic in LLVM IR)
+  ret void
+}
+
+attributes #0 = { noinline nounwind optnone "correctly-rounded-divide-sqrt-fp-math"="false" "disable-tail-calls"="false" "less-precise-fpmad"="false" "no-frame-pointer-elim"="true" "no-frame-pointer-elim-non-leaf" "no-infs-fp-math"="false" "no-jump-tables"="false" "no-nans-fp-math"="false" "no-signed-zeros-fp-math"="false" "no-trapping-math"="false" "stack-protector-buffer-size"="8" "target-cpu"="generic" "target-features"="+armv7-a,+dsp,+neon,+strict-align,+vfp3,-thumb-mode" "unsafe-fp-math"="false" "use-soft-float"="false" }
+
+!llvm.module.flags = !{!0, !1}
+!llvm.ident = !{!2}
+
+!0 = !{i32 1, !"wchar_size", i32 4}
+!1 = !{i32 1, !"min_enum_size", i32 4}
+!2 = !{!"clang version 7.0.1 (tags/RELEASE_701/final)"}
