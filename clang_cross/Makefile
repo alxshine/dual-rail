@@ -1,8 +1,9 @@
 CROSS_COMPILE ?= arm-none-eabi
 
-CPU = -mcpu=arm926ej-s
+CPU = #-mcpu=arm926ej-s
 COPTS = -Wall -Werror -std=gnu99 -ggdb -O0
-CLANGOPTS = -target armv6m--none-eabi
+#CLANGOPTS = -target armv7--none-eabi
+CLANGOPTS = -target armv7a-linux-gnueabihf 
 
 all: program.bin
 
@@ -12,16 +13,26 @@ all: program.bin
 %.elf: %.o startup.ld startup.o
 	$(CROSS_COMPILE)-ld -T startup.ld $< startup.o -o $@
 
-%.o: %.c
-	clang $(CLANGOPTS) -c $< -o $@
-	#$(CROSS_COMPILE)-gcc -c -S $(CPU) $(COPTS) $< -o $<.s
+%.optll: %.ll
+	opt $< -S -o $@
+
+%.ll: %.c
+	clang $(CLANGOPTS) -S -emit-llvm $<
 
 startup.o: startup.s
 	$(CROSS_COMPILE)-as -ggdb $(CPU) startup.s -o startup.o
+
+%.llvmas: %.optll
+	llc $< -o $@
+
+%.o: %.llvmas
+	$(CROSS_COMPILE)-as -ggdb $(CPU) $< -o $@
 
 run: program.bin
 	~/Projects/qemu-eval/arm-softmmu/qemu-system-arm -M versatilepb -m 128M -nographic -kernel program.bin
 
 .PHONY: clean
 clean:
-	rm *.o *.bin *.elf trace*
+	rm -f *.o
+	rm -f *.bin
+	rm -f *.elf

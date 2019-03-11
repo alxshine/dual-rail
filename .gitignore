@@ -8,3 +8,5 @@ trace-*
 **.out
 .ipynb_checkpoints
 **~
+**.llvmas
+**.optll
