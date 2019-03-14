@@ -22,4 +22,4 @@ run: test.bin
 
 .PHONY: clean
 clean:
-	rm *.o *.bin *.elf trace*
+	rm -f *.o *.bin *.elf trace*
