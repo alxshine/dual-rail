@@ -1,5 +1,8 @@
 #include "print.h"
 
+char hexChars[16] = {'0', '1', '2', '3', '4', '5', '6', '7',
+                     '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
+
 void string_copy(char *source, char *dest, int n) {
   for (int i = 0; i < n; i++)
     dest[i] = source[i];
@@ -22,43 +25,29 @@ int div(int a, int b) {
 }
 
 void write_int(int source, char *dest) {
-  int char_index = 0;
-  if (source < 0) {
-    dest[0] = '-';
-    source = -source;
-    char_index++;
+  int index = 0;
+  for (int i = 28; i >= 0; i -= 4) {
+    int bits = (((0xF) << 28) & source) >> i;
+    dest[index] = hexChars[bits];
   }
-
-  int highest_power = 0;
-  int tmp = source;
-  do {
-    tmp = div(tmp, 10);
-    highest_power++;
-  } while (source > 0);
-
-  do {
-    highest_power--;
-    int current_power = power(10, highest_power);
-    int digit = div(source, current_power);
-    dest[char_index++] = digit + 0x30;
-    tmp = div(tmp, 10);
-  } while (source > 0);
-  dest[char_index++] = '\0';
+  dest[index] = '\0';
 }
 
 void c_entry() {
   char buffer[20];
   print_uart0("Beginning\0");
   for (int i = 0; i < 100; i++) {
-    if (i % 15 == 0)
-      string_copy("fizzbuzz", buffer, 8);
-    else if (i % 5 == 0)
-      string_copy("buzz", buffer, 4);
-    else if (i % 3 == 0)
-      string_copy("fizz", buffer, 4);
-    else
-      write_int(i, buffer);
+    /* if (i % 15 == 0) */
+    /*   string_copy("fizzbuzz", buffer, 8); */
+    /* else if (i % 5 == 0) */
+    /*   string_copy("buzz", buffer, 4); */
+    /* else if (i % 3 == 0) */
+    /*   string_copy("fizz", buffer, 4); */
+    /* else */
+    /*   write_int(i, buffer); */
 
-    print_uart0(buffer);
+    /* print_uart0(buffer); */
+    write_int(i, buffer);
+    /*print_uart0(buffer);*/
   }
 }

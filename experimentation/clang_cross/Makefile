@@ -1,5 +1,5 @@
 CROSS_COMPILE ?= arm-none-eabi
-CLANGOPTS = -target armv7--none-eabi
+CLANGOPTS = -target arm-none-eabi -mcpu=arm926ej-s -O0
 
 PLUGINS=$(wildcard ../../passes/build/**/*.so)
 PASSES= -hello
