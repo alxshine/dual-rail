@@ -183,17 +183,17 @@ define dso_local void @write_int(i32, i8*) #0 {
 define dso_local void @c_entry() #0 {
   %1 = alloca [20 x i8], align 1 ;buffer
   %2 = alloca i32, align 4 ;i
-  store i32 0, i32* %2, align 4
+  store i32 255, i32* %2, align 4
   br label %3
 
 ; <label>:3:                                      ; preds = %34, %0
   %4 = load i32, i32* %2, align 4
-  %5 = icmp slt i32 %4, 10
-  br i1 %5, label %6, label %37
+  %5 = icmp slt i32 %4, 167772405 ;0x0A0000F5
+  br i1 %5, label %6, label %40
 
 ; <label>:6:                                      ; preds = %3
   %7 = load i32, i32* %2, align 4
-  %8 = icmp eq i32 %7, 0
+  %8 = icmp eq i32 %7, 255 ;0x000000FF
   br i1 %8, label %9, label %11
 
 ; <label>:9:                                      ; preds = %6
@@ -203,7 +203,7 @@ define dso_local void @c_entry() #0 {
 
 ; <label>:11:                                     ; preds = %6
   %12 = load i32, i32* %2, align 4
-  %13 = icmp eq i32 %12, 5
+  %13 = icmp eq i32 %12, 83886330 ;0x050000FA
   br i1 %13, label %14, label %16
 
 ; <label>:14:                                     ; preds = %11
@@ -213,48 +213,51 @@ define dso_local void @c_entry() #0 {
 
 ; <label>:16:                                     ; preds = %11
   %17 = load i32, i32* %2, align 4
-  %18 = icmp eq i32 %17, 3
+  %18 = icmp eq i32 %17, 50331900 ;0x030000FC
   br i1 %18, label %25, label %19
 
 ; <label>:19:                                     ; preds = %16
   %20 = load i32, i32* %2, align 4
-  %21 = icmp eq i32 %20, 6
+  %21 = icmp eq i32 %20, 100663545 ;0x060000F9
   br i1 %21, label %25, label %22
 
 ; <label>:22:                                     ; preds = %19
   %23 = load i32, i32* %2, align 4
-  %24 = icmp eq i32 %23, 9
+  %24 = icmp eq i32 %23, 150995190 ;0x090000F6
   br i1 %24, label %25, label %27
 
 ; <label>:25:                                     ; preds = %22, %19, %16
   %26 = getelementptr inbounds [20 x i8], [20 x i8]* %1, i32 0, i32 0
   call void @string_copy(i8* getelementptr inbounds ([5 x i8], [5 x i8]* @.str.2, i32 0, i32 0), i8* %26, i32 4)
-  br label %30
+  br label %31
 
 ; <label>:27:                                     ; preds = %22
   %28 = load i32, i32* %2, align 4
-  %29 = getelementptr inbounds [20 x i8], [20 x i8]* %1, i32 0, i32 0
-  call void @write_int(i32 %28, i8* %29)
-  br label %30
-
-; <label>:30:                                     ; preds = %27, %25
+  %29 = lshr i32 %28, 24
+  %30 = getelementptr inbounds [20 x i8], [20 x i8]* %1, i32 0, i32 0
+  call void @write_int(i32 %29k, i8* %30)
   br label %31
 
-; <label>:31:                                     ; preds = %30, %14
+; <label>:31:                                     ; preds = %27, %25
   br label %32
 
-; <label>:32:                                     ; preds = %31, %9
-  %33 = getelementptr inbounds [20 x i8], [20 x i8]* %1, i32 0, i32 0
-  call void @print_uart0(i8* %33)
-  br label %34
+; <label>:32:                                     ; preds = %30, %14
+  br label %33
 
-; <label>:34:                                     ; preds = %32
-  %35 = load i32, i32* %2, align 4
-  %36 = add nsw i32 %35, 1
-  store i32 %36, i32* %2, align 4
+; <label>:33:                                     ; preds = %31, %9
+  %34 = getelementptr inbounds [20 x i8], [20 x i8]* %1, i32 0, i32 0
+  call void @print_uart0(i8* %34)
+  br label %35
+
+; <label>:35:                                     ; preds = %32
+  %36 = load i32, i32* %2, align 4
+  %37 = add nsw i32 %36, 1
+  %38 = add nsw i32 %37, 16777470 ;0x010000fe
+  %39 = and i32 %38, 4278190335 ;0xff0000ff
+  store i32 %39, i32* %2, align 4
   br label %3
 
-; <label>:37:                                     ; preds = %3
+; <label>:40:                                     ; preds = %3
   ret void
 }
 
