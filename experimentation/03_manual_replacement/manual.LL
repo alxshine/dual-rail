@@ -10,61 +10,25 @@ target triple = "armv5e-none--eabi"
 @.str.2 = private unnamed_addr constant [5 x i8] c"fizz\00", align 1
 
 ; Function Attrs: noinline nounwind optnone
-define dso_local void @printn_uart0(i8*, i32) #0 {
-  %3 = alloca i8*, align 4
-  %4 = alloca i32, align 4
-  %5 = alloca i32, align 4
-  store i8* %0, i8** %3, align 4
-  store i32 %1, i32* %4, align 4
-  store i32 0, i32* %5, align 4
-  br label %6
-
-; <label>:6:                                      ; preds = %15, %2
-  %7 = load i32, i32* %5, align 4
-  %8 = load i32, i32* %4, align 4
-  %9 = icmp slt i32 %7, %8
-  br i1 %9, label %10, label %18
-
-; <label>:10:                                     ; preds = %6
-  %11 = load i8*, i8** %3, align 4
-  %12 = getelementptr inbounds i8, i8* %11, i32 1
-  store i8* %12, i8** %3, align 4
-  %13 = load i8, i8* %11, align 1
-  %14 = zext i8 %13 to i32
-  store volatile i32 %14, i32* inttoptr (i32 270471168 to i32*), align 4
-  br label %15
-
-; <label>:15:                                     ; preds = %10
-  %16 = load i32, i32* %5, align 4
-  %17 = add nsw i32 %16, 1
-  store i32 %17, i32* %5, align 4
-  br label %6
-
-; <label>:18:                                     ; preds = %6
-  store volatile i32 10, i32* inttoptr (i32 270471168 to i32*), align 4
-  ret void
-}
-
-; Function Attrs: noinline nounwind optnone
 define dso_local void @print_uart0(i8*) #0 {
-  %2 = alloca i8*, align 4
+  %2 = alloca i8*, align 4 ;s
   store i8* %0, i8** %2, align 4
   br label %3
 
 ; <label>:3:                                      ; preds = %8, %1
-  %4 = load i8*, i8** %2, align 4
-  %5 = load i8, i8* %4, align 1
-  %6 = zext i8 %5 to i32
-  %7 = icmp ne i32 %6, 0
+  %4 = load i8*, i8** %2, align 4 ;s
+  %5 = load i8, i8* %4, align 1 ;*s
+  %6 = zext i8 %5 to i32 ;(unsigned int)(*s)
+  %7 = icmp ne i32 %6, 0 ;check in while
   br i1 %7, label %8, label %14
 
 ; <label>:8:                                      ; preds = %3
-  %9 = load i8*, i8** %2, align 4
-  %10 = load i8, i8* %9, align 1
-  %11 = zext i8 %10 to i32
+  %9 = load i8*, i8** %2, align 4 ;s
+  %10 = load i8, i8* %9, align 1 ;*s
+  %11 = zext i8 %10 to i32 ;(unsigned int) (*s)
   store volatile i32 %11, i32* inttoptr (i32 270471168 to i32*), align 4
   %12 = load i8*, i8** %2, align 4
-  %13 = getelementptr inbounds i8, i8* %12, i32 1
+  %13 = getelementptr inbounds i8, i8* %12, i32 1 ;increment pointer
   store i8* %13, i8** %2, align 4
   br label %3
 
@@ -118,11 +82,11 @@ define dso_local void @string_copy(i8*, i8*, i32) #0 {
 
 ; Function Attrs: noinline nounwind optnone
 define dso_local void @write_int(i32, i8*) #0 {
-  %3 = alloca i32, align 4
-  %4 = alloca i8*, align 4
-  %5 = alloca i32, align 4
-  %6 = alloca i32, align 4
-  %7 = alloca i32, align 4
+  %3 = alloca i32, align 4 ;source
+  %4 = alloca i8*, align 4 ;dest
+  %5 = alloca i32, align 4 ;index
+  %6 = alloca i32, align 4 ;i
+  %7 = alloca i32, align 4 ;bits
   store i32 %0, i32* %3, align 4
   store i8* %1, i8** %4, align 4
   store i32 0, i32* %5, align 4
