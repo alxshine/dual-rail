@@ -23,11 +23,11 @@ void write_int(int source, char *dest) {
 void c_entry() {
   char buffer[20];
   for (int i = 0; i < 10; i++) {
-    if (i % 15 == 0)
+    if (i == 0)
       string_copy("fizzbuzz", buffer, 8);
-    else if (i % 5 == 0)
+    else if (i == 5)
       string_copy("buzz", buffer, 4);
-    else if (i % 3 == 0)
+    else if (i == 3 || i == 6 || i == 9)
       string_copy("fizz", buffer, 4);
     else
       write_int(i, buffer);
