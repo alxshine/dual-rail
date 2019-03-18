@@ -89,57 +89,57 @@ define dso_local void @write_int(i32, i8*) #0 {
   %7 = alloca i32, align 4 ;bits
   store i32 %0, i32* %3, align 4
   store i8* %1, i8** %4, align 4
-  store i32 0, i32* %5, align 4
+  store i32 0, i32* %5, align 4 ;index = 0
   %8 = load i8*, i8** %4, align 4
-  %9 = load i32, i32* %5, align 4
-  %10 = add nsw i32 %9, 1
-  store i32 %10, i32* %5, align 4
-  %11 = getelementptr inbounds i8, i8* %8, i32 %9
-  store i8 48, i8* %11, align 1
+  %9 = load i32, i32* %5, align 4 ;index
+  %10 = add nsw i32 %9, 1 ;index+1
+  store i32 %10, i32* %5, align 4 ;index = index+1
+  %11 = getelementptr inbounds i8, i8* %8, i32 %9 ;load with non-incremented index
+  store i8 48, i8* %11, align 1 ;store constant '0'
   %12 = load i8*, i8** %4, align 4
-  %13 = load i32, i32* %5, align 4
-  %14 = add nsw i32 %13, 1
-  store i32 %14, i32* %5, align 4
-  %15 = getelementptr inbounds i8, i8* %12, i32 %13
-  store i8 120, i8* %15, align 1
-  store i32 28, i32* %6, align 4
+  %13 = load i32, i32* %5, align 4 ;index (is now 1)
+  %14 = add nsw i32 %13, 1 ;index++
+  store i32 %14, i32* %5, align 4 ;index = index+1 (now 2)
+  %15 = getelementptr inbounds i8, i8* %12, i32 %13 ;load dest[index] (before increment)
+  store i8 120, i8* %15, align 1 ;store constant 'x'
+  store i32 28, i32* %6, align 4 ;i=28
   br label %16
 
 ; <label>:16:                                     ; preds = %33, %2
-  %17 = load i32, i32* %6, align 4
-  %18 = icmp sge i32 %17, 0
+  %17 = load i32, i32* %6, align 4 ;i
+  %18 = icmp sge i32 %17, 0 ;i>=0
   br i1 %18, label %19, label %36
 
 ; <label>:19:                                     ; preds = %16
-  %20 = load i32, i32* %6, align 4
-  %21 = shl i32 15, %20
-  %22 = load i32, i32* %3, align 4
-  %23 = and i32 %21, %22
-  %24 = load i32, i32* %6, align 4
-  %25 = ashr i32 %23, %24
-  store i32 %25, i32* %7, align 4
-  %26 = load i32, i32* %7, align 4
-  %27 = getelementptr inbounds [16 x i8], [16 x i8]* @hexChars, i32 0, i32 %26
-  %28 = load i8, i8* %27, align 1
-  %29 = load i8*, i8** %4, align 4
-  %30 = load i32, i32* %5, align 4
-  %31 = add nsw i32 %30, 1
-  store i32 %31, i32* %5, align 4
-  %32 = getelementptr inbounds i8, i8* %29, i32 %30
-  store i8 %28, i8* %32, align 1
+  %20 = load i32, i32* %6, align 4 ;i
+  %21 = shl i32 15, %20 ;0xf << i
+  %22 = load i32, i32* %3, align 4 ;source
+  %23 = and i32 %21, %22 ;tmp = (0xf << i) & source
+  %24 = load i32, i32* %6, align 4 ;i
+  %25 = ashr i32 %23, %24 ;tmp >> i
+  store i32 %25, i32* %7, align 4 ;bits = tmp
+  %26 = load i32, i32* %7, align 4 ;bits
+  %27 = getelementptr inbounds [16 x i8], [16 x i8]* @hexChars, i32 0, i32 %26 ;&hexChars[bits]
+  %28 = load i8, i8* %27, align 1 ;hexChars[bits]
+  %29 = load i8*, i8** %4, align 4 ;dest
+  %30 = load i32, i32* %5, align 4 ;index
+  %31 = add nsw i32 %30, 1 ;index+1
+  store i32 %31, i32* %5, align 4 ;index = index+1
+  %32 = getelementptr inbounds i8, i8* %29, i32 %30 ;dest[index] (before increment)
+  store i8 %28, i8* %32, align 1 ;dest[index] = hexChars[bits]
   br label %33
 
 ; <label>:33:                                     ; preds = %19
-  %34 = load i32, i32* %6, align 4
-  %35 = sub nsw i32 %34, 4
-  store i32 %35, i32* %6, align 4
+  %34 = load i32, i32* %6, align 4 ;i
+  %35 = sub nsw i32 %34, 4 ;i-=4
+  store i32 %35, i32* %6, align  4
   br label %16
 
 ; <label>:36:                                     ; preds = %16
-  %37 = load i8*, i8** %4, align 4
-  %38 = load i32, i32* %5, align 4
+  %37 = load i8*, i8** %4, align 4 ;dest
+  %38 = load i32, i32* %5, align 4 ;index
   %39 = getelementptr inbounds i8, i8* %37, i32 %38
-  store i8 0, i8* %39, align 1
+  store i8 0, i8* %39, align 1 ;dest[index] = '\0'
   ret void
 }
 
