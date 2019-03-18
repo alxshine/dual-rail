@@ -235,7 +235,7 @@ define dso_local void @c_entry() #0 {
   %28 = load i32, i32* %2, align 4
   %29 = lshr i32 %28, 24
   %30 = getelementptr inbounds [20 x i8], [20 x i8]* %1, i32 0, i32 0
-  call void @write_int(i32 %29k, i8* %30)
+  call void @write_int(i32 %29, i8* %30)
   br label %31
 
 ; <label>:31:                                     ; preds = %27, %25
