@@ -9,22 +9,6 @@ void string_copy(char *source, char *dest, int n) {
   dest[n] = '\0';
 }
 
-int power(int base, int exp) {
-  int ret = base;
-  for (int i = 1; i < exp; i++)
-    ret *= base;
-  return ret;
-}
-
-int div(int a, int b) {
-  int ret = 0;
-  while (a > b) {
-    ret++;
-    a -= b;
-  }
-  return ret;
-}
-
 void write_int(int source, char *dest) {
   int index = 0;
   dest[index++] = '0';
@@ -38,8 +22,7 @@ void write_int(int source, char *dest) {
 
 void c_entry() {
   char buffer[20];
-  print_uart0("Beginning\0");
-  for (int i = 0; i < 100; i++) {
+  for (int i = 0; i < 10; i++) {
     if (i % 15 == 0)
       string_copy("fizzbuzz", buffer, 8);
     else if (i % 5 == 0)
