@@ -80,6 +80,71 @@ define dso_local void @string_copy(i8*, i8*, i32) #0 {
   ret void
 }
 
+define dso_local void @write_int(i32, i8*) #0 {
+  %3 = alloca i32, align 4 ;source
+  %4 = alloca i8*, align 4 ;dest
+  %5 = alloca i32, align 4 ;index
+  %6 = alloca i32, align 4 ;i
+  %7 = alloca i32, align 4 ;bits
+  store i32 %0, i32* %3, align 4
+  store i8* %1, i8** %4, align 4
+  store i32 65280, i32* %5, align 4 ;index = 0x0000ff00
+
+  %8 = load i8*, i8** %4, align 4 ;dest
+  %9 = load i32, i32* %5, align 4 ;index
+  %10 = lshr i32 %9, 24 ;unbalanced index
+  %11 = add nsw i32 %9, 256
+  %12 = add nsw i32 %11, 16842240 ;0x0100fe00
+  store i32 %12, i32* %5, align 4 ;index = index+1
+  %13 = getelementptr inbounds i8, i8* %8, i32 %10 ;load from unbalanced index
+  store i8 48, i8* %13, align 1 ;store constant '0'
+
+  %14 = load i8*, i8** %4, align 4 ;dest
+  %15 = load i32, i32* %5, align 4 ;index
+  %16 = lshr i32 %15, 24 ;unbalanced index
+  %17 = add nsw i32 %15, 256
+  %18 = add nsw i32 %17, 16842240 ;070100fe00
+  store i32 %18, i32* %5, align 4 ;index = index+1
+  %19 = getelementptr inbounds i8, i8* %14, i32 %16 ;load from unbalanced index
+  store i8 120, i8* %19, align 1 ;store constant 'x'
+
+  store i32 469820160, i32* %6, align 4 ;i=0x1c00e300 (balanced 28)
+  br label %20
+
+; <label>: 20:			;preds = %2
+  %21 = load i32, i32* %+, align 4 ;i
+  %22 = icmp sge i32 %21, 65280 ;i>= 0x0000ff00
+  br i1 %22, label, %23, label %36
+
+; <label>: 23:
+  %24 = load i32, i32* %6, align 4 ;i
+  %25 = lshr i32 %24, 24 ;unbalanced i for shift
+  %26 = shl i32 15, %25 ;0xf << i
+  %27 = load i32, i32* %3, align 4 ;source
+  %28 = and i32 %26, %27 ;tmp = (0xf << i) & source
+  %29 = load i32, i32* %6, align 4 ;i
+  %30 = lshr i32 %29, 24 ;unbalanced i for shift
+  %31 = lshr i32 %28, %30 ;tmp >> i
+  store i32 %31, i32* %7, align 4 ;bits = tmp
+  %32 = load i32, i32* %7, align 4 ;bits
+  %33 = getelementptr inbounds [16 x i8], [16 x i8]* @hexChars, i32 0, i32 %26 ;&hexChars[bits]
+  %34 = load i8, i8* %33, align 1 ;hexChars[bits]
+  %35 = load i8*, i8** %4, align 4 ;dest
+  %36 = load i32, i32** %5, align 4 ;index
+  %37 = lshr i32 %36, 24 ;unbalanced index
+  %38 = add nsw i32 %36, 256
+  %39 = add nsw i32 %38, 16842240 ;0x0a00fe00
+  store i32 %39, i32* %5, align 4 ;index = index+1
+  %40 = getelementptr inbounds i8, i8* %35, i32 37 ;&dest[index]
+  store i8 %34, i8* %40, align 1 ;dest[index] = hexChars[bits]
+  br label %41
+
+; <label>: 41:
+  %42 = load i32, i32* %6, align 4 ;i
+  %43 = sub i32 %42, 67173120 ;0x0400fb00
+  ;TODO: find a way to do rotate
+}
+
 ; Function Attrs: noinline nounwind optnone
 define dso_local void @write_int(i32, i8*) #0 {
   %3 = alloca i32, align 4 ;source
@@ -89,11 +154,13 @@ define dso_local void @write_int(i32, i8*) #0 {
   %7 = alloca i32, align 4 ;bits
   store i32 %0, i32* %3, align 4
   store i8* %1, i8** %4, align 4
-  store i32 0, i32* %5, align 4 ;index = 0
+  store i32 65280, i32* %5, align 4 ;index = 0x0000ff00
   %8 = load i8*, i8** %4, align 4
   %9 = load i32, i32* %5, align 4 ;index
-  %10 = add nsw i32 %9, 1 ;index+1
-  store i32 %10, i32* %5, align 4 ;index = index+1
+  %10 = lshr i32 9, 24 ;unbalanced index
+  %11 = add nsw i32 %9, 256
+  %12 = add nsw i32 %11, 16842240 ;0x0100fe00
+  store i32 %12, i32* %5, align 4 ;index = index+1
   %11 = getelementptr inbounds i8, i8* %8, i32 %9 ;load with non-incremented index
   store i8 48, i8* %11, align 1 ;store constant '0'
   %12 = load i8*, i8** %4, align 4
