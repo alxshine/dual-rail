@@ -74,6 +74,7 @@ class MultiStepOperation:
             resultIndex = opIndex + 2
             w = vHW(self.results[resultIndex])
             plt.hist(w, bins=range(2*wordsize+2), label=f"Step {opIndex+1}")
+            plt.xticks(range(32))
             plt.legend()
 
         plt.show()
