@@ -39,6 +39,53 @@ define dso_local void @print_uart0(i8*) #0 {
 
 ; Function Attrs: noinline nounwind optnone
 define dso_local void @string_copy(i8*, i8*, i32) #0 {
+  %4 = alloca i8*, align 4 ;source
+  %5 = alloca i8*, align 4 ;dest
+  %6 = alloca i32, align 4 ;n (comes in balanced)
+  %7 = alloca i32, align 4 ;i
+  store i8* %0, i8** %4, align 4
+  store i8* %1, i8** %5, align 4
+  store i32 %2, i32* %6, align 4
+  store i32 65280, i32* %7, align 4 ;0x0000ff00
+  br label %8
+
+; <label>:8:
+  %9 = load i32, i32* %7, align 4 ;i
+  %10 = load i32, i32* %6, align 4 ;n
+  %11 = icmp slt i32 %9, %10
+  br i1 %11, label %12, label %26
+
+; <label>:12:
+  %13 = load i8*, i8** %4, align 4 ;source
+  %14 = load i32, i32* %7, align 4 ;i
+  %15 = lshr i32, %14, 24 ;unbalanced i
+  %16 = getelementptr inbounds i8, i8* %13, i32 %14
+  %17 = load i8, i8* %15, align 1 ;source[i]
+  %18 = load i8*, i8** %5, align 4 ;dest
+  %19 = load i32, i32* %7, align 4 ;i
+  %20 = lshr i32 %19, 24 ;unbalanced i
+  %21 = getelementptr inbounds i8, i8* %18, i32 %20
+  store i8 %17, i8* %21, align 1
+  br label %22
+
+; <label>:22:
+  %23 = load i32, i32* %7, align 4 ;i
+  %24 = add i32 %23, 256 ;0x00000100
+  %25 = add i32 %24, 16842240 ;0x0100fe00
+  store i32 %25, i32* %7, align 4 ;store i
+  br label %8
+
+; <label>:26:
+  %27 = load i8*, i8** %5, align 4 ;dest
+  %28 = load i32, i32* %6, align 4 ;n
+  %29 = lshr i32, %28, 24 ;unbalanced n
+  %30 = getelementptr inbounds i8, i8* %27, i32 %29
+  store i8 0, i8* %30, align 1 ;dest[n] = '\0'
+  ret void
+}
+
+; Function Attrs: noinline nounwind optnone
+define dso_local void @string_copy(i8*, i8*, i32) #0 {
   %4 = alloca i8*, align 4
   %5 = alloca i8*, align 4
   %6 = alloca i32, align 4
@@ -183,7 +230,7 @@ define dso_local void @c_entry() #0 {
 
 ; <label>:9:                                      ; preds = %6
   %10 = getelementptr inbounds [20 x i8], [20 x i8]* %1, i32 0, i32 0
-  call void @string_copy(i8* getelementptr inbounds ([9 x i8], [9 x i8]* @.str, i32 0, i32 0), i8* %10, i32 8)
+  call void @string_copy(i8* getelementptr inbounds ([9 x i8], [9 x i8]* @.str, i32 0, i32 0), i8* %10, i32 134281472) ;int is balanced 8
   br label %32
 
 ; <label>:11:                                     ; preds = %6
@@ -193,7 +240,7 @@ define dso_local void @c_entry() #0 {
 
 ; <label>:14:                                     ; preds = %11
   %15 = getelementptr inbounds [20 x i8], [20 x i8]* %1, i32 0, i32 0
-  call void @string_copy(i8* getelementptr inbounds ([5 x i8], [5 x i8]* @.str.1, i32 0, i32 0), i8* %15, i32 4)
+  call void @string_copy(i8* getelementptr inbounds ([5 x i8], [5 x i8]* @.str.1, i32 0, i32 0), i8* %15, i32 67173120) ;int is balanced 4
   br label %31
 
 ; <label>:16:                                     ; preds = %11
@@ -213,7 +260,7 @@ define dso_local void @c_entry() #0 {
 
 ; <label>:25:                                     ; preds = %22, %19, %16
   %26 = getelementptr inbounds [20 x i8], [20 x i8]* %1, i32 0, i32 0
-  call void @string_copy(i8* getelementptr inbounds ([5 x i8], [5 x i8]* @.str.2, i32 0, i32 0), i8* %26, i32 4)
+  call void @string_copy(i8* getelementptr inbounds ([5 x i8], [5 x i8]* @.str.2, i32 0, i32 0), i8* %26, i32 67173120) ; int is balanced 4
   br label %31
 
 ; <label>:27:                                     ; preds = %22
