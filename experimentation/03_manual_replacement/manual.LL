@@ -112,9 +112,9 @@ define dso_local void @write_int(i32, i8*) #0 {
   br label %20
 
 ; <label>: 20:			;preds = %2
-  %21 = load i32, i32* %+, align 4 ;i
+  %21 = load i32, i32* %6, align 4 ;i
   %22 = icmp sge i32 %21, 65280 ;i>= 0x0000ff00
-  br i1 %22, label, %23, label %36
+  br i1 %22, label %23, label %52
 
 ; <label>: 23:
   %24 = load i32, i32* %6, align 4 ;i
@@ -130,7 +130,7 @@ define dso_local void @write_int(i32, i8*) #0 {
   %33 = getelementptr inbounds [16 x i8], [16 x i8]* @hexChars, i32 0, i32 %26 ;&hexChars[bits]
   %34 = load i8, i8* %33, align 1 ;hexChars[bits]
   %35 = load i8*, i8** %4, align 4 ;dest
-  %36 = load i32, i32** %5, align 4 ;index
+  %36 = load i32, i32* %5, align 4 ;index
   %37 = lshr i32 %36, 24 ;unbalanced index
   %38 = add nsw i32 %36, 256
   %39 = add nsw i32 %38, 16842240 ;0x0a00fe00
@@ -142,7 +142,26 @@ define dso_local void @write_int(i32, i8*) #0 {
 ; <label>: 41:
   %42 = load i32, i32* %6, align 4 ;i
   %43 = sub i32 %42, 67173120 ;0x0400fb00
-  ;TODO: find a way to do rotate
+  %44 = add i32 %42, 4211082240 ;0xfb000400 (negation of before)
+  %45 = lshr i32 %44, 8
+  %46 = or i32 %43, %45 ;subtraction
+  %47 = and i32 %46, 4278190335; 0xff0000ff (filtering after subtraction)
+  ;changing balancing:
+  %48 = shl i32 %46, 8
+  %49 = lshr i32 %46, 24
+  %50 = or i32 %47, %48 ;rotated right by 8
+  %51 = and i32 %49, 4278255360 ;0xff00ff00 (filtering for balancing scheme 1)
+  
+  store i32 %51, i32* %6, align 4 ;store i
+  br label %20
+
+; <label>: 52:
+  %53 = load i8*, i8** %4, align 4 ;dest
+  %54 = load i32, i32* %5, align 4 ;index
+  %55 = lshr i32 %54, 24 ;unbalanced index
+  %56 = getelementptr inbounds i8, i8* %53, i32 %55
+  store i8 0, i8* %56, align 1 ;dest[index] = '\0'
+  ret void
 }
 
 ; Function Attrs: noinline nounwind optnone
