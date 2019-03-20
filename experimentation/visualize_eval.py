@@ -10,8 +10,9 @@ parser.add_argument('files', metavar='eval.json', type=str, nargs='+', help='a j
 files = parser.parse_args().files
 
 num_files = len(files)
-num_cols = max(1, num_files//3)
-num_rows = min(3, num_files)
+num_plots = num_files + 1
+num_cols = (num_plots//3)+1
+num_rows = min(3, num_plots)
 
 data = []
 for file in files:
@@ -31,4 +32,11 @@ for i in range(len(files)):
     plt.bar(range(32), data[i])
     plt.ylim([0, max_count+10])
     plt.xticks(range(33))
+
+#comparison plot
+plt.subplot(num_rows, num_cols, len(files)+1)
+for i in range(len(files)):
+    plt.plot(data[i], label=files[i])
+plt.legend()
+
 plt.show()
