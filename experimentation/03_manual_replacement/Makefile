@@ -16,10 +16,10 @@ optimized.o: optimized.S
 	$(CROSS_COMPILE)-as -ggdb $(CPU) $< -o $@
 
 optimized.S: optimized.ll
-	llc $< -o $@
+	llc -O0 $< -o $@
 
 optimized.ll: manual.LL
-	opt -load="$(PLUGINS)" $(PASSES) $< -S -o $@
+	opt -O0 -load="$(PLUGINS)" $(PASSES) $< -S -o $@
 
 program.ll: program.c
 	clang $(CLANGOPTS) -S -emit-llvm $<
