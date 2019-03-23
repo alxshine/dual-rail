@@ -7,7 +7,7 @@ PASSES= -hello
 all: program.bin
 
 tinyAES.o: tinyAES.c
-	clang $(CLANGOPTS) -S -emit-llvm tinyAES.c -o tinyAES.ll
+	#clang $(CLANGOPTS) -S -emit-llvm tinyAES.c -o tinyAES.ll
 	opt -load="$(PLUGINS)" $(PASSES) tinyAES.ll -S -o aes_optimized.ll
 	llc aes_optimized.ll -o aes_optimized.S
 	$(CROSS_COMPILE)-as -ggdb $(CPU) aes_optimized.S -o tinyAES.o
@@ -32,5 +32,5 @@ run: program.bin
 
 .PHONY: clean
 clean:
-	rm -f *.o *.bin *.elf *.ll optimized.S
+	rm -f *.o *.bin *.elf optimized.S
 test:
