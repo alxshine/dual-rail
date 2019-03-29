@@ -305,7 +305,7 @@ static uint8_t Multiply(uint8_t x, uint8_t y) {
 // The method used to multiply may be difficult to understand for the
 // inexperienced. Please use the references to gain more information.
 static void InvMixColumns(void) {
-  int i;
+  uint8_t i;
   uint8_t a, b, c, d;
   for (i = 0; i < 4; ++i) {
     a = (*state)[i][0];
