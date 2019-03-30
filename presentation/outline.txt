@@ -1,0 +1,35 @@
+introduction:
+  - power analysis attacks
+    > requirements:
+      - power model
+      - data dependency
+    > basics:
+      - cpa
+    > defenses:
+      - masking
+      - dual rail
+  - llvm?
+
+outline:
+  - general idea of balancing
+  - components:
+    > replacement arithmetic
+    > llvm
+    > qemu
+
+current status:
+  - what is done
+    > arithmetic
+      - show example (sub?)
+    > qemu evaluation
+    > llvm toolchain
+      - skeleton for pass
+      - show build steps
+  - first results
+    > histograms of manual
+    > what can be balanced
+
+next steps:
+  - write balancing pass for 8bit arithmetic
+  - find a way for multi-limb arithmetic
+  - better performance for multiply and modulo
