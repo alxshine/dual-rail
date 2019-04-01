@@ -33,3 +33,4 @@ next steps:
   - write balancing pass for 8bit arithmetic
   - find a way for multi-limb arithmetic
   - better performance for multiply and modulo
+  - maybe possibly floats?

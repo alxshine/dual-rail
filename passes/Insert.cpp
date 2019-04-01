@@ -29,12 +29,12 @@ struct SkeletonPass : public FunctionPass {
           if (op->getType()->getIntegerBitWidth() != 32)
             continue;
           // Insert *after* `op`.
-          IRBuilder<> builder(op);
-          builder.SetInsertPoint(&B, ++builder.GetInsertPoint());
+          //IRBuilder<> builder(op);
+          //builder.SetInsertPoint(&B, ++builder.GetInsertPoint());
 
           // Insert a call to our function.
-          Value *args[] = {op};
-          builder.CreateCall(logFunc, args);
+          //Value *args[] = {op};
+          //builder.CreateCall(logFunc, args);
 
           return true;
         }
