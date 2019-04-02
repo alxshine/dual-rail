@@ -6,14 +6,15 @@ PASSES=-insert
 
 all: program.bin
 
-rtlib.o: rtlib.c
+rtlib.ll: rtlib.c
 	clang $(CLANGOPTS) rtlib.c -S -emit-llvm -o rtlib.ll
-	llc rtlib.ll -o rtlib.S
-	$(CROSS_COMPILE)-as -ggdb $(CPU) rtlib.S -o rtlib.o
 
-tinyAES.o: tinyAES.c
+tinyAES.ll: tinyAES.c
 	clang $(CLANGOPTS) -S -emit-llvm tinyAES.c -o tinyAES.ll
-	opt -load="$(PLUGINS)" $(PASSES) tinyAES.ll -S -o aes_optimized.ll
+
+tinyAES.o: tinyAES.ll rtlib.ll
+	llvm-link rtlib.ll tinyAES.ll -S -o linked.ll
+	opt -load="$(PLUGINS)" $(PASSES) linked.ll -S -o aes_optimized.ll
 	llc aes_optimized.ll -o aes_optimized.S
 	$(CROSS_COMPILE)-as -ggdb $(CPU) aes_optimized.S -o tinyAES.o
 
@@ -29,8 +30,8 @@ startup.o: startup.s
 program.bin: program.elf
 	$(CROSS_COMPILE)-objcopy -O binary $< $@
 
-program.elf: program.o startup.ld tinyAES.o startup.o rtlib.o
-	$(CROSS_COMPILE)-ld -T startup.ld program.o tinyAES.o startup.o rtlib.o -o program.elf
+program.elf: program.o startup.ld tinyAES.o startup.o
+	$(CROSS_COMPILE)-ld -T startup.ld program.o tinyAES.o startup.o -o program.elf
 
 run: program.bin
 	~/Projects/qemu-eval/arm-softmmu/qemu-system-arm -M versatilepb -m 128M -nographic -kernel program.bin
