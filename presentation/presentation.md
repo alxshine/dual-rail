@@ -21,10 +21,14 @@ NOTE: Who was in Infosec2 or Network Security
 ![](./images/poweranalysis.png)
 <span style="font-size:12pt;">Network Security: Slideset 2, Devices</span>
 
+NOTE: what is this; easy, right?
+
 ----
 
 ![](./images/trace.png)
 <span style="font-size:12pt;">Network Security Homework</span>
+
+NOTE: how about now? -> need more sophisticated tools
 
 ----
 
@@ -49,6 +53,9 @@ NOTE: Who was in Infosec2 or Network Security
 - Calculate inverse as well
 - Power consumption is constant
 
+NOTE: power consumption == Hamming-Weight
+NOTE: ask if everyone knows what a Hamming-Weight is
+
 ----
 
 ![](./images/dual.png)
@@ -57,16 +64,21 @@ NOTE: Who was in Infosec2 or Network Security
 
 ## Project
 
+NOTE: do something *similar* to dual-rail in software
+NOTE: perform calculations on inverse as well, store in same register
+
 ----
 
 ### Outline
-- Find balanced operation alternatives
+- Find balanced arithmetic
 - Transform in LLVM compiler
 - Evaluate Using QEMU
 
 ---
 
 ### Balanced Arithmetic
+
+NOTE: imagine 8bit word stored in 32bit register
 
 ----
 
@@ -78,16 +90,18 @@ NOTE: Who was in Infosec2 or Network Security
 
 ----
 
-#### X ORR Y
+#### X AND Y
 
 ```
         0 |        ~X |       0 |       X
         0 |        ~Y |       0 |       Y
-        0 | ~X ORR ~Y |       0 | X ORR Y
         0 | ~X AND ~Y |       0 | X AND Y
-~X AND ~Y | ~X ORR ~Y | X AND Y | X ORR Y
-~X AND ~Y |         0 |       0 | X ORR Y
+        0 | ~X ORR ~Y |       0 | X ORR Y
+~X ORR ~Y | ~X AND ~Y | X ORR Y | X AND Y
+~X ORR ~Y |         0 |       0 | X AND Y
 ```
+
+NOTE: after we have arithmetic, we want to transform into it
 
 ---
 
@@ -97,6 +111,7 @@ NOTE: Who was in Infosec2 or Network Security
 
 ### LLVM
 ![](./images/llvm.png)
+NOTE: good to work with, toolchain still complicated
 
 ----
 
@@ -120,6 +135,8 @@ arm-none-eabi-objcopy -O binary program.elf program.bin
 ---
 
 ## Evaluation
+- done with QEMU
+- saved to JSON
 
 ---
 
@@ -138,10 +155,16 @@ arm-none-eabi-objcopy -O binary program.elf program.bin
 
 ![](./images/eval.png)
 
+----
+
+#### Arithmetic Correctness
+
+![](./images/arithmetic.png)
 ---
 
 ## Next steps
 - Actual balancing pass for 8bit arithmetic
+NOTE: getting verifiable results requires a lot of theught
 - Extend arithmetic to arbitrary size
 - Better performance for multiply, divide, ...
 - Think about floats, possibly?

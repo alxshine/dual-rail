@@ -1,3 +1,5 @@
+#include <iostream>
+
 #include "llvm/IR/Function.h"
 #include "llvm/IR/IRBuilder.h"
 #include "llvm/IR/InstrTypes.h"
@@ -8,6 +10,7 @@
 #include "llvm/Transforms/IPO/PassManagerBuilder.h"
 #include "llvm/Transforms/Utils/BasicBlockUtils.h"
 using namespace llvm;
+using namespace std;
 
 namespace {
 struct SkeletonPass : public FunctionPass {
@@ -17,24 +20,27 @@ struct SkeletonPass : public FunctionPass {
   virtual bool runOnFunction(Function &F) {
     // Get the function to call from our runtime library.
     LLVMContext &Ctx = F.getContext();
+
+    errs() << "I saw a function called " << F.getName() << "!\n";
+
     std::vector<Type *> paramTypes = {Type::getInt32Ty(Ctx)};
     Type *retType = Type::getVoidTy(Ctx);
     FunctionType *logFuncType = FunctionType::get(retType, paramTypes, false);
     Constant *logFunc =
         F.getParent()->getOrInsertFunction("logop", logFuncType);
 
-    for (auto &B : F) {
-      for (auto &I : B) {
+    for (auto &B : F) {   // for all blocks
+      for (auto &I : B) { // for all instructions
         if (auto *op = dyn_cast<BinaryOperator>(&I)) {
           if (op->getType()->getIntegerBitWidth() != 32)
             continue;
           // Insert *after* `op`.
-          //IRBuilder<> builder(op);
-          //builder.SetInsertPoint(&B, ++builder.GetInsertPoint());
+          // IRBuilder<> builder(op);
+          // builder.SetInsertPoint(&B, ++builder.GetInsertPoint());
 
           // Insert a call to our function.
-          //Value *args[] = {op};
-          //builder.CreateCall(logFunc, args);
+          // Value *args[] = {op};
+          // builder.CreateCall(logFunc, args);
 
           return true;
         }
