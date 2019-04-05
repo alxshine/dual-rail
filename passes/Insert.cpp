@@ -2,52 +2,72 @@
 
 #include "llvm/IR/Function.h"
 #include "llvm/IR/IRBuilder.h"
+#include "llvm/IR/InstIterator.h"
 #include "llvm/IR/InstrTypes.h"
 #include "llvm/IR/LegacyPassManager.h"
 #include "llvm/IR/Module.h"
+#include "llvm/IR/ModuleSlotTracker.h"
 #include "llvm/Pass.h"
 #include "llvm/Support/raw_ostream.h"
 #include "llvm/Transforms/IPO/PassManagerBuilder.h"
 #include "llvm/Transforms/Utils/BasicBlockUtils.h"
+#include "llvm/Transforms/Utils/Cloning.h"
 using namespace llvm;
 using namespace std;
 
 namespace {
-struct SkeletonPass : public FunctionPass {
+struct SkeletonPass : public ModulePass {
   static char ID;
-  SkeletonPass() : FunctionPass(ID) {}
+  SkeletonPass() : ModulePass(ID) {}
 
-  virtual bool runOnFunction(Function &F) {
-    // Get the function to call from our runtime library.
-    LLVMContext &Ctx = F.getContext();
+  virtual bool runOnModule(Module &M) {
+    errs() << "Running on module: " << M.getName() << "\n";
+    ModuleSlotTracker MST(&M, true);
+    vector<Function *> copiedFunctions;
 
-    errs() << "I saw a function called " << F.getName() << "!\n";
+    auto &context = M.getContext();
+    vector<pair<unsigned, Attribute>> attributes{
+        {1, Attribute::get(context, Attribute::AttrKind::NoInline)},
+        {2, Attribute::get(context, Attribute::AttrKind::NoUnwind)},
+    };
+    auto attributeList = AttributeList::get(context, attributes);
 
-    std::vector<Type *> paramTypes = {Type::getInt32Ty(Ctx)};
-    Type *retType = Type::getVoidTy(Ctx);
-    FunctionType *logFuncType = FunctionType::get(retType, paramTypes, false);
-    Constant *logFunc =
-        F.getParent()->getOrInsertFunction("logop", logFuncType);
+    // copy the functions
+    for (auto F = M.begin(); F != M.end(); ++F) {
+      std::vector<Type *> argumentTypes;
+      for (auto arg = F->arg_begin(); arg != F->arg_end(); ++arg) {
+        argumentTypes.push_back(arg->getType());
+      }
+      auto *funcType =
+          FunctionType::get(Type::getInt8Ty(context), argumentTypes, false);
+      auto *newFunc = Function::Create(funcType, F->getLinkage());
+      string oldName = F->getName();
+      string newName = "balanced_" + oldName;
+      newFunc->setName(newName);
+      newFunc->setAttributes(attributeList);
 
-    for (auto &B : F) {   // for all blocks
-      for (auto &I : B) { // for all instructions
-        if (auto *op = dyn_cast<BinaryOperator>(&I)) {
-          if (op->getType()->getIntegerBitWidth() != 32)
-            continue;
-          // Insert *after* `op`.
-          // IRBuilder<> builder(op);
-          // builder.SetInsertPoint(&B, ++builder.GetInsertPoint());
+      auto *newBlock = BasicBlock::Create(context, "dummy", newFunc);
+      IRBuilder<> builder(newBlock);
+      auto alloc = builder.CreateAlloca(builder.getInt32Ty(),
+                                        newFunc->getAddressSpace());
+      builder.CreateRet(builder.getInt8(1));
 
-          // Insert a call to our function.
-          // Value *args[] = {op};
-          // builder.CreateCall(logFunc, args);
+      // newFunc->getBasicBlockList().splice(newFunc->begin(),
+      //                                     F->getBasicBlockList());
 
-          return true;
-        }
+      copiedFunctions.push_back(newFunc);
+    }
+
+    for (auto *F : copiedFunctions) {
+      errs() << "Inserting new function " << F->getName() << "\n";
+      M.getFunctionList().push_back(F);
+      if (F->getName() == "balanced_c_entry") {
+        F->print(errs());
+        errs() << "\n";
       }
     }
 
-    return false;
+    return copiedFunctions.size();
   }
 };
 } // namespace

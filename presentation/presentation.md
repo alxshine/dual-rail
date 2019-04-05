@@ -63,9 +63,7 @@ NOTE: ask if everyone knows what a Hamming-Weight is
 ---
 
 ## Project
-
-NOTE: do something *similar* to dual-rail in software
-NOTE: perform calculations on inverse as well, store in same register
+NOTE: similar to dual-rail in software; perform calculations on inverse as well, in same register
 
 ----
 
@@ -78,7 +76,6 @@ NOTE: perform calculations on inverse as well, store in same register
 
 ### Balanced Arithmetic
 
-NOTE: imagine 8bit word stored in 32bit register
 
 ----
 
@@ -164,7 +161,7 @@ arm-none-eabi-objcopy -O binary program.elf program.bin
 
 ## Next steps
 - Actual balancing pass for 8bit arithmetic
-NOTE: getting verifiable results requires a lot of theught
 - Extend arithmetic to arbitrary size
 - Better performance for multiply, divide, ...
 - Think about floats, possibly?
+NOTE: getting verifiable results requires a lot of thought
