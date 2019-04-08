@@ -23,7 +23,7 @@ struct SkeletonPass : public ModulePass {
   virtual bool runOnModule(Module &M) {
     errs() << "Running on module: " << M.getName() << "\n";
     ModuleSlotTracker MST(&M, true);
-    vector<Function *> copiedFunctions;
+    vector<Function *> copied_functions;
 
     auto &context = M.getContext();
 
@@ -49,19 +49,34 @@ struct SkeletonPass : public ModulePass {
         vMap[&*arg] = &*new_arg;
       }
 
+      // clone actual function
       SmallVector<ReturnInst *, 8> returns;
       CloneFunctionInto(newFunc, &*F, vMap, false, returns, "", nullptr,
                         nullptr, nullptr);
 
-      copiedFunctions.push_back(newFunc);
+      copied_functions.push_back(newFunc);
     }
 
-    for (auto *F : copiedFunctions) {
+    for (auto *F : copied_functions) {
       errs() << "Inserting new function " << F->getName() << "\n";
       M.getFunctionList().push_back(F);
     }
 
-    return copiedFunctions.size();
+    // replace calls with calls to balanced functions
+    for (auto *F : copied_functions) {
+      for (inst_iterator I = inst_begin(F), E = inst_end(F); I != E; ++I) {
+        if (auto call = dyn_cast<CallInst>(&*I)) {
+          auto original_name = call->getCalledFunction()->getName();
+          auto new_name = "balanced_" + original_name;
+          SmallVector<char, 100> buffer;
+          auto string_ref = new_name.toStringRef(buffer);
+          auto new_function = M.getFunction(string_ref);
+          call->setCalledFunction(new_function);
+        }
+      }
+    }
+
+    return copied_functions.size();
   }
 };
 } // namespace
