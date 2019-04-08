@@ -26,11 +26,6 @@ struct SkeletonPass : public ModulePass {
     vector<Function *> copiedFunctions;
 
     auto &context = M.getContext();
-    vector<pair<unsigned, Attribute>> attributes{
-        {1, Attribute::get(context, Attribute::AttrKind::NoInline)},
-        {2, Attribute::get(context, Attribute::AttrKind::NoUnwind)},
-    };
-    auto attributeList = AttributeList::get(context, attributes);
 
     // copy the functions
     for (auto F = M.begin(); F != M.end(); ++F) {
@@ -44,7 +39,7 @@ struct SkeletonPass : public ModulePass {
       string oldName = F->getName();
       string newName = "balanced_" + oldName;
       newFunc->setName(newName);
-      newFunc->setAttributes(attributeList);
+      newFunc->setAttributes(F->getAttributes());
 
       auto *newBlock = BasicBlock::Create(context, "dummy", newFunc);
       IRBuilder<> builder(newBlock);
@@ -61,10 +56,6 @@ struct SkeletonPass : public ModulePass {
     for (auto *F : copiedFunctions) {
       errs() << "Inserting new function " << F->getName() << "\n";
       M.getFunctionList().push_back(F);
-      if (F->getName() == "balanced_c_entry") {
-        F->print(errs());
-        errs() << "\n";
-      }
     }
 
     return copiedFunctions.size();
