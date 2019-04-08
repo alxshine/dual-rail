@@ -29,26 +29,29 @@ struct SkeletonPass : public ModulePass {
 
     // copy the functions
     for (auto F = M.begin(); F != M.end(); ++F) {
+      // create cloned function
       std::vector<Type *> argumentTypes;
       for (auto arg = F->arg_begin(); arg != F->arg_end(); ++arg) {
         argumentTypes.push_back(arg->getType());
       }
       auto *funcType =
-          FunctionType::get(Type::getInt8Ty(context), argumentTypes, false);
+          FunctionType::get(F->getReturnType(), argumentTypes, false);
       auto *newFunc = Function::Create(funcType, F->getLinkage());
       string oldName = F->getName();
       string newName = "balanced_" + oldName;
       newFunc->setName(newName);
       newFunc->setAttributes(F->getAttributes());
 
-      auto *newBlock = BasicBlock::Create(context, "dummy", newFunc);
-      IRBuilder<> builder(newBlock);
-      auto alloc = builder.CreateAlloca(builder.getInt32Ty(),
-                                        newFunc->getAddressSpace());
-      builder.CreateRet(builder.getInt8(1));
+      // create value mapping
+      ValueToValueMapTy vMap;
+      for (auto arg = F->arg_begin(), new_arg = newFunc->arg_begin();
+           arg != F->arg_end(); ++arg, ++new_arg) {
+        vMap[&*arg] = &*new_arg;
+      }
 
-      // newFunc->getBasicBlockList().splice(newFunc->begin(),
-      //                                     F->getBasicBlockList());
+      SmallVector<ReturnInst *, 8> returns;
+      CloneFunctionInto(newFunc, &*F, vMap, false, returns, "", nullptr,
+                        nullptr, nullptr);
 
       copiedFunctions.push_back(newFunc);
     }
