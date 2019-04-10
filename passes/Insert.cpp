@@ -38,7 +38,7 @@ struct SkeletonPass : public ModulePass {
 
         argumentTypes.push_back(arg_type);
       }
-      
+
       auto *return_type = F->getReturnType();
       if (return_type == Type::getInt8Ty(context))
         return_type = Type::getInt32Ty(context);
@@ -172,6 +172,15 @@ struct SkeletonPass : public ModulePass {
           auto string_ref = new_name.toStringRef(buffer);
           auto new_function = M.getFunction(string_ref);
           call->setCalledFunction(new_function);
+          IRBuilder<> builder(call);
+          for (int i = 0; i < call->getNumOperands(); ++i) {
+            auto *operand = call->getOperand(i);
+            if (operand->getType() == builder.getInt8Ty()) {
+              auto *cast =
+                  builder.CreateIntCast(operand, builder.getInt32Ty(), true);
+              call->setOperand(i, cast);
+            }
+          }
           continue;
         }
       }
