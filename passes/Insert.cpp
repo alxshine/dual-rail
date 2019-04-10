@@ -154,17 +154,17 @@ struct SkeletonPass : public ModulePass {
               to_remove.push_back(store);
             }
           }
+        }
 
-          // replace calls with calls to balanced functions
-          if (auto call = dyn_cast<CallInst>(&*I)) {
-            auto original_name = call->getCalledFunction()->getName();
-            auto new_name = "balanced_" + original_name;
-            SmallVector<char, 100> buffer;
-            auto string_ref = new_name.toStringRef(buffer);
-            auto new_function = M.getFunction(string_ref);
-            call->setCalledFunction(new_function);
-            continue;
-          }
+        // replace calls with calls to balanced functions
+        if (auto call = dyn_cast<CallInst>(&*I)) {
+          auto original_name = call->getCalledFunction()->getName();
+          auto new_name = "balanced_" + original_name;
+          SmallVector<char, 100> buffer;
+          auto string_ref = new_name.toStringRef(buffer);
+          auto new_function = M.getFunction(string_ref);
+          call->setCalledFunction(new_function);
+          continue;
         }
       }
 
