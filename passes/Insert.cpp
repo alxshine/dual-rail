@@ -136,15 +136,35 @@ struct SkeletonPass : public ModulePass {
           }
         }
 
-        // replace calls with calls to balanced functions
-        if (auto call = dyn_cast<CallInst>(&*I)) {
-          auto original_name = call->getCalledFunction()->getName();
-          auto new_name = "balanced_" + original_name;
-          SmallVector<char, 100> buffer;
-          auto string_ref = new_name.toStringRef(buffer);
-          auto new_function = M.getFunction(string_ref);
-          call->setCalledFunction(new_function);
-          continue;
+        // fix stores of different types
+        if (auto *store = dyn_cast<StoreInst>(&*I)) {
+          if (F->getName() == "balanced_KeyExpansion") {
+            auto *value_type = store->getValueOperand()->getType();
+            PointerType *pointer_type =
+                (PointerType *)store->getPointerOperandType();
+            auto *target_type = pointer_type->getElementType();
+
+            if (target_type != value_type) {
+              IRBuilder<> builder(store);
+              auto *cast = builder.CreateIntCast(store->getValueOperand(),
+                                                 target_type, true);
+              auto *new_store =
+                  builder.CreateStore(cast, store->getPointerOperand());
+              store->replaceAllUsesWith(new_store);
+              to_remove.push_back(store);
+            }
+          }
+
+          // replace calls with calls to balanced functions
+          if (auto call = dyn_cast<CallInst>(&*I)) {
+            auto original_name = call->getCalledFunction()->getName();
+            auto new_name = "balanced_" + original_name;
+            SmallVector<char, 100> buffer;
+            auto string_ref = new_name.toStringRef(buffer);
+            auto new_function = M.getFunction(string_ref);
+            call->setCalledFunction(new_function);
+            continue;
+          }
         }
       }
 
