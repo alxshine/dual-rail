@@ -32,10 +32,18 @@ struct SkeletonPass : public ModulePass {
       // create cloned function
       std::vector<Type *> argumentTypes;
       for (auto arg = F->arg_begin(); arg != F->arg_end(); ++arg) {
-        argumentTypes.push_back(arg->getType());
+        auto *arg_type = arg->getType();
+        if (arg_type == Type::getInt8Ty(context))
+          arg_type = Type::getInt32Ty(context);
+
+        argumentTypes.push_back(arg_type);
       }
-      auto *funcType =
-          FunctionType::get(F->getReturnType(), argumentTypes, false);
+      
+      auto *return_type = F->getReturnType();
+      if (return_type == Type::getInt8Ty(context))
+        return_type = Type::getInt32Ty(context);
+
+      auto *funcType = FunctionType::get(return_type, argumentTypes, false);
       auto *newFunc = Function::Create(funcType, F->getLinkage());
       string oldName = F->getName();
       string newName = "balanced_" + oldName;
