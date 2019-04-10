@@ -63,6 +63,9 @@ struct SkeletonPass : public ModulePass {
     }
 
     for (auto *F : copied_functions) {
+      if (F->getName() != "balanced_BlockCopy")
+        continue;
+
       vector<Instruction *> to_remove;
       for (inst_iterator I = inst_begin(F), E = inst_end(F); I != E; ++I) {
         // alloca i32 instead of i8
@@ -78,7 +81,7 @@ struct SkeletonPass : public ModulePass {
         }
 
         // store i32 constants instead of i8
-        if (auto store = dyn_cast<StoreInst>(&*I)) {
+        if (auto *store = dyn_cast<StoreInst>(&*I)) {
           auto *constant = dyn_cast<ConstantInt>(store->getValueOperand());
           if (constant && constant->getType() == Type::getInt8Ty(context) &&
               store->getPointerOperandType() == Type::getInt32PtrTy(context)) {
@@ -93,7 +96,7 @@ struct SkeletonPass : public ModulePass {
         }
 
         // load i32 values instead of i8
-        if (auto load = dyn_cast<LoadInst>(&*I)) {
+        if (auto *load = dyn_cast<LoadInst>(&*I)) {
           if (load->getType() == Type::getInt8Ty(context) &&
               load->getPointerOperandType() == Type::getInt32PtrTy(context)) {
             auto *new_load = new LoadInst(load->getPointerOperand(), "", load);
@@ -103,10 +106,31 @@ struct SkeletonPass : public ModulePass {
         }
 
         // remove unnecessary zexts
-        if (auto zext = dyn_cast<ZExtInst>(&*I)) {
+        if (auto *zext = dyn_cast<ZExtInst>(&*I)) {
           if (zext->getSrcTy() == zext->getDestTy()) {
             zext->replaceAllUsesWith(zext->getOperand(0));
             to_remove.push_back(zext);
+          }
+        }
+
+        // fix constants in binary operations
+        if (auto *op = dyn_cast<BinaryOperator>(&*I)) {
+          if (op->getOperand(0)->getType() == Type::getInt32Ty(context) ||
+              op->getOperand(0)->getType() == Type::getInt32Ty(context)) {
+            Value *operands[2] = {op->getOperand(0), op->getOperand(1)};
+            for (int i = 0; i < 2; i++) {
+              auto *constant = dyn_cast<ConstantInt>(op->getOperand(i));
+              if (constant &&
+                  constant->getType() != Type::getInt32Ty(context)) {
+                auto *new_constant = ConstantInt::getSigned(
+                    Type::getInt32Ty(context), constant->getLimitedValue());
+                operands[i] = new_constant;
+              }
+            }
+            auto *new_op = BinaryOperator::Create(op->getOpcode(), operands[0],
+                                                  operands[1], Twine(), op);
+            op->replaceAllUsesWith(new_op);
+            to_remove.push_back(op);
           }
         }
 
@@ -123,11 +147,6 @@ struct SkeletonPass : public ModulePass {
 
       for (auto *I : to_remove) {
         I->eraseFromParent();
-      }
-
-      if (F->getName() == "balanced_BlockCopy") {
-        F->print(errs());
-        errs() << "\n";
       }
     }
 
