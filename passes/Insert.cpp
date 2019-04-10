@@ -63,9 +63,6 @@ struct SkeletonPass : public ModulePass {
     }
 
     for (auto *F : copied_functions) {
-      if (F->getName() != "balanced_BlockCopy")
-        continue;
-
       vector<Instruction *> to_remove;
       for (inst_iterator I = inst_begin(F), E = inst_end(F); I != E; ++I) {
         // alloca i32 instead of i8
@@ -77,6 +74,7 @@ struct SkeletonPass : public ModulePass {
                                nullptr, "", alloca);
             alloca->replaceAllUsesWith(new_alloc);
             to_remove.push_back(alloca);
+            continue;
           }
         }
 
@@ -92,6 +90,7 @@ struct SkeletonPass : public ModulePass {
             auto *new_store =
                 new StoreInst(new_const, store->getPointerOperand(), store);
             to_remove.push_back(store);
+            continue;
           }
         }
 
@@ -102,6 +101,7 @@ struct SkeletonPass : public ModulePass {
             auto *new_load = new LoadInst(load->getPointerOperand(), "", load);
             load->replaceAllUsesWith(new_load);
             to_remove.push_back(load);
+            continue;
           }
         }
 
@@ -110,6 +110,7 @@ struct SkeletonPass : public ModulePass {
           if (zext->getSrcTy() == zext->getDestTy()) {
             zext->replaceAllUsesWith(zext->getOperand(0));
             to_remove.push_back(zext);
+            continue;
           }
         }
 
@@ -131,6 +132,7 @@ struct SkeletonPass : public ModulePass {
                                                   operands[1], Twine(), op);
             op->replaceAllUsesWith(new_op);
             to_remove.push_back(op);
+            continue;
           }
         }
 
@@ -142,6 +144,7 @@ struct SkeletonPass : public ModulePass {
           auto string_ref = new_name.toStringRef(buffer);
           auto new_function = M.getFunction(string_ref);
           call->setCalledFunction(new_function);
+          continue;
         }
       }
 
