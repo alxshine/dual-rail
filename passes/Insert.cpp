@@ -97,7 +97,16 @@ struct SkeletonPass : public ModulePass {
           if (load->getType() == Type::getInt8Ty(context) &&
               load->getPointerOperandType() == Type::getInt32PtrTy(context)) {
             auto *new_load = new LoadInst(load->getPointerOperand(), "", load);
+            load->replaceAllUsesWith(new_load);
             to_remove.push_back(load);
+          }
+        }
+
+        // remove unnecessary zexts
+        if (auto zext = dyn_cast<ZExtInst>(&*I)) {
+          if (zext->getSrcTy() == zext->getDestTy()) {
+            zext->replaceAllUsesWith(zext->getOperand(0));
+            to_remove.push_back(zext);
           }
         }
 
