@@ -62,9 +62,19 @@ struct SkeletonPass : public ModulePass {
       M.getFunctionList().push_back(F);
     }
 
-    // replace calls with calls to balanced functions
     for (auto *F : copied_functions) {
       for (inst_iterator I = inst_begin(F), E = inst_end(F); I != E; ++I) {
+        // replace allocates
+        if (auto alloca = dyn_cast<AllocaInst>(&*I)) {
+          if (alloca->getAllocatedType() == Type::getInt8Ty(context)) {
+            auto *new_alloc =
+                new AllocaInst(Type::getInt32Ty(context), F->getAddressSpace(),
+                               nullptr, "", alloca);
+            alloca->replaceAllUsesWith(new_alloc);
+          }
+        }
+
+        // replace calls with calls to balanced functions
         if (auto call = dyn_cast<CallInst>(&*I)) {
           auto original_name = call->getCalledFunction()->getName();
           auto new_name = "balanced_" + original_name;
