@@ -63,14 +63,32 @@ struct SkeletonPass : public ModulePass {
     }
 
     for (auto *F : copied_functions) {
+      vector<Instruction *> to_remove;
       for (inst_iterator I = inst_begin(F), E = inst_end(F); I != E; ++I) {
-        // replace allocates
+        // alloca i32 instead of i8
         if (auto alloca = dyn_cast<AllocaInst>(&*I)) {
           if (alloca->getAllocatedType() == Type::getInt8Ty(context)) {
+            // TODO: maybe use setAllocatedType here?
             auto *new_alloc =
                 new AllocaInst(Type::getInt32Ty(context), F->getAddressSpace(),
                                nullptr, "", alloca);
             alloca->replaceAllUsesWith(new_alloc);
+            to_remove.push_back(alloca);
+          }
+        }
+
+        // store i32 constants instead of i8
+        if (auto store = dyn_cast<StoreInst>(&*I)) {
+          auto *constant = dyn_cast<ConstantInt>(store->getValueOperand());
+          if (constant && constant->getType() == Type::getInt8Ty(context) &&
+              store->getPointerOperandType() == Type::getInt32PtrTy(context)) {
+            auto const_value = constant->getLimitedValue();
+            auto *new_const =
+                ConstantInt::getSigned(Type::getInt32Ty(context), const_value);
+
+            auto *new_store =
+                new StoreInst(new_const, store->getPointerOperand(), store);
+            to_remove.push_back(store);
           }
         }
 
@@ -83,6 +101,10 @@ struct SkeletonPass : public ModulePass {
           auto new_function = M.getFunction(string_ref);
           call->setCalledFunction(new_function);
         }
+      }
+
+      for (auto *I : to_remove) {
+        I->eraseFromParent();
       }
     }
 
