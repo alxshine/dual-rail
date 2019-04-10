@@ -92,6 +92,15 @@ struct SkeletonPass : public ModulePass {
           }
         }
 
+        // load i32 values instead of i8
+        if (auto load = dyn_cast<LoadInst>(&*I)) {
+          if (load->getType() == Type::getInt8Ty(context) &&
+              load->getPointerOperandType() == Type::getInt32PtrTy(context)) {
+            auto *new_load = new LoadInst(load->getPointerOperand(), "", load);
+            to_remove.push_back(load);
+          }
+        }
+
         // replace calls with calls to balanced functions
         if (auto call = dyn_cast<CallInst>(&*I)) {
           auto original_name = call->getCalledFunction()->getName();
@@ -105,6 +114,11 @@ struct SkeletonPass : public ModulePass {
 
       for (auto *I : to_remove) {
         I->eraseFromParent();
+      }
+
+      if (F->getName() == "balanced_BlockCopy") {
+        F->print(errs());
+        errs() << "\n";
       }
     }
 
