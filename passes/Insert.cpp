@@ -200,16 +200,24 @@ struct SkeletonPass : public ModulePass {
           SmallVector<char, 100> buffer;
           auto string_ref = new_name.toStringRef(buffer);
           auto new_function = M.getFunction(string_ref);
-          call->setCalledFunction(new_function);
           IRBuilder<> builder(call);
-          for (int i = 0; i < call->getNumOperands(); ++i) {
-            auto *operand = call->getOperand(i);
-            if (operand->getType() == builder.getInt8Ty()) {
+          SmallVector<Value *, 4> args;
+          for (int i = 0; i < call->getNumArgOperands(); i++) {
+            auto *arg = call->getArgOperand(i);
+            if (arg->getType() == builder.getInt8Ty()) {
               auto *cast =
-                  builder.CreateIntCast(operand, builder.getInt32Ty(), true);
-              call->setOperand(i, cast);
+                  builder.CreateIntCast(arg, builder.getInt32Ty(), false);
+              args.push_back(cast);
+            } else {
+              args.push_back(arg);
             }
           }
+
+          auto *new_call = builder.CreateCall(new_function->getFunctionType(),
+                                              new_function, args);
+
+          call->replaceAllUsesWith(new_call);
+          to_remove.push_back(call);
           continue;
         }
       }
@@ -217,16 +225,11 @@ struct SkeletonPass : public ModulePass {
       for (auto *I : to_remove) {
         I->eraseFromParent();
       }
-
-      if (F->getName() == "balanced_xtime") {
-        F->print(errs());
-        errs() << "\n\n";
-      }
     }
 
     return copied_functions.size();
   }
-};
+}; // namespace
 } // namespace
 
 char SkeletonPass::ID = 0;
