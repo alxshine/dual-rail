@@ -146,21 +146,32 @@ struct SkeletonPass : public ModulePass {
 
         // fix stores of different types
         if (auto *store = dyn_cast<StoreInst>(&*I)) {
-          if (F->getName() == "balanced_KeyExpansion") {
-            auto *value_type = store->getValueOperand()->getType();
-            PointerType *pointer_type =
-                (PointerType *)store->getPointerOperandType();
-            auto *target_type = pointer_type->getElementType();
+          auto *value_type = store->getValueOperand()->getType();
+          PointerType *pointer_type =
+              (PointerType *)store->getPointerOperandType();
+          auto *target_type = pointer_type->getElementType();
 
-            if (target_type != value_type) {
-              IRBuilder<> builder(store);
-              auto *cast = builder.CreateIntCast(store->getValueOperand(),
-                                                 target_type, true);
-              auto *new_store =
-                  builder.CreateStore(cast, store->getPointerOperand());
-              store->replaceAllUsesWith(new_store);
-              to_remove.push_back(store);
-            }
+          if (value_type != target_type) {
+            IRBuilder<> builder(store);
+            auto *cast = builder.CreateIntCast(store->getValueOperand(),
+                                               target_type, false);
+            auto *new_store =
+                builder.CreateStore(cast, store->getPointerOperand());
+            store->replaceAllUsesWith(new_store);
+            to_remove.push_back(store);
+          }
+        }
+
+        // replace truncate with and TODO: test this for more general code
+        if (auto truncate = dyn_cast<TruncInst>(&*I)) {
+          if (truncate->getType() == Type::getInt8Ty(context)) {
+            int mask = 0xff;
+            IRBuilder<> builder(truncate);
+            auto *constant = builder.getInt32(mask);
+            auto *and_op = builder.CreateBinOp(
+                Instruction::BinaryOps::And, truncate->getOperand(0), constant);
+            truncate->replaceAllUsesWith(and_op);
+            to_remove.push_back(truncate);
           }
         }
 
@@ -187,6 +198,11 @@ struct SkeletonPass : public ModulePass {
 
       for (auto *I : to_remove) {
         I->eraseFromParent();
+      }
+
+      if (F->getName() == "balanced_xtime") {
+        F->print(errs());
+        errs() << "\n\n";
       }
     }
 
