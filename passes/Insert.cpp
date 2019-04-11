@@ -151,7 +151,9 @@ struct SkeletonPass : public ModulePass {
               (PointerType *)store->getPointerOperandType();
           auto *target_type = pointer_type->getElementType();
 
-          if (value_type != target_type) {
+          if (value_type !=
+              target_type) { // TODO: this could cause some very hard to find
+                             // bugs -> check for i8 and i32 specifically
             IRBuilder<> builder(store);
             auto *cast = builder.CreateIntCast(store->getValueOperand(),
                                                target_type, false);
@@ -172,6 +174,22 @@ struct SkeletonPass : public ModulePass {
                 Instruction::BinaryOps::And, truncate->getOperand(0), constant);
             truncate->replaceAllUsesWith(and_op);
             to_remove.push_back(truncate);
+          }
+        }
+
+        // add cast before return if necessary
+        if (auto ret = dyn_cast<ReturnInst>(&*I)) {
+          if (ret->getNumOperands() > 0) {
+            auto *operand = ret->getOperand(0);
+            if (operand->getType() == Type::getInt8Ty(context) &&
+                F->getReturnType() == Type::getInt32Ty(context)) {
+              IRBuilder<> builder(ret);
+              auto *cast =
+                  builder.CreateIntCast(operand, builder.getInt32Ty(), false);
+              auto *new_ret = builder.CreateRet(cast);
+              ret->replaceAllUsesWith(new_ret);
+              to_remove.push_back(ret);
+            }
           }
         }
 
