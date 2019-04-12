@@ -131,8 +131,11 @@ struct SkeletonPass : public ModulePass {
               auto *constant = dyn_cast<ConstantInt>(op->getOperand(i));
               if (constant &&
                   constant->getType() != Type::getInt32Ty(context)) {
-                auto *new_constant = ConstantInt::getSigned(
-                    Type::getInt32Ty(context), constant->getLimitedValue());
+                auto old_int = constant->getUniqueInteger();
+                APInt new_int{32, old_int.getLimitedValue()};
+                if (old_int.isNegative())
+                  new_int.setBitsFrom(8);
+                auto *new_constant = ConstantInt::get(context, new_int);
                 operands[i] = new_constant;
               }
             }
