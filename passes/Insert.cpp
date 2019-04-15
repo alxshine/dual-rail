@@ -29,6 +29,10 @@ struct SkeletonPass : public ModulePass {
 
     // copy the functions
     for (auto F = M.begin(); F != M.end(); ++F) {
+      auto name = F->getName();
+      if(name.startswith_lower("balanced_"))
+	continue;
+      
       // create cloned function
       std::vector<Type *> argumentTypes;
       for (auto arg = F->arg_begin(); arg != F->arg_end(); ++arg) {
