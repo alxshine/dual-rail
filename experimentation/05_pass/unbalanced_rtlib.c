@@ -14,7 +14,7 @@ int balanced_xor(int lhs, int rhs) { return lhs ^ rhs; }
 
 int balanced_add(int lhs, int rhs) { return lhs + rhs; }
 
-int balanced_sub(int lhs, int rhs) { return lhs - rhs; }
+int balanced_subtract(int lhs, int rhs) { return lhs - rhs; }
 
 int balanced_mul(int lhs, int rhs) { return lhs * rhs; }
 

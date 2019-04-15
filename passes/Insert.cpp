@@ -27,9 +27,22 @@ struct SkeletonPass : public ModulePass {
 
     auto &context = M.getContext();
 
-    // get function references
+    // get function pointers
     auto *balance_func = M.getFunction("balanced_int");
     auto *const_balance_func = M.getFunction("balanced_constant");
+    auto *unbalance_func = M.getFunction("unbalanced_int");
+
+    auto *balanced_or = M.getFunction("balanced_or");
+    auto *balanced_and = M.getFunction("balanced_and");
+    auto *balanced_xor = M.getFunction("balanced_xor");
+    auto *balanced_add = M.getFunction("balanced_add");
+    auto *balanced_sub = M.getFunction("balanced_sub");
+    auto *balanced_mul = M.getFunction("balanced_mul");
+    auto *balanced_sdiv = M.getFunction("balanced_sdiv");
+    auto *balanced_udiv = M.getFunction("balanced_udiv");
+    auto *balanced_srem = M.getFunction("balanced_srem");
+    auto *balanced_shl = M.getFunction("balanced_shl");
+    auto *balanced_ashr = M.getFunction("balanced_ashr");
 
     // copy the functions
     for (auto F = M.begin(); F != M.end(); ++F) {
@@ -137,7 +150,8 @@ struct SkeletonPass : public ModulePass {
             Value *operands[2] = {op->getOperand(0), op->getOperand(1)};
             IRBuilder<> builder{op};
             for (int i = 0; i < 2; i++) {
-              auto *constant = dyn_cast<ConstantInt>(op->getOperand(i));
+              auto *constant =
+                  dyn_cast<ConstantInt>(op->getOperand(i)); // TODO: next step
               if (constant &&
                   constant->getType() != Type::getInt32Ty(context)) {
                 auto old_int = constant->getUniqueInteger();
