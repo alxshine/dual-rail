@@ -30,9 +30,9 @@ struct SkeletonPass : public ModulePass {
     // copy the functions
     for (auto F = M.begin(); F != M.end(); ++F) {
       auto name = F->getName();
-      if(name.startswith_lower("balanced_"))
-	continue;
-      
+      if (name.startswith_lower("balanced_"))
+        continue;
+
       // create cloned function
       std::vector<Type *> argumentTypes;
       for (auto arg = F->arg_begin(); arg != F->arg_end(); ++arg) {
@@ -95,12 +95,14 @@ struct SkeletonPass : public ModulePass {
           auto *constant = dyn_cast<ConstantInt>(store->getValueOperand());
           if (constant && constant->getType() == Type::getInt8Ty(context) &&
               store->getPointerOperandType() == Type::getInt32PtrTy(context)) {
-            auto const_value = constant->getLimitedValue();
-            auto *new_const =
-                ConstantInt::getSigned(Type::getInt32Ty(context), const_value);
+            IRBuilder<> builder(store);
+            auto *new_const = builder.getInt32(constant->getLimitedValue());
+            auto *const_balance_func = M.getFunction("balanced_constant");
+            auto *balanced_const =
+                builder.CreateCall(const_balance_func, {new_const});
 
             auto *new_store =
-                new StoreInst(new_const, store->getPointerOperand(), store);
+                builder.CreateStore(balanced_const, store->getPointerOperand());
             to_remove.push_back(store);
             continue;
           }
@@ -131,6 +133,7 @@ struct SkeletonPass : public ModulePass {
           if (op->getOperand(0)->getType() == Type::getInt32Ty(context) ||
               op->getOperand(0)->getType() == Type::getInt32Ty(context)) {
             Value *operands[2] = {op->getOperand(0), op->getOperand(1)};
+            IRBuilder<> builder{op};
             for (int i = 0; i < 2; i++) {
               auto *constant = dyn_cast<ConstantInt>(op->getOperand(i));
               if (constant &&
@@ -139,8 +142,13 @@ struct SkeletonPass : public ModulePass {
                 APInt new_int{32, old_int.getLimitedValue()};
                 if (old_int.isNegative())
                   new_int.setBitsFrom(8);
-                auto *new_constant = ConstantInt::get(context, new_int);
-                operands[i] = new_constant;
+                auto *new_constant = builder.getInt(new_int);
+                auto *constant_balance_func =
+                    M.getFunction("balanced_constant");
+                auto *balanced_constant =
+                    builder.CreateCall(constant_balance_func, {new_constant});
+
+                operands[i] = balanced_constant;
               }
             }
             auto *new_op = BinaryOperator::Create(op->getOpcode(), operands[0],
