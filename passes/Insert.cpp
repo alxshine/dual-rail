@@ -97,7 +97,7 @@ struct SkeletonPass : public ModulePass {
               store->getPointerOperandType() == Type::getInt32PtrTy(context)) {
             IRBuilder<> builder(store);
             auto *new_const = builder.getInt32(constant->getLimitedValue());
-            auto *const_balance_func = M.getFunction("balanced_constant");
+            auto *const_balance_func = M.getFunction("balanced_int");
             auto *balanced_const =
                 builder.CreateCall(const_balance_func, {new_const});
 
@@ -143,10 +143,10 @@ struct SkeletonPass : public ModulePass {
                 if (old_int.isNegative())
                   new_int.setBitsFrom(8);
                 auto *new_constant = builder.getInt(new_int);
-                auto *constant_balance_func =
-                    M.getFunction("balanced_constant");
+                auto *balance_func =
+                    M.getFunction("balanced_int");
                 auto *balanced_constant =
-                    builder.CreateCall(constant_balance_func, {new_constant});
+                    builder.CreateCall(balance_func, {new_constant});
 
                 operands[i] = balanced_constant;
               }

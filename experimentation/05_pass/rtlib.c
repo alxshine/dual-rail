@@ -1,6 +1,6 @@
 #include "definitions.h"
 
-int balanced_constant(int constant) { return constant; }
+int balanced_int(int constant) { return constant; }
 
 int balanced_or(int lhs, int rhs) { return lhs | rhs; }
 
