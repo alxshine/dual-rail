@@ -1,6 +1,10 @@
 #include "definitions.h"
 
-int balanced_int(int constant) { return constant; }
+uint32_t balanced_int(uint8_t val) { return val; }
+
+uint32_t balanced_constant(uint32_t constant) { return constant; }
+
+uint8_t unbalanced_int(uint32_t val) { return val; }
 
 int balanced_or(int lhs, int rhs) { return lhs | rhs; }
 

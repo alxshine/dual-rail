@@ -27,10 +27,14 @@ struct SkeletonPass : public ModulePass {
 
     auto &context = M.getContext();
 
+    // get function references
+    auto *balance_func = M.getFunction("balanced_int");
+    auto *const_balance_func = M.getFunction("balanced_constant");
+
     // copy the functions
     for (auto F = M.begin(); F != M.end(); ++F) {
       auto name = F->getName();
-      if (name.startswith_lower("balanced_"))
+      if (name.startswith_lower("balanced_") || name.startswith("unbalanced_"))
         continue;
 
       // create cloned function
@@ -80,7 +84,6 @@ struct SkeletonPass : public ModulePass {
         // alloca i32 instead of i8
         if (auto alloca = dyn_cast<AllocaInst>(&*I)) {
           if (alloca->getAllocatedType() == Type::getInt8Ty(context)) {
-            // TODO: maybe use setAllocatedType here?
             auto *new_alloc =
                 new AllocaInst(Type::getInt32Ty(context), F->getAddressSpace(),
                                nullptr, "", alloca);
@@ -96,10 +99,9 @@ struct SkeletonPass : public ModulePass {
           if (constant && constant->getType() == Type::getInt8Ty(context) &&
               store->getPointerOperandType() == Type::getInt32PtrTy(context)) {
             IRBuilder<> builder(store);
-            auto *new_const = builder.getInt32(constant->getLimitedValue());
-            auto *const_balance_func = M.getFunction("balanced_int");
+            auto *new_const = builder.getInt8(constant->getLimitedValue());
             auto *balanced_const =
-                builder.CreateCall(const_balance_func, {new_const});
+                builder.CreateCall(balance_func, {new_const});
 
             auto *new_store =
                 builder.CreateStore(balanced_const, store->getPointerOperand());
@@ -143,10 +145,8 @@ struct SkeletonPass : public ModulePass {
                 if (old_int.isNegative())
                   new_int.setBitsFrom(8);
                 auto *new_constant = builder.getInt(new_int);
-                auto *balance_func =
-                    M.getFunction("balanced_int");
                 auto *balanced_constant =
-                    builder.CreateCall(balance_func, {new_constant});
+                    builder.CreateCall(const_balance_func, {new_constant});
 
                 operands[i] = balanced_constant;
               }
@@ -161,15 +161,24 @@ struct SkeletonPass : public ModulePass {
 
         // fix stores of different types
         if (auto *store = dyn_cast<StoreInst>(&*I)) {
-          auto *value_type = store->getValueOperand()->getType();
+          auto *value = store->getValueOperand();
+          auto *value_type = value->getType();
+          auto *pointer = store->getPointerOperand();
           PointerType *pointer_type =
               (PointerType *)store->getPointerOperandType();
           auto *target_type = pointer_type->getElementType();
 
+          IRBuilder<> builder(store);
+          if (value_type == builder.getInt8Ty() &&
+              target_type == builder.getInt32Ty()) {
+
+          } else if (value_type == builder.getInt32Ty() &&
+                     target_type == builder.getInt8Ty()) {
+          }
+
           if (value_type !=
               target_type) { // TODO: this could cause some very hard to find
                              // bugs -> check for i8 and i32 specifically
-            IRBuilder<> builder(store);
             auto *cast = builder.CreateIntCast(store->getValueOperand(),
                                                target_type, false);
             auto *new_store =
@@ -199,9 +208,8 @@ struct SkeletonPass : public ModulePass {
             if (operand->getType() == Type::getInt8Ty(context) &&
                 F->getReturnType() == Type::getInt32Ty(context)) {
               IRBuilder<> builder(ret);
-              auto *cast =
-                  builder.CreateIntCast(operand, builder.getInt32Ty(), false);
-              auto *new_ret = builder.CreateRet(cast);
+              auto *balanced_val = builder.CreateCall(balance_func, {operand});
+              auto *new_ret = builder.CreateRet(balanced_val);
               ret->replaceAllUsesWith(new_ret);
               to_remove.push_back(ret);
             }
@@ -220,9 +228,8 @@ struct SkeletonPass : public ModulePass {
           for (int i = 0; i < call->getNumArgOperands(); i++) {
             auto *arg = call->getArgOperand(i);
             if (arg->getType() == builder.getInt8Ty()) {
-              auto *cast =
-                  builder.CreateIntCast(arg, builder.getInt32Ty(), false);
-              args.push_back(cast);
+              auto *balanced_val = builder.CreateCall(balance_func, {arg});
+              args.push_back(balanced_val);
             } else {
               args.push_back(arg);
             }
