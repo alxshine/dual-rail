@@ -1,3 +1,6 @@
+#ifndef _PRINT_H
+#define _PRINT_H
+
 volatile unsigned int *const UART0DR = (unsigned int *)0x101f1000;
 
 void printn_uart0(const char *s, int n) {
@@ -14,3 +17,5 @@ void print_uart0(const char *s) {
   }
   *UART0DR = (unsigned int)('\n');
 }
+
+#endif

@@ -41,6 +41,7 @@ struct SkeletonPass : public ModulePass {
     auto *balanced_sdiv = M.getFunction("balanced_sdiv");
     auto *balanced_udiv = M.getFunction("balanced_udiv");
     auto *balanced_srem = M.getFunction("balanced_srem");
+    auto *balanced_urem = M.getFunction("balanced_urem");
     auto *balanced_shl = M.getFunction("balanced_shl");
     auto *balanced_ashr = M.getFunction("balanced_ashr");
 
@@ -143,12 +144,13 @@ struct SkeletonPass : public ModulePass {
           }
         }
 
-        // fix constants in binary operations
         if (auto *op = dyn_cast<BinaryOperator>(&*I)) {
+          IRBuilder<> builder{op};
+
+          // fix constants in binary operations
           if (op->getOperand(0)->getType() == Type::getInt32Ty(context) ||
               op->getOperand(0)->getType() == Type::getInt32Ty(context)) {
             Value *operands[2] = {op->getOperand(0), op->getOperand(1)};
-            IRBuilder<> builder{op};
             for (int i = 0; i < 2; i++) {
               auto *constant =
                   dyn_cast<ConstantInt>(op->getOperand(i)); // TODO: next step
@@ -169,8 +171,48 @@ struct SkeletonPass : public ModulePass {
                                                   operands[1], Twine(), op);
             op->replaceAllUsesWith(new_op);
             to_remove.push_back(op);
-            continue;
+            op = new_op;
           }
+
+          // change operations to balanced operations
+          auto opcode = op->getOpcode();
+          SmallVector<Value *, 2> operands;
+          for (int i = 0; i < 2; ++i) {
+            operands.push_back(op->getOperand(i));
+          }
+
+          Value *call;
+          if (opcode == llvm::Instruction::BinaryOps::Or)
+            call = builder.CreateCall(balanced_or, operands);
+          else if (opcode == llvm::Instruction::BinaryOps::And)
+            call = builder.CreateCall(balanced_and, operands);
+          else if (opcode == llvm::Instruction::BinaryOps::Xor)
+            call = builder.CreateCall(balanced_xor, operands);
+          else if (opcode == llvm::Instruction::BinaryOps::Add)
+            call = builder.CreateCall(balanced_add, operands);
+          else if (opcode == llvm::Instruction::BinaryOps::Sub)
+            call = builder.CreateCall(balanced_sub, operands);
+          else if (opcode == llvm::Instruction::BinaryOps::Mul)
+            call = builder.CreateCall(balanced_mul, operands);
+          else if (opcode == llvm::Instruction::BinaryOps::SDiv)
+            call = builder.CreateCall(balanced_sdiv, operands);
+          else if (opcode == llvm::Instruction::BinaryOps::UDiv)
+            call = builder.CreateCall(balanced_udiv, operands);
+          else if (opcode == llvm::Instruction::BinaryOps::SRem)
+            call = builder.CreateCall(balanced_srem, operands);
+          else if (opcode == llvm::Instruction::BinaryOps::URem)
+            call = builder.CreateCall(balanced_urem, operands);
+          else if (opcode == llvm::Instruction::BinaryOps::Shl)
+            call = builder.CreateCall(balanced_shl, operands);
+          else if (opcode == llvm::Instruction::BinaryOps::AShr)
+            call = builder.CreateCall(balanced_ashr, operands);
+          else {
+            errs() << "No balanced variant found for operation "
+                   << op->getOpcodeName() << "\n";
+            return -1;
+          }
+          op->replaceAllUsesWith(call);
+          to_remove.push_back(op);
         }
 
         // fix stores of different types
@@ -261,6 +303,11 @@ struct SkeletonPass : public ModulePass {
       for (auto *I : to_remove) {
         I->eraseFromParent();
       }
+
+      // if (F->getName() == "balanced_xtime") {
+      //   F->print(errs());
+      //   errs() << "\n";
+      // }
     }
 
     return copied_functions.size();
