@@ -11,6 +11,7 @@ uint32_t balanced_1_2(uint32_t val) {
 uint32_t balanced_2_1(uint32_t val) {
   uint32_t temp = val >> 8;
   temp |= val << 24;
+  temp |= val;
   return temp & 0x00ff00ff;
 }
 
