@@ -36,7 +36,7 @@ uint32_t balanced_or(uint32_t lhs, uint32_t rhs) {
   return lhs | rhs;
 }
 
-int balanced_and(int lhs, int rhs) {
+uint32_t balanced_and(uint32_t lhs, uint32_t rhs) {
   uint32_t temp_or = lhs | rhs;
   uint32_t temp_and = lhs & rhs;
   uint32_t combined = (temp_or << 8) | temp_and;
@@ -45,13 +45,25 @@ int balanced_and(int lhs, int rhs) {
   return lhs & rhs;
 }
 
-int balanced_xor(int lhs, int rhs) { return lhs ^ rhs; }
+uint32_t balanced_xor(uint32_t lhs, uint32_t rhs) {
+  uint32_t filled = lhs | (rhs << 8);
+  uint32_t c8l = (filled << 24) | (filled >> 8);
+  uint32_t s2 = filled & c8l;
+  uint32_t c16r = (s2 >> 16) | (s2 << 16);
+  uint32_t raw = s2 | c16r;
+  uint32_t filtered = raw & 0xff0000ff;
+  return balanced_2_1(filtered);
+}
 
-int balanced_add(int lhs, int rhs) { return lhs + rhs; }
+uint32_t balanced_add(uint32_t lhs, uint32_t rhs) {
+  lhs += 0x00010000;
+  uint32_t temp = lhs + rhs;
+  return lhs + rhs;
+}
 
-int balanced_sub(int lhs, int rhs) { return lhs - rhs; }
+uint32_t balanced_sub(uint32_t lhs, uint32_t rhs) { return lhs - rhs; }
 
-int balanced_mul(int lhs, int rhs) { return lhs * rhs; }
+uint32_t balanced_mul(uint32_t lhs, uint32_t rhs) { return lhs * rhs; }
 
 int balanced_sdiv(int lhs, int rhs) {
   int ret = 0;
@@ -72,8 +84,8 @@ int balanced_sdiv(int lhs, int rhs) {
   return sign * ret;
 }
 
-unsigned int balanced_udiv(unsigned int lhs, unsigned int rhs) {
-  unsigned int ret = 0;
+uint32_t balanced_udiv(uint32_t lhs, uint32_t rhs) {
+  uint32_t ret = 0;
 
   while (lhs >= rhs) {
     lhs -= rhs;
@@ -98,12 +110,12 @@ int balanced_srem(int lhs, int rhs) {
   return sign * lhs;
 }
 
-int balanced_urem(int lhs, int rhs) {
+uint32_t balanced_urem(uint32_t lhs, uint32_t rhs) {
   while (lhs >= rhs)
     lhs -= rhs;
   return lhs;
 }
 
-int balanced_shl(int lhs, int rhs) { return lhs << rhs; }
+uint32_t balanced_shl(uint32_t lhs, uint32_t rhs) { return lhs << rhs; }
 
-int balanced_ashr(int lhs, int rhs) { return lhs >> rhs; }
+uint32_t balanced_ashr(uint32_t lhs, uint32_t rhs) { return lhs >> rhs; }
