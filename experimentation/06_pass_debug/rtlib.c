@@ -56,8 +56,8 @@ uint32_t balanced_xor(uint32_t lhs, uint32_t rhs) {
 }
 
 uint32_t balanced_add(uint32_t lhs, uint32_t rhs) {
-  lhs += 0x00010000;
-  uint32_t temp = lhs + rhs;
+  uint32_t temp = lhs + 0x00010000 + rhs;
+  /* return temp; */
   return lhs + rhs;
 }
 
