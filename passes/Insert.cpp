@@ -156,13 +156,13 @@ struct SkeletonPass : public ModulePass {
                   dyn_cast<ConstantInt>(op->getOperand(i)); // TODO: next step
               if (constant &&
                   constant->getType() != Type::getInt32Ty(context)) {
-                auto old_int = constant->getUniqueInteger();
-                APInt new_int{32, old_int.getLimitedValue()};
-                if (old_int.isNegative())
-                  new_int.setBitsFrom(8);
-                auto *new_constant = builder.getInt(new_int);
+                // auto old_int = constant->getUniqueInteger();
+                // APInt new_int{32, old_int.getLimitedValue()};
+                // if (old_int.isNegative())
+                //   new_int.setBitsFrom(8);
+                // auto *new_constant = builder.getInt(new_int);
                 auto *balanced_constant =
-                    builder.CreateCall(const_balance_func, {new_constant});
+                    builder.CreateCall(balance_func, {constant});
 
                 operands[i] = balanced_constant;
               }
