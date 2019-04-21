@@ -1,4 +1,5 @@
 #include <iostream>
+#include <unordered_set>
 
 #include "llvm/IR/Function.h"
 #include "llvm/IR/IRBuilder.h"
@@ -94,6 +95,7 @@ struct SkeletonPass : public ModulePass {
 
     for (auto *F : copied_functions) {
       vector<Instruction *> to_remove;
+      unordered_set<Value *> balanced_values;
       for (inst_iterator I = inst_begin(F), E = inst_end(F); I != E; ++I) {
         // alloca i32 instead of i8
         if (auto alloca = dyn_cast<AllocaInst>(&*I)) {
@@ -102,6 +104,7 @@ struct SkeletonPass : public ModulePass {
                 new AllocaInst(Type::getInt32Ty(context), F->getAddressSpace(),
                                nullptr, "", alloca);
             alloca->replaceAllUsesWith(new_alloc);
+            balanced_values.insert(new_alloc);
             to_remove.push_back(alloca);
             continue;
           }
@@ -110,8 +113,7 @@ struct SkeletonPass : public ModulePass {
         // store i32 constants instead of i8
         if (auto *store = dyn_cast<StoreInst>(&*I)) {
           auto *constant = dyn_cast<ConstantInt>(store->getValueOperand());
-          if (constant && constant->getType() == Type::getInt8Ty(context) &&
-              store->getPointerOperandType() == Type::getInt32PtrTy(context)) {
+          if (balanced_values.count(store->getPointerOperand())) {
             IRBuilder<> builder(store);
             auto *new_const = builder.getInt8(constant->getLimitedValue());
             auto *balanced_const =
@@ -175,6 +177,8 @@ struct SkeletonPass : public ModulePass {
           }
 
           // change operations to balanced operations
+          // TODO: change only if all operands are balanced (error if only some
+          // are balanced)
           auto opcode = op->getOpcode();
           SmallVector<Value *, 2> operands;
           for (int i = 0; i < 2; ++i) {
