@@ -6,8 +6,8 @@ PASSES=-insert
 
 all: program.bin
 
-optimized.S: tinyAES.ll rtlib.ll program.ll
-	llvm-link tinyAES.ll rtlib.ll program.ll -S -o linked.ll
+optimized.S: rtlib.ll program.ll
+	llvm-link rtlib.ll program.ll -S -o linked.ll
 	opt -load="$(PLUGINS)" $(PASSES) linked.ll -S -o optimized.ll
 	llc optimized.ll -o optimized.S
 

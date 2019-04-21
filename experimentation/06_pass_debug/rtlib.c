@@ -17,10 +17,10 @@ uint32_t balanced_2_1(uint32_t val) {
 
 // balances to scheme1
 uint32_t balanced_int(uint8_t val) {
-  uint32_t negation = ~val;
-  uint32_t ret = val << 16;
-  ret |= val;
-  return ret;
+  uint32_t ret = val;
+  uint32_t negation = ~val & 0xff;
+  ret |= negation << 16;
+  return ret & 0x00ff00ff;
 }
 
 uint32_t balanced_constant(uint32_t constant) { return constant; }
