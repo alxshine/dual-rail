@@ -23,16 +23,25 @@ void write_int(int source, char *dest) {
 void c_entry() {
   char buffer[20];
 
-  for (char i = 0; i < 10; i++) {
-    if (i == 0)
-      string_copy("fizzbuzz", buffer, 8);
-    else if (i == 5)
-      string_copy("buzz", buffer, 4);
-    else if (i == 3 || i == 6 || i == 9)
-      string_copy("fizz", buffer, 4);
-    else
-      write_int(i, buffer);
+   for (char i = 0; i < 10; i++) { 
+     if (i == 0) 
+       string_copy("fizzbuzz", buffer, 8); 
+     else if (i == 5) 
+       string_copy("buzz", buffer, 4); 
+     else if (i == 3 || i == 6 || i == 9) 
+       string_copy("fizz", buffer, 4); 
+     else 
+       write_int(i, buffer); 
 
-    print_uart0(buffer);
-  }
+     print_uart0(buffer); 
+   } 
+  
+  /*char i = 2;*/
+  /*char j = 3;*/
+  /*write_int(i, buffer);*/
+  /*print_uart0(buffer);*/
+  /*write_int(j, buffer);*/
+  /*print_uart0(buffer);*/
+  /*write_int(i + j, buffer);*/
+  /*print_uart0(buffer);*/
 }

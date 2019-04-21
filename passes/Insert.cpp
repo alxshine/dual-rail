@@ -115,7 +115,7 @@ struct SkeletonPass : public ModulePass {
         // store i32 constants instead of i8
         if (auto *store = dyn_cast<StoreInst>(&*I)) {
           auto *constant = dyn_cast<ConstantInt>(store->getValueOperand());
-          if (balanced_values.count(store->getPointerOperand())) {
+          if (constant && balanced_values.count(store->getPointerOperand())) {
             IRBuilder<> builder(store);
             auto *new_const = builder.getInt8(constant->getLimitedValue());
             auto *balanced_const =
@@ -157,8 +157,6 @@ struct SkeletonPass : public ModulePass {
           auto *op2 = op->getOperand(1);
           bool balanced2 = balanced_values.count(op2);
           bool constant2 = isa<ConstantInt>(op2);
-          errs() << balanced1 << "/" << constant1 << ", " << balanced2 << "/"
-                 << constant2 << "\n";
 
           bool correct = true;
           if (balanced1)
@@ -225,9 +223,11 @@ struct SkeletonPass : public ModulePass {
                    << op->getOpcodeName() << "\n";
             return -1;
           }
+
           op->replaceAllUsesWith(call);
           balanced_values.insert(call);
           to_remove.push_back(op);
+          continue;
         }
 
         // fix stores of different types
@@ -257,6 +257,7 @@ struct SkeletonPass : public ModulePass {
             store->replaceAllUsesWith(new_store);
             to_remove.push_back(store);
           }
+          continue;
         }
 
         // replace truncate with and TODO: test this for more general code
@@ -270,6 +271,7 @@ struct SkeletonPass : public ModulePass {
             truncate->replaceAllUsesWith(and_op);
             to_remove.push_back(truncate);
           }
+          continue;
         }
 
         // add cast before return if necessary
@@ -285,6 +287,7 @@ struct SkeletonPass : public ModulePass {
               to_remove.push_back(ret);
             }
           }
+          continue;
         }
 
         // replace calls with calls to balanced functions
