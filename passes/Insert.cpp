@@ -94,6 +94,8 @@ struct SkeletonPass : public ModulePass {
     }
 
     for (auto *F : copied_functions) {
+      errs() << "Balancing function " << F->getName() << "\n";
+
       vector<Instruction *> to_remove;
       unordered_set<Value *> balanced_values;
       for (inst_iterator I = inst_begin(F), E = inst_end(F); I != E; ++I) {
@@ -121,6 +123,7 @@ struct SkeletonPass : public ModulePass {
 
             auto *new_store =
                 builder.CreateStore(balanced_const, store->getPointerOperand());
+            balanced_values.insert(new_store);
             to_remove.push_back(store);
             continue;
           }
@@ -128,10 +131,10 @@ struct SkeletonPass : public ModulePass {
 
         // load i32 values instead of i8
         if (auto *load = dyn_cast<LoadInst>(&*I)) {
-          if (load->getType() == Type::getInt8Ty(context) &&
-              load->getPointerOperandType() == Type::getInt32PtrTy(context)) {
+          if (balanced_values.count(load->getPointerOperand())) {
             auto *new_load = new LoadInst(load->getPointerOperand(), "", load);
             load->replaceAllUsesWith(new_load);
+            balanced_values.insert(new_load);
             to_remove.push_back(load);
             continue;
           }
@@ -147,43 +150,45 @@ struct SkeletonPass : public ModulePass {
         }
 
         if (auto *op = dyn_cast<BinaryOperator>(&*I)) {
+          // check for balancedness of all operators
+          auto *op1 = op->getOperand(0);
+          bool balanced1 = balanced_values.count(op1);
+          auto *op2 = op->getOperand(1);
+          bool balanced2 = balanced_values.count(op2);
+          if ((balanced1 && !balanced2) || (!balanced1 && balanced2)) {
+            errs()
+                << "found broken binary operation, only partially balanced\n";
+            errs() << balanced1 << " " << balanced2 << "\n";
+            op->print(errs());
+            errs() << "balanced values:\n";
+            for (auto *val : balanced_values) {
+              val->print(errs());
+              errs() << "\n";
+            }
+            errs() << "\n";
+            continue;
+          }
+          // if nothing is balanced, there is nothing to do here
+          if (!balanced1 && !balanced2)
+            continue;
+
           IRBuilder<> builder{op};
 
           // fix constants in binary operations
-          if (op->getOperand(0)->getType() == Type::getInt32Ty(context) ||
-              op->getOperand(0)->getType() == Type::getInt32Ty(context)) {
-            Value *operands[2] = {op->getOperand(0), op->getOperand(1)};
-            for (int i = 0; i < 2; i++) {
-              auto *constant =
-                  dyn_cast<ConstantInt>(op->getOperand(i)); // TODO: next step
-              if (constant &&
-                  constant->getType() != Type::getInt32Ty(context)) {
-                // auto old_int = constant->getUniqueInteger();
-                // APInt new_int{32, old_int.getLimitedValue()};
-                // if (old_int.isNegative())
-                //   new_int.setBitsFrom(8);
-                // auto *new_constant = builder.getInt(new_int);
-                auto *balanced_constant =
-                    builder.CreateCall(balance_func, {constant});
+          Value *operands[2] = {op->getOperand(0), op->getOperand(1)};
+          for (int i = 0; i < 2; i++) {
+            auto *constant =
+                dyn_cast<ConstantInt>(op->getOperand(i)); // TODO: next step
+            if (constant && constant->getType() != Type::getInt32Ty(context)) {
+              auto *balanced_constant =
+                  builder.CreateCall(balance_func, {constant});
 
-                operands[i] = balanced_constant;
-              }
+              operands[i] = balanced_constant;
             }
-            auto *new_op = BinaryOperator::Create(op->getOpcode(), operands[0],
-                                                  operands[1], Twine(), op);
-            op->replaceAllUsesWith(new_op);
-            to_remove.push_back(op);
-            op = new_op;
           }
 
           // change operations to balanced operations
-          // TODO: change only if all operands are balanced (error if only some
-          // are balanced)
           auto opcode = op->getOpcode();
-          SmallVector<Value *, 2> operands;
-          for (int i = 0; i < 2; ++i) {
-            operands.push_back(op->getOperand(i));
-          }
 
           Value *call;
           if (opcode == llvm::Instruction::BinaryOps::Or)
