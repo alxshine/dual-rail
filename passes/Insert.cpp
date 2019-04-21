@@ -316,6 +316,7 @@ struct SkeletonPass : public ModulePass {
           }
 
           // finally we need to change the comparison direction for lt and gt
+          // because we now compare the balancing part (which is inverse)
           auto pred = cmp->getPredicate();
           if (pred == CmpInst::Predicate::ICMP_SLT ||
               pred == CmpInst::Predicate::ICMP_ULT)
