@@ -153,18 +153,23 @@ struct SkeletonPass : public ModulePass {
           // check for balancedness of all operators
           auto *op1 = op->getOperand(0);
           bool balanced1 = balanced_values.count(op1);
+          bool constant1 = isa<ConstantInt>(op1);
           auto *op2 = op->getOperand(1);
           bool balanced2 = balanced_values.count(op2);
-          if ((balanced1 && !balanced2) || (!balanced1 && balanced2)) {
+          bool constant2 = isa<ConstantInt>(op2);
+          errs() << balanced1 << "/" << constant1 << ", " << balanced2 << "/"
+                 << constant2 << "\n";
+
+          bool correct = true;
+          if (balanced1)
+            correct = balanced2 || constant2;
+          else if (balanced2)
+            correct = constant1;
+
+          if (!correct) {
             errs()
                 << "found broken binary operation, only partially balanced\n";
-            errs() << balanced1 << " " << balanced2 << "\n";
             op->print(errs());
-            errs() << "balanced values:\n";
-            for (auto *val : balanced_values) {
-              val->print(errs());
-              errs() << "\n";
-            }
             errs() << "\n";
             continue;
           }
@@ -221,6 +226,7 @@ struct SkeletonPass : public ModulePass {
             return -1;
           }
           op->replaceAllUsesWith(call);
+          balanced_values.insert(call);
           to_remove.push_back(op);
         }
 
