@@ -151,7 +151,7 @@ static uint8_t getSBoxInvert(uint8_t num) { return rsbox[num]; }
 // This function produces Nb(Nr+1) round keys. The round keys are used in each
 // round to decrypt the states.
 static void KeyExpansion(void) {
-  uint8_t i, j, k;
+  uint32_t i, j, k;
   uint8_t tempa[4]; // Used for the column/row operations
 
   // The first round key is the key itself.
@@ -305,7 +305,7 @@ static uint8_t Multiply(uint8_t x, uint8_t y) {
 // The method used to multiply may be difficult to understand for the
 // inexperienced. Please use the references to gain more information.
 static void InvMixColumns(void) {
-  uint8_t i;
+  int i;
   uint8_t a, b, c, d;
   for (i = 0; i < 4; ++i) {
     a = (*state)[i][0];
