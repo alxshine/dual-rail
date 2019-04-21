@@ -274,6 +274,63 @@ struct SkeletonPass : public ModulePass {
           continue;
         }
 
+        // balance cmp instructions
+        if (auto cmp = dyn_cast<CmpInst>(&*I)) {
+          auto *op1 = cmp->getOperand(0);
+          bool balanced1 = balanced_values.count(op1);
+          bool constant1 = isa<ConstantInt>(op1);
+          auto *op2 = cmp->getOperand(1);
+          bool balanced2 = balanced_values.count(op2);
+          bool constant2 = isa<ConstantInt>(op2);
+
+          bool correct = true;
+          if (balanced1)
+            correct = balanced2 || constant2;
+          else if (balanced2)
+            correct = constant1;
+
+          if (!correct) {
+            errs()
+                << "Found comparison between balanced and unbalanced value\n";
+            continue;
+          }
+
+          if (!balanced1 && !balanced2)
+            continue;
+
+          IRBuilder<> builder{cmp};
+          if (constant1) {
+            auto *constant = dyn_cast<ConstantInt>(op1);
+            if (constant->getType() != builder.getInt8Ty())
+              op1 = builder.CreateIntCast(constant, builder.getInt8Ty(), false);
+            auto *balanced_constant = builder.CreateCall(balance_func, op1);
+            op1 = balanced_constant;
+          }
+
+          if (constant2) {
+            auto *constant = dyn_cast<ConstantInt>(op2);
+            if (constant->getType() != builder.getInt8Ty())
+              op2 = builder.CreateIntCast(constant, builder.getInt8Ty(), false);
+            auto *balanced_constant = builder.CreateCall(balance_func, op2);
+            op2 = balanced_constant;
+          }
+
+          // finally we need to change the comparison direction for lt and gt
+          auto pred = cmp->getPredicate();
+          if (pred == CmpInst::Predicate::ICMP_SLT ||
+              pred == CmpInst::Predicate::ICMP_ULT)
+            pred = CmpInst::Predicate::ICMP_UGT;
+          else if (pred == CmpInst::Predicate::ICMP_SGT ||
+                   pred == CmpInst::Predicate::ICMP_UGT)
+            pred = CmpInst::Predicate::ICMP_ULT;
+
+          auto *new_compare = builder.CreateICmp(pred, op1, op2);
+          cmp->replaceAllUsesWith(new_compare);
+          to_remove.push_back(cmp);
+          balanced_values.insert(new_compare);
+          continue;
+        }
+
         // add cast before return if necessary
         if (auto ret = dyn_cast<ReturnInst>(&*I)) {
           if (ret->getNumOperands() > 0) {
