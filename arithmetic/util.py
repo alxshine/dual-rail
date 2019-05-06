@@ -4,8 +4,8 @@ wordsize = 8
 word_max = 1<<wordsize
 word_filter = word_max - 1
 full_filter = (1<<4*wordsize) - 1
-scheme1_filter = word_filter << 3*wordsize | word_filter << wordsize
-scheme2_filter = word_filter << 3*wordsize | word_filter
+scheme1_filter = 0x00ff00ff
+scheme2_filter = 0xff0000ff
 
 def bit_not(n, numbits = wordsize):
     return (1 << numbits) - 1 - n

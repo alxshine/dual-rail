@@ -1,8 +1,8 @@
 from multiop import *
 
 m = MultiStepOperation([
-    UnaryOperation(0, lambda x: x + (1<<wordsize)), #2
-    BinaryOperation(1,2,lambda x,y: x+y), #3
+    BinaryOperation(0,1,lambda x,y: x+y),#2
+    UnaryOperation(2, lambda x: x + 0x00010000),#3
     UnaryOperation(3, lambda x: x & scheme1_filter) #4
 ])
 m.execute()
