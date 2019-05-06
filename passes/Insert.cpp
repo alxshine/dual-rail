@@ -389,6 +389,11 @@ struct SkeletonPass : public ModulePass {
       // }
     }
 
+    for (auto *F : old_functions) {
+      F->replaceAllUsesWith(UndefValue::get(F->getType()));
+      F->eraseFromParent();
+    }
+
     return copied_functions.size();
   }
 }; // namespace
