@@ -25,6 +25,7 @@ struct SkeletonPass : public ModulePass {
     errs() << "Running on module: " << M.getName() << "\n";
     ModuleSlotTracker MST(&M, true);
     vector<Function *> copied_functions;
+    vector<Function *> old_functions;
 
     auto &context = M.getContext();
 
@@ -86,6 +87,7 @@ struct SkeletonPass : public ModulePass {
                         nullptr, nullptr);
 
       copied_functions.push_back(newFunc);
+      old_functions.push_back(&*F);
     }
 
     for (auto *F : copied_functions) {
@@ -187,6 +189,7 @@ struct SkeletonPass : public ModulePass {
                   builder.CreateCall(balance_func, {constant});
 
               operands[i] = balanced_constant;
+              balanced_values.insert(balanced_constant);
             }
           }
 
