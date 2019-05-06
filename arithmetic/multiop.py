@@ -7,6 +7,22 @@ class UnaryOperation:
         self.v = v
         self.function = function
 
+class Convert_1_2(UnaryOperation):
+    def __init__(self, v):
+        self.v = v
+        self.function = lambda x: (x | x<<8) & 0xff0000ff;
+
+class Convert_2_1(UnaryOperation):
+    def convert(self, x):
+        temp = x << 24 | x >> 8
+        temp &= 0xffffffff
+        temp |= x
+        return temp & 0x00ff00ff
+    
+    def __init__(self, v):
+        self.v = v
+        self.function = self.convert
+
 class BinaryOperation:
     def __init__(self, v1, v2, function):
         self.v1 = v1
@@ -23,7 +39,7 @@ class MultiStepOperation:
         self.ops = ops
         self.results = np.zeros((len(ops)+2, word_max**2), dtype=int)
         for i in range(word_max):
-            v = i << 3*wordsize | bit_not(i) << wordsize
+            v = i | bit_not(i) << 2*wordsize
             self.results[0, i] = v
             self.results[1, i] = v
 

@@ -63,7 +63,6 @@ def getWeightDistributionBalanced(operation):
     return weights
 
 def unbalanceScheme1(x):
-    ret = x & word_filter << 3*wordsize
-    return ret >> 3*wordsize
+    return x & word_filter
 
 vUS1 = np.vectorize(unbalanceScheme1)
