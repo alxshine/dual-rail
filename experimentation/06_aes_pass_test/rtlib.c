@@ -61,61 +61,82 @@ uint32_t balanced_add(uint32_t lhs, uint32_t rhs) {
   /* return lhs + rhs; */
 }
 
-uint32_t balanced_sub(uint32_t lhs, uint32_t rhs) { return lhs - rhs; }
+uint32_t balanced_sub(uint32_t lhs, uint32_t rhs) {
+  uint32_t c16l = (rhs << 16) | (rhs >> 16);
+  uint32_t ret = lhs + c16l + 1;
+  return ret & 0x00ff00ff;
+}
 
-uint32_t balanced_mul(uint32_t lhs, uint32_t rhs) { return lhs * rhs; }
+uint32_t balanced_negative(uint32_t val) {
+  val += 0x000100ff;
+  uint32_t ret = val & 0x00ff00ff;
+  return (ret << 16) | (ret >> 16);
+}
 
-int balanced_sdiv(int lhs, int rhs) {
-  int ret = 0;
-  int sign = 1;
-  if (lhs < 0) {
-    sign = -sign;
-    lhs = -lhs;
-  }
-  if (rhs < 0) {
-    sign = -sign;
-    rhs = -rhs;
-  }
-
-  while (lhs >= rhs) {
-    lhs -= rhs;
-    ret++;
-  }
-  return sign * ret;
+uint32_t balanced_mul(uint32_t lhs, uint32_t rhs) {
+  return balanced_negative(rhs);
 }
 
 uint32_t balanced_udiv(uint32_t lhs, uint32_t rhs) {
-  uint32_t ret = 0;
+  uint32_t ret = 0x00ff0000;
 
-  while (lhs >= rhs) {
-    lhs -= rhs;
-    ret++;
+  while (lhs <= rhs) {
+    lhs = balanced_sub(lhs, rhs);
+    ret = balanced_add(ret, 0x00fe0001);
   }
   return ret;
 }
 
-int balanced_srem(int lhs, int rhs) {
-  int sign = 1;
-  if (lhs < 0) {
-    sign = -sign;
-    lhs = -lhs;
-  }
-  if (rhs < 0) {
-    sign = -sign;
-    rhs = -rhs;
-  }
-  while (lhs >= rhs)
-    lhs -= rhs;
-
-  return sign * lhs;
+int balanced_sdiv(int lhs, int rhs) {
+  /*
+   *  int ret = 0;
+   *  int sign = 1;
+   *  if (lhs < 0) {
+   *    sign = -sign;
+   *    lhs = -lhs;
+   *  }
+   *  if (rhs < 0) {
+   *    sign = -sign;
+   *    rhs = -rhs;
+   *  }
+   *
+   *  while (lhs >= rhs) {
+   *    lhs -= rhs;
+   *    ret++;
+   *  }
+   *  return sign * ret;
+   */
+  return balanced_udiv(lhs, rhs);
 }
 
 uint32_t balanced_urem(uint32_t lhs, uint32_t rhs) {
-  while (lhs >= rhs)
-    lhs -= rhs;
+  while (lhs <= rhs) //<= because of the inverse
+    lhs = balanced_sub(lhs, rhs);
   return lhs;
 }
 
-uint32_t balanced_shl(uint32_t lhs, uint32_t rhs) { return lhs << rhs; }
+int balanced_srem(int lhs, int rhs) {
+  int sign = 1;
+  /*
+   * TODO: fix sign checking and -=
+   *if (lhs < 0) {
+   *  sign = -sign;
+   *  lhs = -lhs;
+   *}
+   *if (rhs < 0) {
+   *  sign = -sign;
+   *  rhs = -rhs;
+   *}
+   */
+  /*while (lhs <= rhs) //<= because of the inverse*/
+  /*lhs = balanced_sub(lhs, rhs);*/
 
-uint32_t balanced_ashr(uint32_t lhs, uint32_t rhs) { return lhs >> rhs; }
+  /*return sign * lhs;*/
+  return balanced_urem(lhs, rhs);
+}
+
+uint32_t balanced_shl(uint32_t lhs, uint32_t rhs) { return lhs << rhs; } // TODO
+
+uint32_t balanced_ashr(uint32_t lhs, uint32_t rhs) {
+  return lhs >> rhs;
+} // TODO
