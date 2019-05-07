@@ -21,6 +21,13 @@ struct SkeletonPass : public ModulePass {
   static char ID;
   SkeletonPass() : ModulePass(ID) {}
 
+  Function *loadWithError(Module &M, string func_name) {
+    auto *func = M.getFunction(func_name);
+    if (func == nullptr)
+      errs() << "Could not load function " << func_name << "\n";
+    return func;
+  }
+
   virtual bool runOnModule(Module &M) {
     errs() << "Running on module: " << M.getName() << "\n";
     ModuleSlotTracker MST(&M, true);
@@ -30,23 +37,23 @@ struct SkeletonPass : public ModulePass {
     auto &context = M.getContext();
 
     // get function pointers
-    auto *balance_func = M.getFunction("balanced_int");
-    auto *balance_func_wide = M.getFunction("balanced_int_wide");
-    auto *const_balance_func = M.getFunction("balanced_constant");
-    auto *unbalance_func = M.getFunction("unbalanced_int");
+    auto *balance_func = loadWithError(M, "balanced_int");
+    auto *balance_func_wide = loadWithError(M, "balanced_int_wide");
+    auto *const_balance_func = loadWithError(M, "balanced_constant");
+    auto *unbalance_func = loadWithError(M, "unbalanced_int");
 
-    auto *balanced_or = M.getFunction("balanced_or");
-    auto *balanced_and = M.getFunction("balanced_and");
-    auto *balanced_xor = M.getFunction("balanced_xor");
-    auto *balanced_add = M.getFunction("balanced_add");
-    auto *balanced_sub = M.getFunction("balanced_sub");
-    auto *balanced_mul = M.getFunction("balanced_mul");
-    auto *balanced_sdiv = M.getFunction("balanced_sdiv");
-    auto *balanced_udiv = M.getFunction("balanced_udiv");
-    auto *balanced_srem = M.getFunction("balanced_srem");
-    auto *balanced_urem = M.getFunction("balanced_urem");
-    auto *balanced_shl = M.getFunction("balanced_shl");
-    auto *balanced_ashr = M.getFunction("balanced_ashr");
+    auto *balanced_or = loadWithError(M, "balanced_or");
+    auto *balanced_and = loadWithError(M, "balanced_and");
+    auto *balanced_xor = loadWithError(M, "balanced_xor");
+    auto *balanced_add = loadWithError(M, "balanced_add");
+    auto *balanced_sub = loadWithError(M, "balanced_sub");
+    auto *balanced_mul = loadWithError(M, "balanced_mul");
+    auto *balanced_sdiv = loadWithError(M, "balanced_sdiv");
+    auto *balanced_udiv = loadWithError(M, "balanced_udiv");
+    auto *balanced_srem = loadWithError(M, "balanced_srem");
+    auto *balanced_urem = loadWithError(M, "balanced_urem");
+    auto *balanced_shl = loadWithError(M, "balanced_shl");
+    auto *balanced_ashr = loadWithError(M, "balanced_ashr");
 
     // copy the functions
     for (auto F = M.begin(); F != M.end(); ++F) {
