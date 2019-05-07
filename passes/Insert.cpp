@@ -109,6 +109,11 @@ struct SkeletonPass : public ModulePass {
       vector<Instruction *> to_remove;
       unordered_set<Value *> balanced_values;
       for (inst_iterator I = inst_begin(F), E = inst_end(F); I != E; ++I) {
+        // if (F->getName() == "balanced_KeyExpansion") {
+        //   I->print(errs());
+        //   errs() << "\n";
+        // }
+
         // alloca i32 instead of i8
         if (auto alloca = dyn_cast<AllocaInst>(&*I)) {
           if (alloca->getAllocatedType() == Type::getInt8Ty(context)) {
@@ -167,6 +172,7 @@ struct SkeletonPass : public ModulePass {
             zext->replaceAllUsesWith(balance_call);
             balanced_values.insert(balance_call);
             to_remove.push_back(zext);
+            continue;
           }
         }
 
@@ -284,29 +290,56 @@ struct SkeletonPass : public ModulePass {
                      target_type == builder.getInt8Ty()) {
           }
 
-          if (value_type !=
-              target_type) { // TODO: this could cause some very hard to find
-                             // bugs -> check for i8 and i32 specifically
-            auto *cast = builder.CreateIntCast(store->getValueOperand(),
-                                               target_type, false);
+          if (value_type == builder.getInt8Ty() &&
+              target_type == builder.getInt32Ty()) {
+            auto *balanced_val = builder.CreateCall(balance_func, {value});
             auto *new_store =
-                builder.CreateStore(cast, store->getPointerOperand());
+                builder.CreateStore(balanced_val, store->getPointerOperand());
+            store->replaceAllUsesWith(new_store);
+            to_remove.push_back(store);
+          } else if (value_type == builder.getInt32Ty() &&
+                     target_type == builder.getInt8Ty()) {
+            auto *unbalanced_val = builder.CreateCall(unbalance_func, {value});
+            auto *new_store =
+                builder.CreateStore(unbalanced_val, store->getPointerOperand());
             store->replaceAllUsesWith(new_store);
             to_remove.push_back(store);
           }
           continue;
         }
 
+        // unbalance before usage as array index
+        if (auto *getelem = dyn_cast<GetElementPtrInst>(&*I)) {
+          int numops = getelem->getNumOperands();
+          for (int i = 1; i < numops; ++i) {
+            auto *op = getelem->getOperand(i);
+            if (balanced_values.count(op)) {
+              IRBuilder<> builder(getelem);
+              auto *unbalanced_val = builder.CreateCall(unbalance_func, {op});
+              getelem->setOperand(i, unbalanced_val);
+            }
+          }
+        }
+
         // replace truncate with and TODO: test this for more general code
         if (auto truncate = dyn_cast<TruncInst>(&*I)) {
           if (truncate->getType() == Type::getInt8Ty(context)) {
-            int mask = 0xff;
-            IRBuilder<> builder(truncate);
-            auto *constant = builder.getInt32(mask);
-            auto *and_op = builder.CreateBinOp(
-                Instruction::BinaryOps::And, truncate->getOperand(0), constant);
-            truncate->replaceAllUsesWith(and_op);
-            to_remove.push_back(truncate);
+            auto *op = truncate->getOperand(0);
+            if (balanced_values.count(op)) {
+              IRBuilder<> builder(truncate);
+              auto *unbalanced = builder.CreateCall(unbalance_func, op);
+              truncate->replaceAllUsesWith(unbalanced);
+              to_remove.push_back(truncate);
+            }
+
+            // int mask = 0xff;
+            // IRBuilder<> builder(truncate);
+            // auto *constant = builder.getInt32(mask);
+            // auto *and_op = builder.CreateBinOp(
+            //     Instruction::BinaryOps::And, truncate->getOperand(0),
+            //     constant);
+            // truncate->replaceAllUsesWith(and_op);
+            // to_remove.push_back(truncate);
           }
           continue;
         }
