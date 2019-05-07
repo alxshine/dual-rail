@@ -8,8 +8,9 @@ void c_entry() {
   unsigned char ciphertext[16];
   unsigned char decrypted[16];
 
-  print_uart0((char*)plaintext);
+  printn_uart0((char *)plaintext, 16);
   AES128_ECB_encrypt(plaintext, key, ciphertext);
+  printn_uart0((char *)ciphertext, 16);
   AES128_ECB_decrypt(ciphertext, key, decrypted);
-  print_uart0((char *)decrypted);
+  printn_uart0((char *)decrypted, 16);
 }
