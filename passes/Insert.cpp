@@ -150,6 +150,17 @@ struct SkeletonPass : public ModulePass {
             to_remove.push_back(zext);
             continue;
           }
+
+          // if we zext from i8 to i32, balance instead
+          if (zext->getSrcTy() == Type::getInt8Ty(context) &&
+              zext->getDestTy() == Type::getInt32Ty(context)) {
+            IRBuilder<> builder(zext);
+            auto *balance_call =
+                builder.CreateCall(balance_func, {zext->getOperand(0)});
+            zext->replaceAllUsesWith(balance_call);
+            balanced_values.insert(balance_call);
+            to_remove.push_back(zext);
+          }
         }
 
         if (auto *op = dyn_cast<BinaryOperator>(&*I)) {
@@ -171,6 +182,10 @@ struct SkeletonPass : public ModulePass {
             errs()
                 << "found broken binary operation, only partially balanced\n";
             op->print(errs());
+            errs() << "\n";
+            op1->print(errs());
+            errs() << ", ";
+            op2->print(errs());
             errs() << "\n";
             continue;
           }
@@ -386,6 +401,7 @@ struct SkeletonPass : public ModulePass {
                                               new_function, args);
 
           call->replaceAllUsesWith(new_call);
+          balanced_values.insert(new_call);
           to_remove.push_back(call);
           continue;
         }
