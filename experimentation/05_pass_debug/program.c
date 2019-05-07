@@ -22,16 +22,13 @@ void write_int(int source, char *dest) {
 
 void c_entry() {
   char buffer[20];
-  char c_5 = 5;
-  char c_3 = 3;
-  char c_15 = 15;
 
   for (char i = 0; i < 100; i++) {
-    if (i % c_15 == 0)
+    if (i % 15 == 0)
       string_copy("fizzbuzz", buffer, 8);
-    else if (i % c_5 == 0)
+    else if (i % 5 == 0)
       string_copy("buzz", buffer, 4);
-    else if (i % c_3 == 0)
+    else if (i % 3 == 0)
       string_copy("fizz", buffer, 4);
     else
       write_int(i, buffer);

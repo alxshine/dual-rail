@@ -23,6 +23,8 @@ uint32_t balanced_int(uint8_t val) {
   return ret & 0x00ff00ff;
 }
 
+uint32_t balanced_int_wide(uint32_t val) { return balanced_int((uint8_t)val); }
+
 uint32_t balanced_constant(uint32_t constant) { return constant; }
 
 uint8_t unbalanced_int(uint32_t val) { return val & 0xff; }
@@ -80,24 +82,24 @@ uint32_t balanced_udiv(uint32_t lhs, uint32_t rhs) {
 }
 
 int balanced_sdiv(int lhs, int rhs) {
-/*
- *  int ret = 0;
- *  int sign = 1;
- *  if (lhs < 0) {
- *    sign = -sign;
- *    lhs = -lhs;
- *  }
- *  if (rhs < 0) {
- *    sign = -sign;
- *    rhs = -rhs;
- *  }
- *
- *  while (lhs >= rhs) {
- *    lhs -= rhs;
- *    ret++;
- *  }
- *  return sign * ret;
- */
+  /*
+   *  int ret = 0;
+   *  int sign = 1;
+   *  if (lhs < 0) {
+   *    sign = -sign;
+   *    lhs = -lhs;
+   *  }
+   *  if (rhs < 0) {
+   *    sign = -sign;
+   *    rhs = -rhs;
+   *  }
+   *
+   *  while (lhs >= rhs) {
+   *    lhs -= rhs;
+   *    ret++;
+   *  }
+   *  return sign * ret;
+   */
   return balanced_udiv(lhs, rhs);
 }
 
@@ -121,12 +123,14 @@ int balanced_srem(int lhs, int rhs) {
    *}
    */
   /*while (lhs <= rhs) //<= because of the inverse*/
-    /*lhs = balanced_sub(lhs, rhs);*/
+  /*lhs = balanced_sub(lhs, rhs);*/
 
   /*return sign * lhs;*/
   return balanced_urem(lhs, rhs);
 }
 
-uint32_t balanced_shl(uint32_t lhs, uint32_t rhs) { return lhs << rhs; } //TODO
+uint32_t balanced_shl(uint32_t lhs, uint32_t rhs) { return lhs << rhs; } // TODO
 
-uint32_t balanced_ashr(uint32_t lhs, uint32_t rhs) { return lhs >> rhs; } //TODO
+uint32_t balanced_ashr(uint32_t lhs, uint32_t rhs) {
+  return lhs >> rhs;
+} // TODO

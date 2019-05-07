@@ -31,6 +31,7 @@ struct SkeletonPass : public ModulePass {
 
     // get function pointers
     auto *balance_func = M.getFunction("balanced_int");
+    auto *balance_func_wide = M.getFunction("balanced_int_wide");
     auto *const_balance_func = M.getFunction("balanced_constant");
     auto *unbalance_func = M.getFunction("unbalanced_int");
 
@@ -184,9 +185,20 @@ struct SkeletonPass : public ModulePass {
           for (int i = 0; i < 2; i++) {
             auto *constant =
                 dyn_cast<ConstantInt>(op->getOperand(i)); // TODO: next step
-            if (constant && constant->getType() != Type::getInt32Ty(context)) {
-              auto *balanced_constant =
-                  builder.CreateCall(balance_func, {constant});
+
+            if (constant) {
+              Value *balanced_constant;
+              if (constant->getType() == builder.getInt8Ty())
+                balanced_constant =
+                    builder.CreateCall(balance_func, {constant});
+              else if (constant->getType() == builder.getInt32Ty())
+                balanced_constant =
+                    builder.CreateCall(balance_func_wide, {constant});
+              else {
+                errs() << "Could not balance constant of type ";
+                constant->getType()->print(errs());
+                errs() << "\n";
+              }
 
               operands[i] = balanced_constant;
               balanced_values.insert(balanced_constant);
