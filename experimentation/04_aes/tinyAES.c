@@ -24,6 +24,7 @@ NOTE:   String length must be evenly divisible by 16byte (str_len % 16 == 0)
 /* Includes:                                                                 */
 /*****************************************************************************/
 #include "tinyAES.h"
+#include "pass_print.h"
 #include <stdint.h>
 
 /*****************************************************************************/
@@ -427,6 +428,7 @@ void AES128_ECB_encrypt(const uint8_t *input, const uint8_t *key,
 
   Key = key;
   KeyExpansion();
+  pass_printn_uart0((char*) RoundKey, 32);
 
   // The next function call encrypts the PlainText with the Key using AES
   // algorithm.
