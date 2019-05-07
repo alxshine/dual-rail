@@ -73,8 +73,19 @@ uint32_t balanced_negative(uint32_t val) {
   return (ret << 16) | (ret >> 16);
 }
 
-uint32_t balanced_mul(uint32_t lhs, uint32_t rhs) {
-  return balanced_negative(rhs);
+uint32_t balanced_mul(uint32_t lhs, uint32_t rhs) { char negative = 0;
+  uint32_t ret = 0x00ff0000;
+  if(rhs < lhs){ //negation of rhs is smaller than that of lhs => lhs < rhs
+    uint32_t tmp = lhs;
+    lhs = rhs;
+    rhs = tmp;
+  }
+
+  while(rhs != 0x00ff0000){
+    ret = balanced_add(ret, lhs);
+    rhs = balanced_sub(rhs, 0x00fe0001);
+  }
+  return ret;
 }
 
 uint32_t balanced_udiv(uint32_t lhs, uint32_t rhs) {
