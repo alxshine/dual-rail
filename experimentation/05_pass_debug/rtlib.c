@@ -127,6 +127,6 @@ int balanced_srem(int lhs, int rhs) {
   return balanced_urem(lhs, rhs);
 }
 
-uint32_t balanced_shl(uint32_t lhs, uint32_t rhs) { return lhs << rhs; }
+uint32_t balanced_shl(uint32_t lhs, uint32_t rhs) { return lhs << rhs; } //TODO
 
-uint32_t balanced_ashr(uint32_t lhs, uint32_t rhs) { return lhs >> rhs; }
+uint32_t balanced_ashr(uint32_t lhs, uint32_t rhs) { return lhs >> rhs; } //TODO
