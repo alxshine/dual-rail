@@ -145,7 +145,7 @@ static const uint8_t Rcon[255] = {
 /*****************************************************************************/
 /* Private functions:                                                        */
 /*****************************************************************************/
-static uint8_t getSBoxValue(uint8_t num) { return sbox[num]; }
+uint8_t getSBoxValue(uint8_t num) { return sbox[num]; }
 
 static uint8_t getSBoxInvert(uint8_t num) { return rsbox[num]; }
 

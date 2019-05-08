@@ -11,8 +11,6 @@ void c_entry() {
   char buffer[16];
   for (int i = 0; i < 256; ++i) {
     char test = getSBoxValue(i);
-    write_int(i, buffer);
-    print_uart0(buffer);
     write_int(test, buffer);
     print_uart0(buffer);
   }
