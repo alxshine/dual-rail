@@ -24,6 +24,7 @@ NOTE:   String length must be evenly divisible by 16byte (str_len % 16 == 0)
 /* Includes:                                                                 */
 /*****************************************************************************/
 #include "tinyAES.h"
+#include "pass_print.h"
 #include <stdint.h>
 
 /*****************************************************************************/
@@ -144,14 +145,14 @@ static const uint8_t Rcon[255] = {
 /*****************************************************************************/
 /* Private functions:                                                        */
 /*****************************************************************************/
-static uint8_t getSBoxValue(uint8_t num) { return sbox[num]; }
+uint8_t getSBoxValue(uint8_t num) { return sbox[num]; }
 
 static uint8_t getSBoxInvert(uint8_t num) { return rsbox[num]; }
 
 // This function produces Nb(Nr+1) round keys. The round keys are used in each
 // round to decrypt the states.
 static void KeyExpansion(void) {
-  uint32_t i, j, k;
+  uint8_t i, j, k;
   uint8_t tempa[4]; // Used for the column/row operations
 
   // The first round key is the key itself.
@@ -170,7 +171,6 @@ static void KeyExpansion(void) {
     if (i % Nk == 0) {
       // This function rotates the 4 bytes in a word to the left once.
       // [a0,a1,a2,a3] becomes [a1,a2,a3,a0]
-
       // Function RotWord()
       {
         k = tempa[0];
@@ -185,11 +185,15 @@ static void KeyExpansion(void) {
 
       // Function Subword()
       {
+        /* char buffer[16]; */
+        /* int test = getSBoxValue(tempa[1]); */
+        /* pass_write_int(test, buffer); */
         tempa[0] = getSBoxValue(tempa[0]);
         tempa[1] = getSBoxValue(tempa[1]);
         tempa[2] = getSBoxValue(tempa[2]);
         tempa[3] = getSBoxValue(tempa[3]);
       }
+      // CORRECT UNTIL HERE
 
       tempa[0] = tempa[0] ^ Rcon[i / Nk];
     } else if (Nk > 6 && i % Nk == 4) {

@@ -316,33 +316,35 @@ struct SkeletonPass : public ModulePass {
             if (balanced_values.count(op)) {
               IRBuilder<> builder(getelem);
               auto *unbalanced_val = builder.CreateCall(unbalance_func, {op});
-              getelem->setOperand(i, unbalanced_val);
+              auto *extended_val =
+                  builder.CreateZExt(unbalanced_val, builder.getInt32Ty());
+              getelem->setOperand(i, extended_val);
             }
           }
         }
 
-        // replace truncate with and TODO: test this for more general code
-        if (auto truncate = dyn_cast<TruncInst>(&*I)) {
-          if (truncate->getType() == Type::getInt8Ty(context)) {
-            auto *op = truncate->getOperand(0);
-            if (balanced_values.count(op)) {
-              IRBuilder<> builder(truncate);
-              auto *unbalanced = builder.CreateCall(unbalance_func, op);
-              truncate->replaceAllUsesWith(unbalanced);
-              to_remove.push_back(truncate);
-            }
+        // // replace truncate with and TODO: test this for more general code
+        // if (auto truncate = dyn_cast<TruncInst>(&*I)) {
+        //   if (truncate->getType() == Type::getInt8Ty(context)) {
+        //     auto *op = truncate->getOperand(0);
+        //     if (balanced_values.count(op)) {
+        //       IRBuilder<> builder(truncate);
+        //       auto *unbalanced = builder.CreateCall(unbalance_func, op);
+        //       truncate->replaceAllUsesWith(unbalanced);
+        //       to_remove.push_back(truncate);
+        //     }
 
-            // int mask = 0xff;
-            // IRBuilder<> builder(truncate);
-            // auto *constant = builder.getInt32(mask);
-            // auto *and_op = builder.CreateBinOp(
-            //     Instruction::BinaryOps::And, truncate->getOperand(0),
-            //     constant);
-            // truncate->replaceAllUsesWith(and_op);
-            // to_remove.push_back(truncate);
-          }
-          continue;
-        }
+        //     // int mask = 0xff;
+        //     // IRBuilder<> builder(truncate);
+        //     // auto *constant = builder.getInt32(mask);
+        //     // auto *and_op = builder.CreateBinOp(
+        //     //     Instruction::BinaryOps::And, truncate->getOperand(0),
+        //     //     constant);
+        //     // truncate->replaceAllUsesWith(and_op);
+        //     // to_remove.push_back(truncate);
+        //   }
+        //   continue;
+        // }
 
         // balance cmp instructions
         if (auto cmp = dyn_cast<CmpInst>(&*I)) {
@@ -457,10 +459,25 @@ struct SkeletonPass : public ModulePass {
       // }
     }
 
-    for (auto *F : old_functions) {
-      F->replaceAllUsesWith(UndefValue::get(F->getType()));
-      F->eraseFromParent();
-    }
+    // for (auto *F : old_functions) {
+    //   F->replaceAllUsesWith(UndefValue::get(F->getType()));
+    //   F->eraseFromParent();
+    // }
+    // bool has_changed = true;
+    // while (has_changed) {
+    //   has_changed = false;
+    //   vector<Function *> remove;
+    //   for (auto F = M.begin(); F != M.end(); ++F) {
+    //     if (F->getName() == "balanced_c_entry")
+    //       continue;
+    //     if (F->getNumUses() == 0) {
+    //       remove.push_back(&*F);
+    //       has_changed = true;
+    //     }
+    //   }
+    //   for (auto *F : remove)
+    //     F->eraseFromParent();
+    // }
 
     return copied_functions.size();
   }
