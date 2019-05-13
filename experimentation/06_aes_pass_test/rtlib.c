@@ -34,8 +34,8 @@ uint32_t balanced_or(uint32_t lhs, uint32_t rhs) {
   uint32_t temp_and = lhs & rhs;
   uint32_t combined = (temp_and << 8) | temp_or;
   combined &= 0xff0000ff;
-  /* return balanced_2_1(combined); */
-  return lhs | rhs;
+  return balanced_2_1(combined);
+  /* return lhs | rhs; */
 }
 
 uint32_t balanced_and(uint32_t lhs, uint32_t rhs) {
@@ -43,13 +43,13 @@ uint32_t balanced_and(uint32_t lhs, uint32_t rhs) {
   uint32_t temp_and = lhs & rhs;
   uint32_t combined = (temp_or << 8) | temp_and;
   combined &= 0xff0000ff;
-  /* return balanced_2_1(combined); */
-  return lhs & rhs;
+  return balanced_2_1(combined);
+  /* return lhs & rhs; */
 }
 
 uint32_t balanced_xor(uint32_t lhs, uint32_t rhs) {
   lhs |= lhs << 8;
-  rhs = rhs >> 8 | rhs << 24;
+  rhs |= rhs >> 8 | rhs << 24;
   uint32_t first = lhs & rhs;
   uint32_t second = ~lhs & ~rhs;
   uint32_t ret = first | second;
@@ -89,7 +89,7 @@ uint32_t balanced_mul(uint32_t lhs, uint32_t rhs) {
     ret = balanced_add(ret, lhs);
     rhs = balanced_sub(rhs, 0x00fe0001);
   }
-  return ret;
+  return ret & 0x00ff00ff;
 }
 
 uint32_t balanced_udiv(uint32_t lhs, uint32_t rhs) {

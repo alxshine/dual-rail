@@ -267,11 +267,15 @@ static uint8_t xtime(uint8_t x) { return ((x << 1) ^ (((x >> 7) & 1) * 0x1b)); }
 static void MixColumns(void) {
   uint8_t i;
   uint8_t Tmp, Tm, t;
+  char buffer[16];
   for (i = 0; i < 4; ++i) {
     t = (*state)[i][0];
     Tmp = (*state)[i][0] ^ (*state)[i][1] ^ (*state)[i][2] ^ (*state)[i][3];
     Tm = (*state)[i][0] ^ (*state)[i][1];
     Tm = xtime(Tm);
+    /* pass_write_int(Tm, buffer); */
+    /* pass_print_uart0(buffer); */
+    /* pass_print_uart0(""); */
     (*state)[i][0] ^= Tm ^ Tmp;
     Tm = (*state)[i][1] ^ (*state)[i][2];
     Tm = xtime(Tm);
@@ -378,14 +382,14 @@ static void Cipher(void) {
     ShiftRows();
     MixColumns();
     char buffer[16];
-    for (char i = 0; i < 4; ++i) {
-      for (char j = 0; j < 4; ++j) {
-        pass_write_int((*state)[i][j], buffer);
-        pass_print_uart0(buffer);
-      }
-    }
+    /* for (char i = 0; i < 4; ++i) { */
+      /* for (char j = 0; j < 4; ++j) { */
+        /* pass_write_int((*state)[i][j], buffer); */
+        /* pass_print_uart0(buffer); */
+      /* } */
+    /* } */
     AddRoundKey(round);
-    pass_print_uart0("");
+    /* pass_print_uart0(""); */
   }
 
   // The last round is given below.

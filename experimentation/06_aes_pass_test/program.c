@@ -11,6 +11,6 @@ void c_entry() {
   printn_uart0((char *)plaintext, 16);
   AES128_ECB_encrypt(plaintext, key, ciphertext);
   printn_uart0((char *)ciphertext, 16);
-  /* AES128_ECB_decrypt(ciphertext, key, decrypted); */
-  /* printn_uart0((char *)decrypted, 16); */
+  AES128_ECB_decrypt(ciphertext, key, decrypted);
+  printn_uart0((char *)decrypted, 16);
 }
