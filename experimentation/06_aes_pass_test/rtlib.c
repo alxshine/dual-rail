@@ -85,7 +85,7 @@ uint32_t balanced_mul(uint32_t lhs, uint32_t rhs) {
     rhs = tmp;
   }
 
-  while (rhs != 0x00ff0000) {
+  while (rhs < 0x00ff0000) {
     ret = balanced_add(ret, lhs);
     rhs = balanced_sub(rhs, 0x00fe0001);
   }
@@ -150,8 +150,14 @@ int balanced_srem(int lhs, int rhs) {
   return balanced_urem(lhs, rhs);
 }
 
-uint32_t balanced_shl(uint32_t lhs, uint32_t rhs) { return lhs << rhs; } // TODO
+uint32_t balanced_shl(uint32_t lhs, uint32_t rhs) {
+  lhs |= 0x0000ff00;
+  uint32_t ret = lhs << rhs;
+  return ret & 0x00ff00ff;
+} // TODO
 
 uint32_t balanced_ashr(uint32_t lhs, uint32_t rhs) {
-  return lhs >> rhs;
+  lhs |= 0xff000000;
+  uint32_t ret = lhs >> rhs;
+  return ret & 0x00ff00ff;
 } // TODO

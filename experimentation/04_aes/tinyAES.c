@@ -377,7 +377,15 @@ static void Cipher(void) {
     SubBytes();
     ShiftRows();
     MixColumns();
+    char buffer[16];
+    for (char i = 0; i < 4; ++i) {
+      for (char j = 0; j < 4; ++j) {
+        pass_write_int((*state)[i][j], buffer);
+        pass_print_uart0(buffer);
+      }
+    }
     AddRoundKey(round);
+    pass_print_uart0("");
   }
 
   // The last round is given below.
@@ -392,7 +400,6 @@ static void InvCipher(void) {
 
   // Add the First round key to the state before starting the rounds.
   AddRoundKey(Nr);
-
   // There will be Nr rounds.
   // The first Nr-1 rounds are identical.
   // These Nr-1 rounds are executed in the loop below.
