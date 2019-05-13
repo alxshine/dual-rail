@@ -48,13 +48,14 @@ uint32_t balanced_and(uint32_t lhs, uint32_t rhs) {
 }
 
 uint32_t balanced_xor(uint32_t lhs, uint32_t rhs) {
-  uint32_t filled = lhs | (rhs << 8);
-  uint32_t c8l = (filled << 24) | (filled >> 8);
-  uint32_t s2 = filled & c8l;
-  uint32_t c16r = (s2 >> 16) | (s2 << 16);
-  uint32_t raw = s2 | c16r;
-  uint32_t filtered = raw & 0xff0000ff;
-  return balanced_2_1(filtered);
+  lhs |= lhs << 8;
+  rhs = rhs >> 8 | rhs << 24;
+  uint32_t first = lhs & rhs;
+  uint32_t second = ~lhs & ~rhs;
+  uint32_t ret = first | second;
+  ret = ret >> 8 | ret << 24;
+  ret &= 0xff0000ff;
+  return balanced_2_1(ret);
 }
 
 uint32_t balanced_add(uint32_t lhs, uint32_t rhs) {

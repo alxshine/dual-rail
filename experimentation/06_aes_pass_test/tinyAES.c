@@ -431,7 +431,12 @@ void AES128_ECB_encrypt(const uint8_t *input, const uint8_t *key,
 
   Key = key;
   KeyExpansion();
-
+  char buffer[16];
+  for(int i = 0; i<176; ++i){
+    pass_write_int(RoundKey[i], buffer);
+    pass_print_uart0(buffer);
+  }
+  
   // The next function call encrypts the PlainText with the Key using AES
   // algorithm.
   Cipher();

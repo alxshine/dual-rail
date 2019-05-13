@@ -459,25 +459,25 @@ struct SkeletonPass : public ModulePass {
       // }
     }
 
-    // for (auto *F : old_functions) {
-    //   F->replaceAllUsesWith(UndefValue::get(F->getType()));
-    //   F->eraseFromParent();
-    // }
-    // bool has_changed = true;
-    // while (has_changed) {
-    //   has_changed = false;
-    //   vector<Function *> remove;
-    //   for (auto F = M.begin(); F != M.end(); ++F) {
-    //     if (F->getName() == "balanced_c_entry")
-    //       continue;
-    //     if (F->getNumUses() == 0) {
-    //       remove.push_back(&*F);
-    //       has_changed = true;
-    //     }
-    //   }
-    //   for (auto *F : remove)
-    //     F->eraseFromParent();
-    // }
+    for (auto *F : old_functions) {
+      F->replaceAllUsesWith(UndefValue::get(F->getType()));
+      F->eraseFromParent();
+    }
+    bool has_changed = true;
+    while (has_changed) {
+      has_changed = false;
+      vector<Function *> remove;
+      for (auto F = M.begin(); F != M.end(); ++F) {
+        if (F->getName() == "balanced_c_entry")
+          continue;
+        if (F->getNumUses() == 0) {
+          remove.push_back(&*F);
+          has_changed = true;
+        }
+      }
+      for (auto *F : remove)
+        F->eraseFromParent();
+    }
 
     return copied_functions.size();
   }
