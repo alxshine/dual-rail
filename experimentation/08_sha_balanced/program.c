@@ -2,9 +2,9 @@
 #include "keccak.h"
 
 char *in_string = "abcdefghijklmnopqrstuvwxyz";
+uint8_t out[32];
 
 void c_entry() {
-  uint8_t out[32];
   char buffer[16];
   print_uart0(in_string);
   sha3_256(out, 32, (uint8_t*) in_string, 26);

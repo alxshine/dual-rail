@@ -53,7 +53,7 @@ static inline void keccakf(void* state) { //TODO: the problem is in here
   uint64_t t = 0;
   uint8_t x, y;
 
-  for (int i = 0; i < 1; i++) {
+  for (int i = 0; i < 24; i++) {
     // Theta
     FOR5(x, 1,
          b[x] = 0;
@@ -69,11 +69,6 @@ static inline void keccakf(void* state) { //TODO: the problem is in here
              a[pi[x]] = rol(t, rho[x]);
              t = b[0];
              x++; )
-    char buffer[16];
-    for(uint8_t i = 0; i<200/4; ++i){
-      pass_write_int(((uint32_t*)a)[i], buffer);
-      pass_print_uart0(buffer);
-    }
     // Chi
     FOR5(y,
        5,
