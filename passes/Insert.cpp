@@ -436,6 +436,8 @@ struct SkeletonPass : public ModulePass {
         // replace calls with calls to balanced functions
         if (auto call = dyn_cast<CallInst>(&*I)) {
           auto original_name = call->getCalledFunction()->getName();
+	  if(original_name.startswith_lower("balanced_") || original_name.startswith_lower("unbalanced_"))
+	    continue;
           auto new_name = "balanced_" + original_name;
           SmallVector<char, 100> buffer;
           auto string_ref = new_name.toStringRef(buffer);
