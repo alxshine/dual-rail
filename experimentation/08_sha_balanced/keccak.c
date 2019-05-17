@@ -66,8 +66,8 @@ static inline void keccakf(void* state) { //TODO: the problem is in here
     t = a[1];
     x = 0;
     REPEAT24(b[0] = a[pi[x]];
-             a[pi[x]] = rol(t, rho[x]); //TODO: rho[x] is a balanced 8bit value -> rotation is incorrect
-             /*t = b[0];*/
+             a[pi[x]] = rol(t, rho[x]);
+             t = b[0];
              x++; )
     char buffer[16];
     for(uint8_t i = 0; i<200/4; ++i){
