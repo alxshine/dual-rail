@@ -45,7 +45,7 @@ static const uint64_t RC[24] = \
   REPEAT5(e; v += s;)
 
 /*** Keccak-f[1600] ***/
-static inline void keccakf(void* state) {
+static inline void keccakf(void* state) { //TODO: the problem is in here
   uint64_t* a = (uint64_t*)state;
   uint64_t b[5];
   for(uint8_t i = 0; i<5; ++i)
@@ -53,7 +53,7 @@ static inline void keccakf(void* state) {
   uint64_t t = 0;
   uint8_t x, y;
 
-  for (int i = 0; i < 24; i++) {
+  for (int i = 0; i < 1; i++) {
     // Theta
     FOR5(x, 1,
          b[x] = 0;
@@ -66,9 +66,14 @@ static inline void keccakf(void* state) {
     t = a[1];
     x = 0;
     REPEAT24(b[0] = a[pi[x]];
-             a[pi[x]] = rol(t, rho[x]);
-             t = b[0];
+             a[pi[x]] = rol(t, rho[x]); //TODO: rho[x] is a balanced 8bit value -> rotation is incorrect
+             /*t = b[0];*/
              x++; )
+    char buffer[16];
+    for(uint8_t i = 0; i<200/4; ++i){
+      pass_write_int(((uint32_t*)a)[i], buffer);
+      pass_print_uart0(buffer);
+    }
     // Chi
     FOR5(y,
        5,
@@ -134,12 +139,6 @@ static inline int hash(uint8_t* out, size_t outlen,
   a[rate - 1] ^= 0x80;
   // Xor in the last block.
   xorin(a, in, inlen);
-  char buffer[16];
-  for(uint8_t i=0; i<200; ++i){
-    pass_write_int(a[i], buffer);
-    pass_print_uart0(buffer);
-  }
-
   // Apply P
   P(a);
   // Squeeze output.
