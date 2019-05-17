@@ -109,7 +109,7 @@ struct SkeletonPass : public ModulePass {
       vector<Instruction *> to_remove;
       unordered_set<Value *> balanced_values;
       for (inst_iterator I = inst_begin(F), E = inst_end(F); I != E; ++I) {
-        // if (F->getName() == "balanced_KeyExpansion") {
+        // if (F->getName() == "balanced_keccakf") {
         //   I->print(errs());
         //   errs() << "\n";
         // }
@@ -173,6 +173,19 @@ struct SkeletonPass : public ModulePass {
             balanced_values.insert(balance_call);
             to_remove.push_back(zext);
             continue;
+          }
+
+          // llvm doesn't zext from i8 to i64 directly, so any zext starting
+          // from a balanced value must first unbalance
+          if (balanced_values.count(zext->getOperand(0))) {
+	    auto *balanced_val = zext->getOperand(0);
+	    IRBuilder<> builder(zext);
+	    auto *unbalanced_val = builder.CreateCall(unbalance_func, {balanced_val});
+	    auto *first_zext = builder.CreateZExt(unbalanced_val, balanced_val->getType());
+	    auto *final_zext = builder.CreateZExt(first_zext, zext->getDestTy());
+	    zext->replaceAllUsesWith(final_zext);
+	    to_remove.push_back(zext);
+	    continue;
           }
         }
 
