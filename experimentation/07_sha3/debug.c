@@ -580,7 +580,7 @@ static inline int hash(uint8_t *out, size_t outlen, const uint8_t *in,
                        size_t inlen, size_t rate, uint8_t delim) {
 
   uint8_t a[200];
-  for(unsigned char i=0; i<200; ++i)
+  for (unsigned char i = 0; i < 200; ++i)
     a[i] = 0;
 
   while (inlen >= rate) {

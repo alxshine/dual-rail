@@ -138,7 +138,7 @@ static inline int hash(uint8_t* out, size_t outlen,
   // Squeeze output.
   foldP(out, outlen, setout);
   setout(a, out, outlen);
-  clear_mem(a, 0, 800);
+  clear_mem(a, 0, 200);
   return 0;
 }
 
