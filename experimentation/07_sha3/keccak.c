@@ -7,6 +7,7 @@
  * but not liability.
  */
 #include "keccak.h"
+#include "pass_print.h"
 
 void clear_mem(uint8_t *dest, char ch, unsigned int count){
   for(unsigned int i = 0; i<count; ++i)
@@ -128,6 +129,7 @@ static inline int hash(uint8_t* out, size_t outlen,
   
   // Absorb input.
   foldP(in, inlen, xorin);
+
   // Xor in the DS and pad frame.
   a[inlen] ^= delim;
   a[rate - 1] ^= 0x80;
@@ -138,7 +140,7 @@ static inline int hash(uint8_t* out, size_t outlen,
   // Squeeze output.
   foldP(out, outlen, setout);
   setout(a, out, outlen);
-  clear_mem(a, 0, 200);
+  clear_mem(a, 0, Plen);
   return 0;
 }
 
