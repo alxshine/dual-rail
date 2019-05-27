@@ -167,16 +167,35 @@ struct SkeletonPass : public ModulePass {
     }
   }
 
-  void balanceAlloca(AllocaInst *alloca, IRBuilder<> builder,
-                     arithmetic_ret arithmetic,
-                     vector<Instruction *> &to_remove,
-                     unordered_set<Value *> &balanced_values) {
+  int balanceAlloca(AllocaInst *alloca, IRBuilder<> builder,
+                    arithmetic_ret arithmetic, vector<Instruction *> &to_remove,
+                    unordered_set<Value *> &balanced_values) {
     if (alloca->getAllocatedType() == builder.getInt8Ty()) {
       auto *new_alloc = builder.CreateAlloca(builder.getInt32Ty());
       alloca->replaceAllUsesWith(new_alloc);
       balanced_values.insert(new_alloc);
       to_remove.push_back(alloca);
+      return 1;
     }
+    return 0;
+  }
+
+  int balanceStore(StoreInst *store, IRBuilder<> builder,
+                   arithmetic_ret arithmetic, vector<Instruction *> &to_remove,
+                   unordered_set<Value *> &balanced_values) {
+    auto *constant = dyn_cast<ConstantInt>(store->getValueOperand());
+    if (constant && balanced_values.count(store->getPointerOperand())) {
+      auto *new_const = builder.getInt8(constant->getLimitedValue());
+      auto *balanced_const =
+          builder.CreateCall(arithmetic.balance, {new_const});
+
+      auto *new_store =
+          builder.CreateStore(balanced_const, store->getPointerOperand());
+      balanced_values.insert(new_store);
+      to_remove.push_back(store);
+      return 1;
+    }
+    return 0;
   }
 
   void balanceFunction(Function *F, arithmetic_ret arithmetic,
@@ -189,23 +208,16 @@ struct SkeletonPass : public ModulePass {
 
       // alloca i32 instead of i8
       if (auto alloca = dyn_cast<AllocaInst>(&*I)) {
-        balanceAlloca(alloca, builder, arithmetic, to_remove, balanced_values);
+        if (balanceAlloca(alloca, builder, arithmetic, to_remove,
+                          balanced_values))
+          continue;
       }
 
       // store i32 constants instead of i8
       if (auto *store = dyn_cast<StoreInst>(&*I)) {
-        auto *constant = dyn_cast<ConstantInt>(store->getValueOperand());
-        if (constant && balanced_values.count(store->getPointerOperand())) {
-          auto *new_const = builder.getInt8(constant->getLimitedValue());
-          auto *balanced_const =
-              builder.CreateCall(arithmetic.balance, {new_const});
-
-          auto *new_store =
-              builder.CreateStore(balanced_const, store->getPointerOperand());
-          balanced_values.insert(new_store);
-          to_remove.push_back(store);
+        if (balanceStore(store, builder, arithmetic, to_remove,
+                         balanced_values))
           continue;
-        }
       }
 
       // load i32 values instead of i8
