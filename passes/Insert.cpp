@@ -447,6 +447,53 @@ struct SkeletonPass : public ModulePass {
     return 1;
   }
 
+  int balanceReturn(ReturnInst *ret, Function *F, IRBuilder<> builder,
+                    arithmetic_ret arithmetic, vector<Instruction *> &to_remove,
+                    unordered_set<Value *> &balanced_values) {
+    if (ret->getNumOperands() > 0) {
+      auto *operand = ret->getOperand(0);
+      if (operand->getType() == builder.getInt8Ty() &&
+          F->getReturnType() == builder.getInt32Ty()) {
+        auto *balanced_val = builder.CreateCall(arithmetic.balance, {operand});
+        auto *new_ret = builder.CreateRet(balanced_val);
+        ret->replaceAllUsesWith(new_ret);
+        to_remove.push_back(ret);
+      }
+    }
+    return 1;
+  }
+
+  int balanceCall(CallInst *call, Function *F, IRBuilder<> builder,
+                  arithmetic_ret arithmetic, vector<Instruction *> &to_remove,
+                  unordered_set<Value *> &balanced_values) {
+    auto original_name = call->getCalledFunction()->getName();
+    if (original_name.startswith_lower("balanced_") ||
+        original_name.startswith_lower("unbalanced_"))
+      return 1;
+    auto new_name = "balanced_" + original_name;
+    SmallVector<char, 100> buffer;
+    auto string_ref = new_name.toStringRef(buffer);
+    auto new_function = F->getParent()->getFunction(string_ref);
+    SmallVector<Value *, 4> args;
+    for (int i = 0; i < call->getNumArgOperands(); i++) {
+      auto *arg = call->getArgOperand(i);
+      if (arg->getType() == builder.getInt8Ty()) {
+        auto *balanced_val = builder.CreateCall(arithmetic.balance, {arg});
+        args.push_back(balanced_val);
+      } else {
+        args.push_back(arg);
+      }
+    }
+
+    auto *new_call =
+        builder.CreateCall(new_function->getFunctionType(), new_function, args);
+
+    call->replaceAllUsesWith(new_call);
+    balanced_values.insert(new_call);
+    to_remove.push_back(call);
+    return 1;
+  }
+
   void balanceFunction(Function *F, arithmetic_ret arithmetic,
                        unordered_set<Value *> &balanced_values) {
     errs() << "Balancing function " << F->getName() << "\n";
@@ -495,53 +542,22 @@ struct SkeletonPass : public ModulePass {
 
       // balance cmp instructions
       if (auto cmp = dyn_cast<CmpInst>(&*I)) {
-        balanceCmp(cmp, builder, arithmetic, to_remove, balanced_values);
+        if (balanceCmp(cmp, builder, arithmetic, to_remove, balanced_values))
+          continue;
       }
 
       // add cast before return if necessary
       if (auto ret = dyn_cast<ReturnInst>(&*I)) {
-        if (ret->getNumOperands() > 0) {
-          auto *operand = ret->getOperand(0);
-          if (operand->getType() == builder.getInt8Ty() &&
-              F->getReturnType() == builder.getInt32Ty()) {
-            auto *balanced_val =
-                builder.CreateCall(arithmetic.balance, {operand});
-            auto *new_ret = builder.CreateRet(balanced_val);
-            ret->replaceAllUsesWith(new_ret);
-            to_remove.push_back(ret);
-          }
-        }
-        continue;
+        if (balanceReturn(ret, F, builder, arithmetic, to_remove,
+                          balanced_values))
+          continue;
       }
 
       // replace calls with calls to balanced functions
       if (auto call = dyn_cast<CallInst>(&*I)) {
-        auto original_name = call->getCalledFunction()->getName();
-        if (original_name.startswith_lower("balanced_") ||
-            original_name.startswith_lower("unbalanced_"))
+        if (balanceCall(call, F, builder, arithmetic, to_remove,
+                        balanced_values))
           continue;
-        auto new_name = "balanced_" + original_name;
-        SmallVector<char, 100> buffer;
-        auto string_ref = new_name.toStringRef(buffer);
-        auto new_function = F->getParent()->getFunction(string_ref);
-        SmallVector<Value *, 4> args;
-        for (int i = 0; i < call->getNumArgOperands(); i++) {
-          auto *arg = call->getArgOperand(i);
-          if (arg->getType() == builder.getInt8Ty()) {
-            auto *balanced_val = builder.CreateCall(arithmetic.balance, {arg});
-            args.push_back(balanced_val);
-          } else {
-            args.push_back(arg);
-          }
-        }
-
-        auto *new_call = builder.CreateCall(new_function->getFunctionType(),
-                                            new_function, args);
-
-        call->replaceAllUsesWith(new_call);
-        balanced_values.insert(new_call);
-        to_remove.push_back(call);
-        continue;
       }
     }
 
