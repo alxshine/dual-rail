@@ -28,34 +28,17 @@ struct SkeletonPass : public ModulePass {
     return func;
   }
 
-  virtual bool runOnModule(Module &M) {
-    errs() << "Running on module: " << M.getName() << "\n";
-    ModuleSlotTracker MST(&M, true);
+  struct clone_ret {
+    vector<Function *> old_functions;
+    vector<Function *> new_functions;
+  };
+
+  clone_ret cloneFunctions(Module &M) {
     vector<Function *> copied_functions;
     vector<Function *> old_functions;
-
     auto &context = M.getContext();
 
-    // get function pointers
-    auto *balance_func = loadWithError(M, "balanced_int");
-    auto *balance_func_wide = loadWithError(M, "balanced_int_wide");
-    auto *const_balance_func = loadWithError(M, "balanced_constant");
-    auto *unbalance_func = loadWithError(M, "unbalanced_int");
-
-    auto *balanced_or = loadWithError(M, "balanced_or");
-    auto *balanced_and = loadWithError(M, "balanced_and");
-    auto *balanced_xor = loadWithError(M, "balanced_xor");
-    auto *balanced_add = loadWithError(M, "balanced_add");
-    auto *balanced_sub = loadWithError(M, "balanced_sub");
-    auto *balanced_mul = loadWithError(M, "balanced_mul");
-    auto *balanced_sdiv = loadWithError(M, "balanced_sdiv");
-    auto *balanced_udiv = loadWithError(M, "balanced_udiv");
-    auto *balanced_srem = loadWithError(M, "balanced_srem");
-    auto *balanced_urem = loadWithError(M, "balanced_urem");
-    auto *balanced_shl = loadWithError(M, "balanced_shl");
-    auto *balanced_ashr = loadWithError(M, "balanced_ashr");
-
-    // copy the functions
+    // clone functions
     for (auto F = M.begin(); F != M.end(); ++F) {
       auto name = F->getName();
       if (name.startswith_lower("balanced_") || name.startswith("unbalanced_"))
@@ -102,6 +85,38 @@ struct SkeletonPass : public ModulePass {
       errs() << "Inserting new function " << F->getName() << "\n";
       M.getFunctionList().push_back(F);
     }
+
+    return {old_functions, copied_functions};
+  }
+
+  virtual bool runOnModule(Module &M) {
+    errs() << "Running on module: " << M.getName() << "\n";
+    ModuleSlotTracker MST(&M, true);
+
+    auto &context = M.getContext();
+
+    // get function pointers
+    auto *balance_func = loadWithError(M, "balanced_int");
+    auto *balance_func_wide = loadWithError(M, "balanced_int_wide");
+    auto *const_balance_func = loadWithError(M, "balanced_constant");
+    auto *unbalance_func = loadWithError(M, "unbalanced_int");
+
+    auto *balanced_or = loadWithError(M, "balanced_or");
+    auto *balanced_and = loadWithError(M, "balanced_and");
+    auto *balanced_xor = loadWithError(M, "balanced_xor");
+    auto *balanced_add = loadWithError(M, "balanced_add");
+    auto *balanced_sub = loadWithError(M, "balanced_sub");
+    auto *balanced_mul = loadWithError(M, "balanced_mul");
+    auto *balanced_sdiv = loadWithError(M, "balanced_sdiv");
+    auto *balanced_udiv = loadWithError(M, "balanced_udiv");
+    auto *balanced_srem = loadWithError(M, "balanced_srem");
+    auto *balanced_urem = loadWithError(M, "balanced_urem");
+    auto *balanced_shl = loadWithError(M, "balanced_shl");
+    auto *balanced_ashr = loadWithError(M, "balanced_ashr");
+
+    auto clone_ret = cloneFunctions(M);
+    auto &copied_functions = clone_ret.new_functions;
+    auto &old_functions = clone_ret.old_functions;
 
     for (auto *F : copied_functions) {
       errs() << "Balancing function " << F->getName() << "\n";
@@ -178,14 +193,17 @@ struct SkeletonPass : public ModulePass {
           // llvm doesn't zext from i8 to i64 directly, so any zext starting
           // from a balanced value must first unbalance
           if (balanced_values.count(zext->getOperand(0))) {
-	    auto *balanced_val = zext->getOperand(0);
-	    IRBuilder<> builder(zext);
-	    auto *unbalanced_val = builder.CreateCall(unbalance_func, {balanced_val});
-	    auto *first_zext = builder.CreateZExt(unbalanced_val, balanced_val->getType());
-	    auto *final_zext = builder.CreateZExt(first_zext, zext->getDestTy());
-	    zext->replaceAllUsesWith(final_zext);
-	    to_remove.push_back(zext);
-	    continue;
+            auto *balanced_val = zext->getOperand(0);
+            IRBuilder<> builder(zext);
+            auto *unbalanced_val =
+                builder.CreateCall(unbalance_func, {balanced_val});
+            auto *first_zext =
+                builder.CreateZExt(unbalanced_val, balanced_val->getType());
+            auto *final_zext =
+                builder.CreateZExt(first_zext, zext->getDestTy());
+            zext->replaceAllUsesWith(final_zext);
+            to_remove.push_back(zext);
+            continue;
           }
         }
 
@@ -436,8 +454,9 @@ struct SkeletonPass : public ModulePass {
         // replace calls with calls to balanced functions
         if (auto call = dyn_cast<CallInst>(&*I)) {
           auto original_name = call->getCalledFunction()->getName();
-	  if(original_name.startswith_lower("balanced_") || original_name.startswith_lower("unbalanced_"))
-	    continue;
+          if (original_name.startswith_lower("balanced_") ||
+              original_name.startswith_lower("unbalanced_"))
+            continue;
           auto new_name = "balanced_" + original_name;
           SmallVector<char, 100> buffer;
           auto string_ref = new_name.toStringRef(buffer);
