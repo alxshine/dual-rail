@@ -167,7 +167,7 @@ struct SkeletonPass : public ModulePass {
     }
   }
 
-  int balanceAlloca(AllocaInst *alloca, IRBuilder<> builder,
+  void balanceAlloca(AllocaInst *alloca, IRBuilder<> builder,
                     arithmetic_ret arithmetic, vector<Instruction *> &to_remove,
                     unordered_set<Value *> &balanced_values) {
     if (alloca->getAllocatedType() == builder.getInt8Ty()) {
@@ -175,12 +175,12 @@ struct SkeletonPass : public ModulePass {
       alloca->replaceAllUsesWith(new_alloc);
       balanced_values.insert(new_alloc);
       to_remove.push_back(alloca);
-      return 1;
+      return;
     }
-    return 0;
+    return;
   }
 
-  int balanceStore(StoreInst *store, IRBuilder<> builder,
+  void balanceStore(StoreInst *store, IRBuilder<> builder,
                    arithmetic_ret arithmetic, vector<Instruction *> &to_remove,
                    unordered_set<Value *> &balanced_values) {
     auto *constant = dyn_cast<ConstantInt>(store->getValueOperand());
@@ -193,7 +193,7 @@ struct SkeletonPass : public ModulePass {
           builder.CreateStore(balanced_const, store->getPointerOperand());
       balanced_values.insert(new_store);
       to_remove.push_back(store);
-      return 1;
+      return;
     }
 
     auto *value = store->getValueOperand();
@@ -224,10 +224,10 @@ struct SkeletonPass : public ModulePass {
       store->replaceAllUsesWith(new_store);
       to_remove.push_back(store);
     }
-    return 1;
+    return;
   }
 
-  int balanceLoad(LoadInst *load, IRBuilder<> builder, arithmetic_ret,
+  void balanceLoad(LoadInst *load, IRBuilder<> builder, arithmetic_ret,
                   vector<Instruction *> &to_remove,
                   unordered_set<Value *> &balanced_values) {
     if (balanced_values.count(load->getPointerOperand())) {
@@ -235,18 +235,18 @@ struct SkeletonPass : public ModulePass {
       load->replaceAllUsesWith(new_load);
       balanced_values.insert(new_load);
       to_remove.push_back(load);
-      return 1;
+      return;
     }
-    return 0;
+    return;
   }
 
-  int balanceZExt(ZExtInst *zext, IRBuilder<> builder,
+  void balanceZExt(ZExtInst *zext, IRBuilder<> builder,
                   arithmetic_ret arithmetic, vector<Instruction *> &to_remove,
                   unordered_set<Value *> &balanced_values) {
     if (zext->getSrcTy() == zext->getDestTy()) {
       zext->replaceAllUsesWith(zext->getOperand(0));
       to_remove.push_back(zext);
-      return 1;
+      return;
     }
 
     // if we zext from i8 to i32, balance instead
@@ -257,7 +257,7 @@ struct SkeletonPass : public ModulePass {
       zext->replaceAllUsesWith(balance_call);
       balanced_values.insert(balance_call);
       to_remove.push_back(zext);
-      return 1;
+      return;
     }
 
     // llvm doesn't zext from i8 to i64 directly, so any zext starting
@@ -271,13 +271,13 @@ struct SkeletonPass : public ModulePass {
       auto *final_zext = builder.CreateZExt(first_zext, zext->getDestTy());
       zext->replaceAllUsesWith(final_zext);
       to_remove.push_back(zext);
-      return 1;
+      return;
     }
 
-    return 0;
+    return;
   }
 
-  int balanceOp(BinaryOperator *op, IRBuilder<> builder,
+  void balanceOp(BinaryOperator *op, IRBuilder<> builder,
                 arithmetic_ret arithmetic, vector<Instruction *> &to_remove,
                 unordered_set<Value *> &balanced_values) {
     // check for balancedness of all operators
@@ -302,11 +302,11 @@ struct SkeletonPass : public ModulePass {
       errs() << ", ";
       op2->print(errs());
       errs() << "\n";
-      return 1;
+      return;
     }
     // if nothing is balanced, there is nothing to do here
     if (!balanced1 && !balanced2)
-      return 1;
+      return;
 
     // fix constants in binary operations
     Value *operands[2] = {op->getOperand(0), op->getOperand(1)};
@@ -370,10 +370,10 @@ struct SkeletonPass : public ModulePass {
     op->replaceAllUsesWith(call);
     balanced_values.insert(call);
     to_remove.push_back(op);
-    return 1;
+    return;
   }
 
-  int balanceGetElementPtr(GetElementPtrInst *getelem, IRBuilder<> builder,
+  void balanceGetElementPtr(GetElementPtrInst *getelem, IRBuilder<> builder,
                            arithmetic_ret arithmetic,
                            vector<Instruction *> &to_remove,
                            unordered_set<Value *> &balanced_values) {
@@ -387,10 +387,10 @@ struct SkeletonPass : public ModulePass {
         getelem->setOperand(i, extended_val);
       }
     }
-    return 1;
+    return;
   }
 
-  int balanceCmp(CmpInst *cmp, IRBuilder<> builder, arithmetic_ret arithmetic,
+  void balanceCmp(CmpInst *cmp, IRBuilder<> builder, arithmetic_ret arithmetic,
                  vector<Instruction *> &to_remove,
                  unordered_set<Value *> &balanced_values) {
     auto *op1 = cmp->getOperand(0);
@@ -408,11 +408,11 @@ struct SkeletonPass : public ModulePass {
 
     if (!correct) {
       errs() << "Found comparison between balanced and unbalanced value\n";
-      return 1;
+      return;
     }
 
     if (!balanced1 && !balanced2)
-      return 1;
+      return;
 
     if (constant1) {
       auto *constant = dyn_cast<ConstantInt>(op1);
@@ -444,10 +444,10 @@ struct SkeletonPass : public ModulePass {
     cmp->replaceAllUsesWith(new_compare);
     to_remove.push_back(cmp);
     balanced_values.insert(new_compare);
-    return 1;
+    return;
   }
 
-  int balanceReturn(ReturnInst *ret, Function *F, IRBuilder<> builder,
+  void balanceReturn(ReturnInst *ret, Function *F, IRBuilder<> builder,
                     arithmetic_ret arithmetic, vector<Instruction *> &to_remove,
                     unordered_set<Value *> &balanced_values) {
     if (ret->getNumOperands() > 0) {
@@ -460,16 +460,16 @@ struct SkeletonPass : public ModulePass {
         to_remove.push_back(ret);
       }
     }
-    return 1;
+    return;
   }
 
-  int balanceCall(CallInst *call, Function *F, IRBuilder<> builder,
-                  arithmetic_ret arithmetic, vector<Instruction *> &to_remove,
-                  unordered_set<Value *> &balanced_values) {
+  void balanceCall(CallInst *call, Function *F, IRBuilder<> builder,
+                   arithmetic_ret arithmetic, vector<Instruction *> &to_remove,
+                   unordered_set<Value *> &balanced_values) {
     auto original_name = call->getCalledFunction()->getName();
     if (original_name.startswith_lower("balanced_") ||
         original_name.startswith_lower("unbalanced_"))
-      return 1;
+      return;
     auto new_name = "balanced_" + original_name;
     SmallVector<char, 100> buffer;
     auto string_ref = new_name.toStringRef(buffer);
@@ -491,7 +491,7 @@ struct SkeletonPass : public ModulePass {
     call->replaceAllUsesWith(new_call);
     balanced_values.insert(new_call);
     to_remove.push_back(call);
-    return 1;
+    return;
   }
 
   void balanceFunction(Function *F, arithmetic_ret arithmetic,
@@ -504,60 +504,56 @@ struct SkeletonPass : public ModulePass {
 
       // alloca i32 instead of i8
       if (auto alloca = dyn_cast<AllocaInst>(&*I)) {
-        if (balanceAlloca(alloca, builder, arithmetic, to_remove,
-                          balanced_values))
-          continue;
+        balanceAlloca(alloca, builder, arithmetic, to_remove, balanced_values);
+        continue;
       }
 
       // store i32 constants instead of i8
       if (auto *store = dyn_cast<StoreInst>(&*I)) {
-        if (balanceStore(store, builder, arithmetic, to_remove,
-                         balanced_values))
-          continue;
+        balanceStore(store, builder, arithmetic, to_remove, balanced_values);
+        continue;
       }
 
       // load i32 values instead of i8
       if (auto *load = dyn_cast<LoadInst>(&*I)) {
-        if (balanceLoad(load, builder, arithmetic, to_remove, balanced_values))
-          continue;
+        balanceLoad(load, builder, arithmetic, to_remove, balanced_values);
+        continue;
       }
 
       // remove unnecessary zexts
       if (auto *zext = dyn_cast<ZExtInst>(&*I)) {
-        if (balanceZExt(zext, builder, arithmetic, to_remove, balanced_values))
-          continue;
+        balanceZExt(zext, builder, arithmetic, to_remove, balanced_values);
+        continue;
       }
 
       if (auto *op = dyn_cast<BinaryOperator>(&*I)) {
-        if (balanceOp(op, builder, arithmetic, to_remove, balanced_values))
-          continue;
+        balanceOp(op, builder, arithmetic, to_remove, balanced_values);
+        continue;
       }
 
       // unbalance before usage as array index
       if (auto *getelem = dyn_cast<GetElementPtrInst>(&*I)) {
-        if (balanceGetElementPtr(getelem, builder, arithmetic, to_remove,
-                                 balanced_values))
-          continue;
+        balanceGetElementPtr(getelem, builder, arithmetic, to_remove,
+                             balanced_values);
+        continue;
       }
 
       // balance cmp instructions
       if (auto cmp = dyn_cast<CmpInst>(&*I)) {
-        if (balanceCmp(cmp, builder, arithmetic, to_remove, balanced_values))
-          continue;
+        balanceCmp(cmp, builder, arithmetic, to_remove, balanced_values);
+        continue;
       }
 
       // add cast before return if necessary
       if (auto ret = dyn_cast<ReturnInst>(&*I)) {
-        if (balanceReturn(ret, F, builder, arithmetic, to_remove,
-                          balanced_values))
-          continue;
+        balanceReturn(ret, F, builder, arithmetic, to_remove, balanced_values);
+        continue;
       }
 
       // replace calls with calls to balanced functions
       if (auto call = dyn_cast<CallInst>(&*I)) {
-        if (balanceCall(call, F, builder, arithmetic, to_remove,
-                        balanced_values))
-          continue;
+        balanceCall(call, F, builder, arithmetic, to_remove, balanced_values);
+        continue;
       }
     }
 
