@@ -10,3 +10,6 @@ trace-*
 **~
 **.S
 **/*.cquery_cached_index
+*.log
+*.aux
+*.dvi
