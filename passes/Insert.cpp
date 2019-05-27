@@ -145,8 +145,8 @@ struct SkeletonPass : public ModulePass {
       // alloca i32 instead of i8
       if (auto alloca = dyn_cast<AllocaInst>(&*I)) {
         if (alloca->getAllocatedType() == builder.getInt8Ty()) {
-          auto *new_alloc = new AllocaInst(
-              builder.getInt32Ty(), F->getAddressSpace(), nullptr, "", alloca);
+          auto *new_alloc = builder.CreateAlloca(
+              builder.getInt32Ty(), F->getAddressSpace(), nullptr, "");
           alloca->replaceAllUsesWith(new_alloc);
           balanced_values.insert(new_alloc);
           to_remove.push_back(alloca);
@@ -158,7 +158,6 @@ struct SkeletonPass : public ModulePass {
       if (auto *store = dyn_cast<StoreInst>(&*I)) {
         auto *constant = dyn_cast<ConstantInt>(store->getValueOperand());
         if (constant && balanced_values.count(store->getPointerOperand())) {
-          IRBuilder<> builder(store);
           auto *new_const = builder.getInt8(constant->getLimitedValue());
           auto *balanced_const =
               builder.CreateCall(arithmetic.balance, {new_const});
@@ -174,7 +173,7 @@ struct SkeletonPass : public ModulePass {
       // load i32 values instead of i8
       if (auto *load = dyn_cast<LoadInst>(&*I)) {
         if (balanced_values.count(load->getPointerOperand())) {
-          auto *new_load = new LoadInst(load->getPointerOperand(), "", load);
+          auto *new_load = builder.CreateLoad(load->getPointerOperand());
           load->replaceAllUsesWith(new_load);
           balanced_values.insert(new_load);
           to_remove.push_back(load);
@@ -193,7 +192,6 @@ struct SkeletonPass : public ModulePass {
         // if we zext from i8 to i32, balance instead
         if (zext->getSrcTy() == builder.getInt8Ty() &&
             zext->getDestTy() == builder.getInt32Ty()) {
-          IRBuilder<> builder(zext);
           auto *balance_call =
               builder.CreateCall(arithmetic.balance, {zext->getOperand(0)});
           zext->replaceAllUsesWith(balance_call);
@@ -206,7 +204,6 @@ struct SkeletonPass : public ModulePass {
         // from a balanced value must first unbalance
         if (balanced_values.count(zext->getOperand(0))) {
           auto *balanced_val = zext->getOperand(0);
-          IRBuilder<> builder(zext);
           auto *unbalanced_val =
               builder.CreateCall(arithmetic.unbalance, {balanced_val});
           auto *first_zext =
@@ -246,8 +243,6 @@ struct SkeletonPass : public ModulePass {
         // if nothing is balanced, there is nothing to do here
         if (!balanced1 && !balanced2)
           continue;
-
-        IRBuilder<> builder{op};
 
         // fix constants in binary operations
         Value *operands[2] = {op->getOperand(0), op->getOperand(1)};
@@ -323,7 +318,6 @@ struct SkeletonPass : public ModulePass {
             (PointerType *)store->getPointerOperandType();
         auto *target_type = pointer_type->getElementType();
 
-        IRBuilder<> builder(store);
         if (value_type == builder.getInt8Ty() &&
             target_type == builder.getInt32Ty()) {
 
@@ -356,7 +350,6 @@ struct SkeletonPass : public ModulePass {
         for (int i = 1; i < numops; ++i) {
           auto *op = getelem->getOperand(i);
           if (balanced_values.count(op)) {
-            IRBuilder<> builder(getelem);
             auto *unbalanced_val =
                 builder.CreateCall(arithmetic.unbalance, {op});
             auto *extended_val =
@@ -489,7 +482,7 @@ struct SkeletonPass : public ModulePass {
 
     auto arithmetic = loadArithmetic(M);
 
-    for(auto *F : copied_functions){
+    for (auto *F : copied_functions) {
       balanceFunction(F, arithmetic);
     }
 
