@@ -211,6 +211,43 @@ struct SkeletonPass : public ModulePass {
     return 0;
   }
 
+  int balanceZExt(ZExtInst *zext, IRBuilder<> builder,
+                  arithmetic_ret arithmetic, vector<Instruction *> &to_remove,
+                  unordered_set<Value *> &balanced_values) {
+    if (zext->getSrcTy() == zext->getDestTy()) {
+      zext->replaceAllUsesWith(zext->getOperand(0));
+      to_remove.push_back(zext);
+      return 1;
+    }
+
+    // if we zext from i8 to i32, balance instead
+    if (zext->getSrcTy() == builder.getInt8Ty() &&
+        zext->getDestTy() == builder.getInt32Ty()) {
+      auto *balance_call =
+          builder.CreateCall(arithmetic.balance, {zext->getOperand(0)});
+      zext->replaceAllUsesWith(balance_call);
+      balanced_values.insert(balance_call);
+      to_remove.push_back(zext);
+      return 1;
+    }
+
+    // llvm doesn't zext from i8 to i64 directly, so any zext starting
+    // from a balanced value must first unbalance
+    if (balanced_values.count(zext->getOperand(0))) {
+      auto *balanced_val = zext->getOperand(0);
+      auto *unbalanced_val =
+          builder.CreateCall(arithmetic.unbalance, {balanced_val});
+      auto *first_zext =
+          builder.CreateZExt(unbalanced_val, balanced_val->getType());
+      auto *final_zext = builder.CreateZExt(first_zext, zext->getDestTy());
+      zext->replaceAllUsesWith(final_zext);
+      to_remove.push_back(zext);
+      return 1;
+    }
+
+    return 0;
+  }
+
   void balanceFunction(Function *F, arithmetic_ret arithmetic,
                        unordered_set<Value *> &balanced_values) {
     errs() << "Balancing function " << F->getName() << "\n";
@@ -241,36 +278,8 @@ struct SkeletonPass : public ModulePass {
 
       // remove unnecessary zexts
       if (auto *zext = dyn_cast<ZExtInst>(&*I)) {
-        if (zext->getSrcTy() == zext->getDestTy()) {
-          zext->replaceAllUsesWith(zext->getOperand(0));
-          to_remove.push_back(zext);
+        if (balanceZExt(zext, builder, arithmetic, to_remove, balanced_values))
           continue;
-        }
-
-        // if we zext from i8 to i32, balance instead
-        if (zext->getSrcTy() == builder.getInt8Ty() &&
-            zext->getDestTy() == builder.getInt32Ty()) {
-          auto *balance_call =
-              builder.CreateCall(arithmetic.balance, {zext->getOperand(0)});
-          zext->replaceAllUsesWith(balance_call);
-          balanced_values.insert(balance_call);
-          to_remove.push_back(zext);
-          continue;
-        }
-
-        // llvm doesn't zext from i8 to i64 directly, so any zext starting
-        // from a balanced value must first unbalance
-        if (balanced_values.count(zext->getOperand(0))) {
-          auto *balanced_val = zext->getOperand(0);
-          auto *unbalanced_val =
-              builder.CreateCall(arithmetic.unbalance, {balanced_val});
-          auto *first_zext =
-              builder.CreateZExt(unbalanced_val, balanced_val->getType());
-          auto *final_zext = builder.CreateZExt(first_zext, zext->getDestTy());
-          zext->replaceAllUsesWith(final_zext);
-          to_remove.push_back(zext);
-          continue;
-        }
       }
 
       if (auto *op = dyn_cast<BinaryOperator>(&*I)) {
