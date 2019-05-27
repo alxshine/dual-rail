@@ -21,6 +21,11 @@ struct SkeletonPass : public ModulePass {
   static char ID;
   SkeletonPass() : ModulePass(ID) {}
 
+  unsigned int balanceValue(unsigned char v) {
+    unsigned char inverse = ~v;
+    return inverse << 16 | v;
+  }
+
   Function *loadWithError(Module &M, string func_name) {
     auto *func = M.getFunction(func_name);
     if (func == nullptr)
@@ -134,13 +139,19 @@ struct SkeletonPass : public ModulePass {
     return {old_functions, copied_functions};
   }
 
-  void balanceFunction(Function *F, arithmetic_ret arithmetic) {
+  void balanceFunction(Function *F, arithmetic_ret arithmetic,
+                       vector<Instruction *> &to_remove,
+                       unordered_set<Value *> &balanced_values) {
     errs() << "Balancing function " << F->getName() << "\n";
+    errs() << balanced_values.size() << "\n";
 
-    vector<Instruction *> to_remove;
-    unordered_set<Value *> balanced_values;
     for (inst_iterator I = inst_begin(F), E = inst_end(F); I != E; ++I) {
       IRBuilder<> builder{&*I};
+
+      if (F->getName() == "balanced_print_uart0") {
+        I->print(errs());
+        errs() << "\n";
+      }
 
       // alloca i32 instead of i8
       if (auto alloca = dyn_cast<AllocaInst>(&*I)) {
@@ -382,7 +393,6 @@ struct SkeletonPass : public ModulePass {
         if (!balanced1 && !balanced2)
           continue;
 
-        IRBuilder<> builder{cmp};
         if (constant1) {
           auto *constant = dyn_cast<ConstantInt>(op1);
           if (constant->getType() != builder.getInt8Ty())
@@ -422,7 +432,6 @@ struct SkeletonPass : public ModulePass {
           auto *operand = ret->getOperand(0);
           if (operand->getType() == builder.getInt8Ty() &&
               F->getReturnType() == builder.getInt32Ty()) {
-            IRBuilder<> builder(ret);
             auto *balanced_val =
                 builder.CreateCall(arithmetic.balance, {operand});
             auto *new_ret = builder.CreateRet(balanced_val);
@@ -443,7 +452,6 @@ struct SkeletonPass : public ModulePass {
         SmallVector<char, 100> buffer;
         auto string_ref = new_name.toStringRef(buffer);
         auto new_function = F->getParent()->getFunction(string_ref);
-        IRBuilder<> builder(call);
         SmallVector<Value *, 4> args;
         for (int i = 0; i < call->getNumArgOperands(); i++) {
           auto *arg = call->getArgOperand(i);
@@ -466,6 +474,8 @@ struct SkeletonPass : public ModulePass {
     }
 
     for (auto *I : to_remove) {
+      I->print(errs(), true);
+      errs() << "\n";
       I->eraseFromParent();
     }
   }
@@ -475,6 +485,36 @@ struct SkeletonPass : public ModulePass {
     ModuleSlotTracker MST(&M, true);
 
     auto &context = M.getContext();
+    vector<Instruction *> to_remove{};
+    unordered_set<Value *> balanced_values{};
+
+    // balance globals
+    for (auto &global : M.getGlobalList()) {
+      global.getType()->print(errs());
+      errs() << "\n";
+      if (global.getValueType() == Type::getInt8Ty(context)) {
+        errs() << "found i8\n";
+        auto name = "balanced_" + global.getName();
+
+        Constant *initializer = nullptr;
+        if (global.hasInitializer()) {
+          auto *old_initializer = global.getInitializer();
+          unsigned char v =
+              old_initializer->getUniqueInteger().getLimitedValue(0xff);
+          unsigned balanced_v = balanceValue(v);
+          initializer =
+              ConstantInt::get(Type::getInt32Ty(context), balanced_v, false);
+        }
+
+        auto *new_global = new GlobalVariable(
+            M, Type::getInt32Ty(context), global.isConstant(),
+            global.getLinkage(), initializer, name);
+        global.replaceAllUsesWith(new_global);
+        balanced_values.insert(new_global);
+        new_global->print(errs());
+        errs() << "\n";
+      }
+    }
 
     auto clone_ret = cloneFunctions(M);
     auto &copied_functions = clone_ret.new_functions;
@@ -483,7 +523,7 @@ struct SkeletonPass : public ModulePass {
     auto arithmetic = loadArithmetic(M);
 
     for (auto *F : copied_functions) {
-      balanceFunction(F, arithmetic);
+      balanceFunction(F, arithmetic, to_remove, balanced_values);
     }
 
     for (auto *F : old_functions) {
