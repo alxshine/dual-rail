@@ -167,6 +167,18 @@ struct SkeletonPass : public ModulePass {
     }
   }
 
+  void balanceAlloca(AllocaInst *alloca, IRBuilder<> builder,
+                     arithmetic_ret arithmetic,
+                     vector<Instruction *> &to_remove,
+                     unordered_set<Value *> &balanced_values) {
+    if (alloca->getAllocatedType() == builder.getInt8Ty()) {
+      auto *new_alloc = builder.CreateAlloca(builder.getInt32Ty());
+      alloca->replaceAllUsesWith(new_alloc);
+      balanced_values.insert(new_alloc);
+      to_remove.push_back(alloca);
+    }
+  }
+
   void balanceFunction(Function *F, arithmetic_ret arithmetic,
                        unordered_set<Value *> &balanced_values) {
     errs() << "Balancing function " << F->getName() << "\n";
@@ -177,14 +189,7 @@ struct SkeletonPass : public ModulePass {
 
       // alloca i32 instead of i8
       if (auto alloca = dyn_cast<AllocaInst>(&*I)) {
-        if (alloca->getAllocatedType() == builder.getInt8Ty()) {
-          auto *new_alloc = builder.CreateAlloca(
-              builder.getInt32Ty(), F->getAddressSpace(), nullptr, "");
-          alloca->replaceAllUsesWith(new_alloc);
-          balanced_values.insert(new_alloc);
-          to_remove.push_back(alloca);
-          continue;
-        }
+        balanceAlloca(alloca, builder, arithmetic, to_remove, balanced_values);
       }
 
       // store i32 constants instead of i8
