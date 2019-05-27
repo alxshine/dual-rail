@@ -195,7 +195,36 @@ struct SkeletonPass : public ModulePass {
       to_remove.push_back(store);
       return 1;
     }
-    return 0;
+
+    auto *value = store->getValueOperand();
+    auto *value_type = value->getType();
+    auto *pointer = store->getPointerOperand();
+    PointerType *pointer_type = (PointerType *)store->getPointerOperandType();
+    auto *target_type = pointer_type->getElementType();
+
+    if (value_type == builder.getInt8Ty() &&
+        target_type == builder.getInt32Ty()) {
+
+    } else if (value_type == builder.getInt32Ty() &&
+               target_type == builder.getInt8Ty()) {
+    }
+
+    if (value_type == builder.getInt8Ty() &&
+        target_type == builder.getInt32Ty()) {
+      auto *balanced_val = builder.CreateCall(arithmetic.balance, {value});
+      auto *new_store =
+          builder.CreateStore(balanced_val, store->getPointerOperand());
+      store->replaceAllUsesWith(new_store);
+      to_remove.push_back(store);
+    } else if (value_type == builder.getInt32Ty() &&
+               target_type == builder.getInt8Ty()) {
+      auto *unbalanced_val = builder.CreateCall(arithmetic.unbalance, {value});
+      auto *new_store =
+          builder.CreateStore(unbalanced_val, store->getPointerOperand());
+      store->replaceAllUsesWith(new_store);
+      to_remove.push_back(store);
+    }
+    return 1;
   }
 
   int balanceLoad(LoadInst *load, IRBuilder<> builder, arithmetic_ret,
@@ -248,6 +277,119 @@ struct SkeletonPass : public ModulePass {
     return 0;
   }
 
+  int balanceOp(BinaryOperator *op, IRBuilder<> builder,
+                arithmetic_ret arithmetic, vector<Instruction *> &to_remove,
+                unordered_set<Value *> &balanced_values) {
+    // check for balancedness of all operators
+    auto *op1 = op->getOperand(0);
+    bool balanced1 = balanced_values.count(op1);
+    bool constant1 = isa<ConstantInt>(op1);
+    auto *op2 = op->getOperand(1);
+    bool balanced2 = balanced_values.count(op2);
+    bool constant2 = isa<ConstantInt>(op2);
+
+    bool correct = true;
+    if (balanced1)
+      correct = balanced2 || constant2;
+    else if (balanced2)
+      correct = constant1;
+
+    if (!correct) {
+      errs() << "found broken binary operation, only partially balanced\n";
+      op->print(errs());
+      errs() << "\n";
+      op1->print(errs());
+      errs() << ", ";
+      op2->print(errs());
+      errs() << "\n";
+      return 1;
+    }
+    // if nothing is balanced, there is nothing to do here
+    if (!balanced1 && !balanced2)
+      return 1;
+
+    // fix constants in binary operations
+    Value *operands[2] = {op->getOperand(0), op->getOperand(1)};
+    for (int i = 0; i < 2; i++) {
+      auto *constant =
+          dyn_cast<ConstantInt>(op->getOperand(i)); // TODO: next step
+
+      if (constant) {
+        Value *balanced_constant;
+        if (constant->getType() == builder.getInt8Ty())
+          balanced_constant =
+              builder.CreateCall(arithmetic.balance, {constant});
+        else if (constant->getType() == builder.getInt32Ty())
+          balanced_constant =
+              builder.CreateCall(arithmetic.balance_wide, {constant});
+        else {
+          errs() << "Could not balance constant of type ";
+          constant->getType()->print(errs());
+          errs() << "\n";
+        }
+
+        operands[i] = balanced_constant;
+        balanced_values.insert(balanced_constant);
+      }
+    }
+
+    // change operations to balanced operations
+    auto opcode = op->getOpcode();
+
+    Value *call;
+    if (opcode == llvm::Instruction::BinaryOps::Or)
+      call = builder.CreateCall(arithmetic.op_or, operands);
+    else if (opcode == llvm::Instruction::BinaryOps::And)
+      call = builder.CreateCall(arithmetic.op_and, operands);
+    else if (opcode == llvm::Instruction::BinaryOps::Xor)
+      call = builder.CreateCall(arithmetic.op_xor, operands);
+    else if (opcode == llvm::Instruction::BinaryOps::Add)
+      call = builder.CreateCall(arithmetic.op_add, operands);
+    else if (opcode == llvm::Instruction::BinaryOps::Sub)
+      call = builder.CreateCall(arithmetic.op_sub, operands);
+    else if (opcode == llvm::Instruction::BinaryOps::Mul)
+      call = builder.CreateCall(arithmetic.op_mul, operands);
+    else if (opcode == llvm::Instruction::BinaryOps::SDiv)
+      call = builder.CreateCall(arithmetic.op_sdiv, operands);
+    else if (opcode == llvm::Instruction::BinaryOps::UDiv)
+      call = builder.CreateCall(arithmetic.op_udiv, operands);
+    else if (opcode == llvm::Instruction::BinaryOps::SRem)
+      call = builder.CreateCall(arithmetic.op_srem, operands);
+    else if (opcode == llvm::Instruction::BinaryOps::URem)
+      call = builder.CreateCall(arithmetic.op_urem, operands);
+    else if (opcode == llvm::Instruction::BinaryOps::Shl)
+      call = builder.CreateCall(arithmetic.op_shl, operands);
+    else if (opcode == llvm::Instruction::BinaryOps::AShr)
+      call = builder.CreateCall(arithmetic.op_ashr, operands);
+    else {
+      errs() << "No balanced variant found for operation "
+             << op->getOpcodeName() << "\n";
+      throw 4;
+    }
+
+    op->replaceAllUsesWith(call);
+    balanced_values.insert(call);
+    to_remove.push_back(op);
+    return 1;
+  }
+
+  int balanceGetElementPtr(GetElementPtrInst *getelem, IRBuilder<> builder,
+                           arithmetic_ret arithmetic,
+                           vector<Instruction *> &to_remove,
+                           unordered_set<Value *> &balanced_values) {
+    int numops = getelem->getNumOperands();
+    for (int i = 1; i < numops; ++i) {
+      auto *op = getelem->getOperand(i);
+      if (balanced_values.count(op)) {
+        auto *unbalanced_val = builder.CreateCall(arithmetic.unbalance, {op});
+        auto *extended_val =
+            builder.CreateZExt(unbalanced_val, builder.getInt32Ty());
+        getelem->setOperand(i, extended_val);
+      }
+    }
+    return 1;
+  }
+
   void balanceFunction(Function *F, arithmetic_ret arithmetic,
                        unordered_set<Value *> &balanced_values) {
     errs() << "Balancing function " << F->getName() << "\n";
@@ -283,147 +425,15 @@ struct SkeletonPass : public ModulePass {
       }
 
       if (auto *op = dyn_cast<BinaryOperator>(&*I)) {
-        // check for balancedness of all operators
-        auto *op1 = op->getOperand(0);
-        bool balanced1 = balanced_values.count(op1);
-        bool constant1 = isa<ConstantInt>(op1);
-        auto *op2 = op->getOperand(1);
-        bool balanced2 = balanced_values.count(op2);
-        bool constant2 = isa<ConstantInt>(op2);
-
-        bool correct = true;
-        if (balanced1)
-          correct = balanced2 || constant2;
-        else if (balanced2)
-          correct = constant1;
-
-        if (!correct) {
-          errs() << "found broken binary operation, only partially balanced\n";
-          op->print(errs());
-          errs() << "\n";
-          op1->print(errs());
-          errs() << ", ";
-          op2->print(errs());
-          errs() << "\n";
+        if (balanceOp(op, builder, arithmetic, to_remove, balanced_values))
           continue;
-        }
-        // if nothing is balanced, there is nothing to do here
-        if (!balanced1 && !balanced2)
-          continue;
-
-        // fix constants in binary operations
-        Value *operands[2] = {op->getOperand(0), op->getOperand(1)};
-        for (int i = 0; i < 2; i++) {
-          auto *constant =
-              dyn_cast<ConstantInt>(op->getOperand(i)); // TODO: next step
-
-          if (constant) {
-            Value *balanced_constant;
-            if (constant->getType() == builder.getInt8Ty())
-              balanced_constant =
-                  builder.CreateCall(arithmetic.balance, {constant});
-            else if (constant->getType() == builder.getInt32Ty())
-              balanced_constant =
-                  builder.CreateCall(arithmetic.balance_wide, {constant});
-            else {
-              errs() << "Could not balance constant of type ";
-              constant->getType()->print(errs());
-              errs() << "\n";
-            }
-
-            operands[i] = balanced_constant;
-            balanced_values.insert(balanced_constant);
-          }
-        }
-
-        // change operations to balanced operations
-        auto opcode = op->getOpcode();
-
-        Value *call;
-        if (opcode == llvm::Instruction::BinaryOps::Or)
-          call = builder.CreateCall(arithmetic.op_or, operands);
-        else if (opcode == llvm::Instruction::BinaryOps::And)
-          call = builder.CreateCall(arithmetic.op_and, operands);
-        else if (opcode == llvm::Instruction::BinaryOps::Xor)
-          call = builder.CreateCall(arithmetic.op_xor, operands);
-        else if (opcode == llvm::Instruction::BinaryOps::Add)
-          call = builder.CreateCall(arithmetic.op_add, operands);
-        else if (opcode == llvm::Instruction::BinaryOps::Sub)
-          call = builder.CreateCall(arithmetic.op_sub, operands);
-        else if (opcode == llvm::Instruction::BinaryOps::Mul)
-          call = builder.CreateCall(arithmetic.op_mul, operands);
-        else if (opcode == llvm::Instruction::BinaryOps::SDiv)
-          call = builder.CreateCall(arithmetic.op_sdiv, operands);
-        else if (opcode == llvm::Instruction::BinaryOps::UDiv)
-          call = builder.CreateCall(arithmetic.op_udiv, operands);
-        else if (opcode == llvm::Instruction::BinaryOps::SRem)
-          call = builder.CreateCall(arithmetic.op_srem, operands);
-        else if (opcode == llvm::Instruction::BinaryOps::URem)
-          call = builder.CreateCall(arithmetic.op_urem, operands);
-        else if (opcode == llvm::Instruction::BinaryOps::Shl)
-          call = builder.CreateCall(arithmetic.op_shl, operands);
-        else if (opcode == llvm::Instruction::BinaryOps::AShr)
-          call = builder.CreateCall(arithmetic.op_ashr, operands);
-        else {
-          errs() << "No balanced variant found for operation "
-                 << op->getOpcodeName() << "\n";
-          throw 4;
-        }
-
-        op->replaceAllUsesWith(call);
-        balanced_values.insert(call);
-        to_remove.push_back(op);
-        continue;
-      }
-
-      // fix stores of different types
-      if (auto *store = dyn_cast<StoreInst>(&*I)) {
-        auto *value = store->getValueOperand();
-        auto *value_type = value->getType();
-        auto *pointer = store->getPointerOperand();
-        PointerType *pointer_type =
-            (PointerType *)store->getPointerOperandType();
-        auto *target_type = pointer_type->getElementType();
-
-        if (value_type == builder.getInt8Ty() &&
-            target_type == builder.getInt32Ty()) {
-
-        } else if (value_type == builder.getInt32Ty() &&
-                   target_type == builder.getInt8Ty()) {
-        }
-
-        if (value_type == builder.getInt8Ty() &&
-            target_type == builder.getInt32Ty()) {
-          auto *balanced_val = builder.CreateCall(arithmetic.balance, {value});
-          auto *new_store =
-              builder.CreateStore(balanced_val, store->getPointerOperand());
-          store->replaceAllUsesWith(new_store);
-          to_remove.push_back(store);
-        } else if (value_type == builder.getInt32Ty() &&
-                   target_type == builder.getInt8Ty()) {
-          auto *unbalanced_val =
-              builder.CreateCall(arithmetic.unbalance, {value});
-          auto *new_store =
-              builder.CreateStore(unbalanced_val, store->getPointerOperand());
-          store->replaceAllUsesWith(new_store);
-          to_remove.push_back(store);
-        }
-        continue;
       }
 
       // unbalance before usage as array index
       if (auto *getelem = dyn_cast<GetElementPtrInst>(&*I)) {
-        int numops = getelem->getNumOperands();
-        for (int i = 1; i < numops; ++i) {
-          auto *op = getelem->getOperand(i);
-          if (balanced_values.count(op)) {
-            auto *unbalanced_val =
-                builder.CreateCall(arithmetic.unbalance, {op});
-            auto *extended_val =
-                builder.CreateZExt(unbalanced_val, builder.getInt32Ty());
-            getelem->setOperand(i, extended_val);
-          }
-        }
+        if (balanceGetElementPtr(getelem, builder, arithmetic, to_remove,
+                                 balanced_values))
+          continue;
       }
 
       // balance cmp instructions
