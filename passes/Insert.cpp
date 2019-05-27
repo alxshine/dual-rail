@@ -198,6 +198,19 @@ struct SkeletonPass : public ModulePass {
     return 0;
   }
 
+  int balanceLoad(LoadInst *load, IRBuilder<> builder, arithmetic_ret,
+                  vector<Instruction *> &to_remove,
+                  unordered_set<Value *> &balanced_values) {
+    if (balanced_values.count(load->getPointerOperand())) {
+      auto *new_load = builder.CreateLoad(load->getPointerOperand());
+      load->replaceAllUsesWith(new_load);
+      balanced_values.insert(new_load);
+      to_remove.push_back(load);
+      return 1;
+    }
+    return 0;
+  }
+
   void balanceFunction(Function *F, arithmetic_ret arithmetic,
                        unordered_set<Value *> &balanced_values) {
     errs() << "Balancing function " << F->getName() << "\n";
@@ -222,13 +235,8 @@ struct SkeletonPass : public ModulePass {
 
       // load i32 values instead of i8
       if (auto *load = dyn_cast<LoadInst>(&*I)) {
-        if (balanced_values.count(load->getPointerOperand())) {
-          auto *new_load = builder.CreateLoad(load->getPointerOperand());
-          load->replaceAllUsesWith(new_load);
-          balanced_values.insert(new_load);
-          to_remove.push_back(load);
+        if (balanceLoad(load, builder, arithmetic, to_remove, balanced_values))
           continue;
-        }
       }
 
       // remove unnecessary zexts
