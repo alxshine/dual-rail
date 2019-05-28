@@ -541,7 +541,7 @@ struct SkeletonPass : public ModulePass {
 
     for (inst_iterator I = inst_begin(F), E = inst_end(F); I != E; ++I) {
       IRBuilder<> builder{&*I};
-
+      
       // alloca i32 instead of i8
       if (auto alloca = dyn_cast<AllocaInst>(&*I)) {
         balanceAlloca(alloca, builder, arithmetic, to_remove, balanced_values);

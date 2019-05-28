@@ -57,28 +57,38 @@ int main() {
   uint8_t s[256];
 
   const uint8_t message_len = 9;
-  uint8_t message[9] = "Plaintext";
+  uint8_t message[9];
+  message[0] = 'P';
+  message[1] = 'l';
+  message[2] = 'a';
+  message[3] = 'i';
+  message[4] = 'n';
+  message[5] = 't';
+  message[6] = 'e';
+  message[7] = 'x';
+  message[8] = 't';
   uint8_t ciphertext[9];
   uint8_t decrypted[9 + 1];
   uint8_t keystream[9];
 
   const uint8_t key_len = 3;
-  char key[3] = "Key";
+  char key[3];
+  key[0] = 'K';
+  key[1] = 'e';
+  key[2] = 'y';
 
-  print_uart0(key);
-  print_uart0((char *)message);
+  printn_uart0(key, key_len);
+  printn_uart0((char *)message, message_len);
 
   rc4_init(s, (uint8_t *)key, key_len);
   generate_stream(s, keystream, message_len);
 
-  print_uart0("keystream: ");
-  for (uint8_t i = 0; i < message_len; ++i) {
+   for (uint8_t i = 0; i < message_len; ++i) {
     write_int(keystream[i], buffer);
     print_uart0(buffer);
   }
 
-  print_uart0("ciphertext: ");
-  for (uint8_t i = 0; i < message_len; ++i) {
+   for (uint8_t i = 0; i < message_len; ++i) {
     ciphertext[i] = message[i] ^ keystream[i];
     write_int(ciphertext[i], buffer);
     print_uart0(buffer);
@@ -87,15 +97,14 @@ int main() {
   rc4_init(s, (uint8_t *)key, key_len);
   generate_stream(s, keystream, message_len);
 
-  print_uart0("decrypted: ");
-  for (uint8_t i = 0; i < message_len; ++i) {
+   for (uint8_t i = 0; i < message_len; ++i) {
     decrypted[i] = ciphertext[i] ^ keystream[i];
     write_int(decrypted[i], buffer);
     print_uart0(buffer);
   }
 
   decrypted[message_len] = 0;
-  print_uart0((char *)decrypted);
+  printn_uart0((char *)decrypted, message_len);
 
   return 0;
 }
