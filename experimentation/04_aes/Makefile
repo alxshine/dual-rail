@@ -6,8 +6,8 @@ PASSES=
 
 all: program.bin
 
-tinyAES.o: tinyAES.c
-	clang $(CLANGOPTS) -S -emit-llvm tinyAES.c -o tinyAES.ll
+tinyAES.o: tinyAES_raw.c
+	clang $(CLANGOPTS) -S -emit-llvm tinyAES_raw.c -o tinyAES.ll
 	opt -load="$(PLUGINS)" $(PASSES) tinyAES.ll -S -o aes_optimized.ll
 	llc aes_optimized.ll -o aes_optimized.S
 	$(CROSS_COMPILE)-as -ggdb $(CPU) aes_optimized.S -o tinyAES.o
