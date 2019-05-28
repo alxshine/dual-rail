@@ -91,8 +91,10 @@ struct SkeletonPass : public ModulePass {
     // clone functions
     for (auto F = M.begin(); F != M.end(); ++F) {
       auto name = F->getName();
-      if (name.startswith_lower("balanced_") || name.startswith("unbalanced_"))
+      if (name.startswith_lower("balanced_") || name.startswith("unbalanced_") || name.startswith_lower("llvm"))
         continue;
+
+      errs() << "Cloning " << name << "\n";
 
       // create cloned function
       std::vector<Type *> argumentTypes;
@@ -195,8 +197,9 @@ struct SkeletonPass : public ModulePass {
       return;
     }
 
-    if(type == builder.getInt8PtrTy()){
-      auto *new_alloc = builder.CreateAlloca(Type::getInt32PtrTy(builder.getContext()));
+    if (type == builder.getInt8PtrTy()) {
+      auto *new_alloc =
+          builder.CreateAlloca(Type::getInt32PtrTy(builder.getContext()));
 
       alloca->replaceAllUsesWith(new_alloc);
       balanced_values.insert(new_alloc);
@@ -210,9 +213,12 @@ struct SkeletonPass : public ModulePass {
                     unordered_set<Value *> &balanced_values) {
     auto *constant = dyn_cast<ConstantInt>(store->getValueOperand());
     if (constant && balanced_values.count(store->getPointerOperand())) {
-      auto *new_const = builder.getInt8(constant->getLimitedValue());
-      auto *balanced_const =
-          builder.CreateCall(arithmetic.balance, {new_const});
+      unsigned char v = constant->getLimitedValue();
+      unsigned int balanced_v = balanceValue(v);
+      auto *balanced_const = builder.getInt32(balanced_v);
+      // auto *new_const = builder.getInt8(constant->getLimitedValue());
+      // auto *balanced_const =
+          // builder.CreateCall(arithmetic.balance, {new_const});
 
       auto *new_store =
           builder.CreateStore(balanced_const, store->getPointerOperand());
