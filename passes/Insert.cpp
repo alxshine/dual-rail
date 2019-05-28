@@ -98,8 +98,11 @@ struct SkeletonPass : public ModulePass {
       std::vector<Type *> argumentTypes;
       for (auto arg = F->arg_begin(); arg != F->arg_end(); ++arg) {
         auto *arg_type = arg->getType();
+
         if (arg_type == Type::getInt8Ty(context))
           arg_type = Type::getInt32Ty(context);
+        else if (arg_type == Type::getInt8PtrTy(context))
+          arg_type = Type::getInt32PtrTy(context);
 
         argumentTypes.push_back(arg_type);
       }
