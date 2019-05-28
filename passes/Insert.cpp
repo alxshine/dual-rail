@@ -171,9 +171,26 @@ struct SkeletonPass : public ModulePass {
                      arithmetic_ret arithmetic,
                      vector<Instruction *> &to_remove,
                      unordered_set<Value *> &balanced_values) {
-    if (alloca->getAllocatedType() == builder.getInt8Ty()) {
+    auto *type = alloca->getAllocatedType();
+    if (type == builder.getInt8Ty()) {
       auto *new_alloc = builder.CreateAlloca(builder.getInt32Ty());
       alloca->replaceAllUsesWith(new_alloc);
+      balanced_values.insert(new_alloc);
+      to_remove.push_back(alloca);
+      return;
+    }
+
+    if (type->isArrayTy() &&
+        type->getArrayElementType() == builder.getInt8Ty()) {
+      auto *array_type =
+          ArrayType::get(builder.getInt32Ty(), type->getArrayNumElements());
+      auto *new_alloc = builder.CreateAlloca(array_type);
+      errs() << "balancing array alloc:\n";
+      new_alloc->print(errs());
+      errs() << "\nuses:" << alloca->getNumUses();
+
+      alloca->replaceAllUsesWith(new_alloc);
+      errs() << "\nuses after replace: " << alloca->getNumUses() << "\n";
       balanced_values.insert(new_alloc);
       to_remove.push_back(alloca);
       return;
