@@ -1,10 +1,11 @@
 #include "print.h"
 #include "tinyAES.h"
 
-unsigned char plaintext[16] = "hello world!123";
-unsigned char key[17] = "supersecretkey11";
-
 void c_entry() {
+  unsigned char plaintext[16] = {'H', 'e', 'l', 'l', 'o', ' ', 'W', 'o',
+                                 'r', 'l', 'd', '!', '1', '2', '3'};
+  unsigned char key[16] = {'s', 'u', 'p', 'e', 'r', 's', 'e', 'c',
+                           'r', 'e', 't', 'k', 'e', 'y', '1', '1'};
   unsigned char ciphertext[16];
   unsigned char decrypted[16];
 
