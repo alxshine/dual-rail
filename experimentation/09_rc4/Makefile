@@ -1,13 +1,16 @@
 CROSS_COMPILE ?= arm-none-eabi
-CLANGOPTS = -target arm-none-eabi -mcpu=arm926ej-s -O0
+CLANGOPTS = -target arm-v7m-eabi -mcpu=arm926ej-s -O0
 
 PLUGINS=$(wildcard ../../passes/build/*.so)
 PASSES=-insert
 
-all: program.bin
+all: program_unbalanced.bin program.bin
 
-optimized.S: tinyAES.ll rtlib.ll program.ll
-	llvm-link tinyAES.ll rtlib.ll program.ll -S -o linked.ll
+program_unbalanced.bin: program.c
+	$(CROSS_COMPILE)-gcc --specs=nosys.specs program.c -o program_unbalanced.bin
+
+optimized.S: rtlib.ll program.ll
+	llvm-link rtlib.ll program.ll -S -o linked.ll
 	opt -load="$(PLUGINS)" $(PASSES) linked.ll -S -o optimized.ll
 	llc optimized.ll -o optimized.S
 

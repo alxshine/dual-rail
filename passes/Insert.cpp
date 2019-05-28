@@ -91,7 +91,8 @@ struct SkeletonPass : public ModulePass {
     // clone functions
     for (auto F = M.begin(); F != M.end(); ++F) {
       auto name = F->getName();
-      if (name.startswith_lower("balanced_") || name.startswith("unbalanced_") || name.startswith_lower("llvm"))
+      if (name.startswith_lower("balanced_") ||
+          name.startswith("unbalanced_") || name.startswith_lower("llvm"))
         continue;
 
       errs() << "Cloning " << name << "\n";
@@ -148,8 +149,8 @@ struct SkeletonPass : public ModulePass {
     auto &context = M.getContext();
 
     for (auto &global : M.getGlobalList()) {
-      errs() << "Balancing global " << global.getName() << "\n";
       if (global.getValueType() == Type::getInt8Ty(context)) {
+        errs() << "Balancing global " << global.getName() << "\n";
         auto name = "balanced_" + global.getName();
 
         Constant *initializer = nullptr;
@@ -218,7 +219,7 @@ struct SkeletonPass : public ModulePass {
       auto *balanced_const = builder.getInt32(balanced_v);
       // auto *new_const = builder.getInt8(constant->getLimitedValue());
       // auto *balanced_const =
-          // builder.CreateCall(arithmetic.balance, {new_const});
+      // builder.CreateCall(arithmetic.balance, {new_const});
 
       auto *new_store =
           builder.CreateStore(balanced_const, store->getPointerOperand());
