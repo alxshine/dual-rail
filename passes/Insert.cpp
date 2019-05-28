@@ -185,12 +185,8 @@ struct SkeletonPass : public ModulePass {
       auto *array_type =
           ArrayType::get(builder.getInt32Ty(), type->getArrayNumElements());
       auto *new_alloc = builder.CreateAlloca(array_type);
-      errs() << "balancing array alloc:\n";
-      new_alloc->print(errs());
-      errs() << "\nuses:" << alloca->getNumUses();
 
       alloca->replaceAllUsesWith(new_alloc);
-      errs() << "\nuses after replace: " << alloca->getNumUses() << "\n";
       balanced_values.insert(new_alloc);
       to_remove.push_back(alloca);
       return;
@@ -385,19 +381,35 @@ struct SkeletonPass : public ModulePass {
     to_remove.push_back(op);
   }
 
-  void balanceGetElementPtr(GetElementPtrInst *getelem, IRBuilder<> builder,
+  void balanceGetElementPtr(GetElementPtrInst *gep, IRBuilder<> builder,
                             arithmetic_ret arithmetic,
                             vector<Instruction *> &to_remove,
                             unordered_set<Value *> &balanced_values) {
-    int numops = getelem->getNumOperands();
+    int numops = gep->getNumOperands();
     for (int i = 1; i < numops; ++i) {
-      auto *op = getelem->getOperand(i);
+      auto *op = gep->getOperand(i);
       if (balanced_values.count(op)) {
         auto *unbalanced_val = builder.CreateCall(arithmetic.unbalance, {op});
         auto *extended_val =
             builder.CreateZExt(unbalanced_val, builder.getInt32Ty());
-        getelem->setOperand(i, extended_val);
+        gep->setOperand(i, extended_val);
       }
+    }
+
+    if (balanced_values.count(gep->getPointerOperand())) {
+      vector<Value *> indices;
+      for (int i = 1; i < numops; ++i) {
+        indices.push_back(gep->getOperand(i));
+      }
+
+      auto *target_type =
+          cast<PointerType>(gep->getPointerOperandType()->getScalarType())
+              ->getElementType();
+      auto *new_gep =
+          builder.CreateGEP(target_type, gep->getPointerOperand(), indices);
+      gep->replaceAllUsesWith(new_gep);
+      balanced_values.insert(new_gep);
+      to_remove.push_back(gep);
     }
   }
 

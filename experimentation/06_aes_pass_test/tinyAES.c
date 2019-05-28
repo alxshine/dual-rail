@@ -387,7 +387,7 @@ static void Cipher(void) {
     char buffer[16];
     for (char i = 0; i < 4; ++i) {
       for (char j = 0; j < 4; ++j) {
-        pass_write_int((*state)[i][j], buffer);
+        /*pass_write_int((*state)[i][j], buffer);*/
         /* pass_print_uart0(buffer); */
       }
     }
