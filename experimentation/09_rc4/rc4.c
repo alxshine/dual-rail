@@ -57,7 +57,7 @@ void rc4(unsigned char *s, unsigned char *key, unsigned char key_len,
   }
 }
 
-int main(){
+int main() {
   unsigned char s[256];
 
   const unsigned char message_len = 9;
@@ -71,6 +71,7 @@ int main(){
 
   printf("Key: %s\n", key);
   printf("Plaintext: %s\n", message);
+
   rc4_init(s, (unsigned char *)key, key_len);
   generate_stream(s, keystream, message_len);
 
@@ -86,6 +87,9 @@ int main(){
     printf("%02x ", ciphertext[i]);
   }
   printf("\n");
+
+  rc4_init(s, (unsigned char *)key, key_len);
+  generate_stream(s, keystream, message_len);
 
   printf("decrypted: ");
   for (unsigned char i = 0; i < message_len; ++i) {
