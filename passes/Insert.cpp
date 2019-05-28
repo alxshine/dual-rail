@@ -168,8 +168,9 @@ struct SkeletonPass : public ModulePass {
   }
 
   void balanceAlloca(AllocaInst *alloca, IRBuilder<> builder,
-                    arithmetic_ret arithmetic, vector<Instruction *> &to_remove,
-                    unordered_set<Value *> &balanced_values) {
+                     arithmetic_ret arithmetic,
+                     vector<Instruction *> &to_remove,
+                     unordered_set<Value *> &balanced_values) {
     if (alloca->getAllocatedType() == builder.getInt8Ty()) {
       auto *new_alloc = builder.CreateAlloca(builder.getInt32Ty());
       alloca->replaceAllUsesWith(new_alloc);
@@ -177,12 +178,11 @@ struct SkeletonPass : public ModulePass {
       to_remove.push_back(alloca);
       return;
     }
-    return;
   }
 
   void balanceStore(StoreInst *store, IRBuilder<> builder,
-                   arithmetic_ret arithmetic, vector<Instruction *> &to_remove,
-                   unordered_set<Value *> &balanced_values) {
+                    arithmetic_ret arithmetic, vector<Instruction *> &to_remove,
+                    unordered_set<Value *> &balanced_values) {
     auto *constant = dyn_cast<ConstantInt>(store->getValueOperand());
     if (constant && balanced_values.count(store->getPointerOperand())) {
       auto *new_const = builder.getInt8(constant->getLimitedValue());
@@ -224,12 +224,11 @@ struct SkeletonPass : public ModulePass {
       store->replaceAllUsesWith(new_store);
       to_remove.push_back(store);
     }
-    return;
   }
 
   void balanceLoad(LoadInst *load, IRBuilder<> builder, arithmetic_ret,
-                  vector<Instruction *> &to_remove,
-                  unordered_set<Value *> &balanced_values) {
+                   vector<Instruction *> &to_remove,
+                   unordered_set<Value *> &balanced_values) {
     if (balanced_values.count(load->getPointerOperand())) {
       auto *new_load = builder.CreateLoad(load->getPointerOperand());
       load->replaceAllUsesWith(new_load);
@@ -237,12 +236,11 @@ struct SkeletonPass : public ModulePass {
       to_remove.push_back(load);
       return;
     }
-    return;
   }
 
   void balanceZExt(ZExtInst *zext, IRBuilder<> builder,
-                  arithmetic_ret arithmetic, vector<Instruction *> &to_remove,
-                  unordered_set<Value *> &balanced_values) {
+                   arithmetic_ret arithmetic, vector<Instruction *> &to_remove,
+                   unordered_set<Value *> &balanced_values) {
     if (zext->getSrcTy() == zext->getDestTy()) {
       zext->replaceAllUsesWith(zext->getOperand(0));
       to_remove.push_back(zext);
@@ -273,13 +271,11 @@ struct SkeletonPass : public ModulePass {
       to_remove.push_back(zext);
       return;
     }
-
-    return;
   }
 
   void balanceOp(BinaryOperator *op, IRBuilder<> builder,
-                arithmetic_ret arithmetic, vector<Instruction *> &to_remove,
-                unordered_set<Value *> &balanced_values) {
+                 arithmetic_ret arithmetic, vector<Instruction *> &to_remove,
+                 unordered_set<Value *> &balanced_values) {
     // check for balancedness of all operators
     auto *op1 = op->getOperand(0);
     bool balanced1 = balanced_values.count(op1);
@@ -370,13 +366,12 @@ struct SkeletonPass : public ModulePass {
     op->replaceAllUsesWith(call);
     balanced_values.insert(call);
     to_remove.push_back(op);
-    return;
   }
 
   void balanceGetElementPtr(GetElementPtrInst *getelem, IRBuilder<> builder,
-                           arithmetic_ret arithmetic,
-                           vector<Instruction *> &to_remove,
-                           unordered_set<Value *> &balanced_values) {
+                            arithmetic_ret arithmetic,
+                            vector<Instruction *> &to_remove,
+                            unordered_set<Value *> &balanced_values) {
     int numops = getelem->getNumOperands();
     for (int i = 1; i < numops; ++i) {
       auto *op = getelem->getOperand(i);
@@ -387,12 +382,11 @@ struct SkeletonPass : public ModulePass {
         getelem->setOperand(i, extended_val);
       }
     }
-    return;
   }
 
   void balanceCmp(CmpInst *cmp, IRBuilder<> builder, arithmetic_ret arithmetic,
-                 vector<Instruction *> &to_remove,
-                 unordered_set<Value *> &balanced_values) {
+                  vector<Instruction *> &to_remove,
+                  unordered_set<Value *> &balanced_values) {
     auto *op1 = cmp->getOperand(0);
     bool balanced1 = balanced_values.count(op1);
     bool constant1 = isa<ConstantInt>(op1);
@@ -444,12 +438,12 @@ struct SkeletonPass : public ModulePass {
     cmp->replaceAllUsesWith(new_compare);
     to_remove.push_back(cmp);
     balanced_values.insert(new_compare);
-    return;
   }
 
   void balanceReturn(ReturnInst *ret, Function *F, IRBuilder<> builder,
-                    arithmetic_ret arithmetic, vector<Instruction *> &to_remove,
-                    unordered_set<Value *> &balanced_values) {
+                     arithmetic_ret arithmetic,
+                     vector<Instruction *> &to_remove,
+                     unordered_set<Value *> &balanced_values) {
     if (ret->getNumOperands() > 0) {
       auto *operand = ret->getOperand(0);
       if (operand->getType() == builder.getInt8Ty() &&
@@ -460,7 +454,6 @@ struct SkeletonPass : public ModulePass {
         to_remove.push_back(ret);
       }
     }
-    return;
   }
 
   void balanceCall(CallInst *call, Function *F, IRBuilder<> builder,
@@ -491,7 +484,6 @@ struct SkeletonPass : public ModulePass {
     call->replaceAllUsesWith(new_call);
     balanced_values.insert(new_call);
     to_remove.push_back(call);
-    return;
   }
 
   void balanceFunction(Function *F, arithmetic_ret arithmetic,
