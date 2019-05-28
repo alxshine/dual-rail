@@ -13,7 +13,7 @@ void swap(unsigned char *p1, unsigned char *p2) {
   *p2 = t;
 }
 
-void rc4_init(unsigned char *s, unsigned char *key, int key_len) {
+void rc4_init(unsigned char *s, unsigned char *key, unsigned char key_len) {
   unsigned char i, j = 0;
   // Initial values of both vectors
   for (i = 0; i < 255; i++) {
@@ -30,9 +30,10 @@ void rc4_init(unsigned char *s, unsigned char *key, int key_len) {
   swap(s + 255, s + j);
 }
 
-void generate_stream(unsigned char *s, unsigned char *buffer, int len) {
-  int i = 0, j = 0;
-  for (int c = 0; c < len; ++c) {
+void generate_stream(unsigned char *s, unsigned char *buffer,
+                     unsigned char len) {
+  unsigned char i = 0, j = 0;
+  for (unsigned char c = 0; c < len; ++c) {
     i = (i + 1) % 256;
     j = (j + s[i]) % 256;
     swap(&s[i], &s[j]);
@@ -40,14 +41,14 @@ void generate_stream(unsigned char *s, unsigned char *buffer, int len) {
   }
 }
 
-void rc4(unsigned char *s, unsigned char *key, int key_len, char *buff,
-         int len) {
+void rc4(unsigned char *s, unsigned char *key, unsigned char key_len,
+         char *buff, unsigned char len) {
   // process one byte at a time
   unsigned char val;
   unsigned char out;
-  unsigned int i = 0;
-  unsigned int j = 0;
-  for (int c = 0; c < len; ++c) {
+  unsigned char i = 0;
+  unsigned char j = 0;
+  for (unsigned char c = 0; c < len; ++c) {
     i = (i + 1) % 256;
     j = (j + s[i]) % 256;
     swap(s + i, s + j);
@@ -56,16 +57,16 @@ void rc4(unsigned char *s, unsigned char *key, int key_len, char *buff,
   }
 }
 
-int main(int argc, char **argv) {
+int main(){
   unsigned char s[256];
 
-  const int message_len = 9;
+  const unsigned char message_len = 9;
   unsigned char message[message_len] = "Plaintext";
   unsigned char ciphertext[message_len];
   unsigned char decrypted[message_len + 1];
   unsigned char keystream[message_len];
 
-  const int key_len = 3;
+  const unsigned char key_len = 3;
   char key[key_len] = "Key";
 
   printf("Key: %s\n", key);
@@ -74,20 +75,20 @@ int main(int argc, char **argv) {
   generate_stream(s, keystream, message_len);
 
   printf("keystream: ");
-  for (int i = 0; i < message_len; ++i) {
+  for (unsigned char i = 0; i < message_len; ++i) {
     printf("%02x ", keystream[i]);
   }
   printf("\n");
 
   printf("ciphertext: ");
-  for (int i = 0; i < message_len; ++i) {
+  for (unsigned char i = 0; i < message_len; ++i) {
     ciphertext[i] = message[i] ^ keystream[i];
     printf("%02x ", ciphertext[i]);
   }
   printf("\n");
 
   printf("decrypted: ");
-  for (int i = 0; i < message_len; ++i) {
+  for (unsigned char i = 0; i < message_len; ++i) {
     decrypted[i] = ciphertext[i] ^ keystream[i];
     printf("%02x ", decrypted[i]);
   }
