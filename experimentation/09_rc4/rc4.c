@@ -14,16 +14,20 @@ void swap(unsigned char *p1, unsigned char *p2) {
 }
 
 void rc4_init(unsigned char *s, unsigned char *key, int key_len) {
-  int i, j = 0;
+  unsigned char i, j = 0;
   // Initial values of both vectors
-  for (i = 0; i < 256; i++) {
+  for (i = 0; i < 255; i++) {
     s[i] = i;
   }
+  s[255] = 255;
+
   // Initial permutation
-  for (i = 0; i < 256; i++) {
+  for (i = 0; i < 255; i++) {
     j = (j + s[i] + key[i % key_len]) % 256;
     swap(s + i, s + j);
   }
+  j = (j + s[255] + key[255 % key_len]) % 256;
+  swap(s + 255, s + j);
 }
 
 void generate_stream(unsigned char *s, unsigned char *buffer, int len) {
