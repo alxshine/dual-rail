@@ -17,21 +17,22 @@ void rc4_init(uint8_t *s, uint8_t *key, uint8_t key_len) {
 
   // Initial permutation
   for (i = 0; i < 255; i++) {
-    j = (j + s[i] + key[i % key_len]) % 256;
+    j = (j + s[i] + key[i % key_len]);
     swap(s + i, s + j);
   }
-  j = (j + s[255] + key[255 % key_len]) % 256;
+  j = (j + s[255] + key[255 % key_len]);
   swap(s + 255, s + j);
+
 }
 
 void generate_stream(uint8_t *s, uint8_t *buffer,
                      uint8_t len) {
   uint8_t i = 0, j = 0;
   for (uint8_t c = 0; c < len; ++c) {
-    i = (i + 1) % 256;
-    j = (j + s[i]) % 256;
+    i = (i + 1);
+    j = (j + s[i]);
     swap(&s[i], &s[j]);
-    buffer[c] = s[(s[i] + s[j]) % 256];
+    buffer[c] = s[(s[i] + s[j])];
   }
 }
 
@@ -43,10 +44,10 @@ void rc4(uint8_t *s, uint8_t *key, uint8_t key_len,
   uint8_t i = 0;
   uint8_t j = 0;
   for (uint8_t c = 0; c < len; ++c) {
-    i = (i + 1) % 256;
-    j = (j + s[i]) % 256;
+    i = (i + 1);
+    j = (j + s[i]);
     swap(s + i, s + j);
-    val = (s[i] + s[j]) % 256;
+    val = (s[i] + s[j]);
     buff[c] ^= val;
   }
 }
