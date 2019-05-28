@@ -194,6 +194,15 @@ struct SkeletonPass : public ModulePass {
       to_remove.push_back(alloca);
       return;
     }
+
+    if(type == builder.getInt8PtrTy()){
+      auto *new_alloc = builder.CreateAlloca(Type::getInt32PtrTy(builder.getContext()));
+
+      alloca->replaceAllUsesWith(new_alloc);
+      balanced_values.insert(new_alloc);
+      to_remove.push_back(alloca);
+      return;
+    }
   }
 
   void balanceStore(StoreInst *store, IRBuilder<> builder,
