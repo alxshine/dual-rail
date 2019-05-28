@@ -207,10 +207,13 @@ static void KeyExpansion(uint8_t RoundKey[176], const uint8_t *Key) {
 
 // This function adds the round key to state.
 // The round key is added to the state by an XOR function.
-static void AddRoundKey(uint8_t round, uint8_t RoundKey[176], state_t* state) {
+static void AddRoundKey(uint8_t round, uint8_t RoundKey[176], state_t *state) {
   uint8_t i, j;
+  char buffer[20];
   for (i = 0; i < 4; ++i) {
     for (j = 0; j < 4; ++j) {
+      pass_write_int((*state)[i][j], buffer);
+      pass_print_uart0(buffer);
       (*state)[i][j] ^= RoundKey[round * Nb * 4 + i * Nb + j];
     }
   }
@@ -218,7 +221,7 @@ static void AddRoundKey(uint8_t round, uint8_t RoundKey[176], state_t* state) {
 
 // The SubBytes Function Substitutes the values in the
 // state matrix with values in an S-box.
-static void SubBytes(state_t* state) {
+static void SubBytes(state_t *state) {
   uint8_t i, j;
   for (i = 0; i < 4; ++i) {
     for (j = 0; j < 4; ++j) {
@@ -230,7 +233,7 @@ static void SubBytes(state_t* state) {
 // The ShiftRows() function shifts the rows in the state to the left.
 // Each row is shifted with different offset.
 // Offset = Row number. So the first row is not shifted.
-static void ShiftRows(state_t* state) {
+static void ShiftRows(state_t *state) {
   uint8_t temp;
 
   // Rotate first row 1 columns to left
@@ -260,7 +263,7 @@ static void ShiftRows(state_t* state) {
 static uint8_t xtime(uint8_t x) { return ((x << 1) ^ (((x >> 7) & 1) * 0x1b)); }
 
 // MixColumns function mixes the columns of the state matrix
-static void MixColumns(state_t* state) {
+static void MixColumns(state_t *state) {
   uint8_t i;
   uint8_t Tmp, Tm, t;
   char buffer[16];
@@ -305,7 +308,7 @@ static uint8_t Multiply(uint8_t x, uint8_t y) {
 // MixColumns function mixes the columns of the state matrix.
 // The method used to multiply may be difficult to understand for the
 // inexperienced. Please use the references to gain more information.
-static void InvMixColumns(state_t* state) {
+static void InvMixColumns(state_t *state) {
   int i;
   uint8_t a, b, c, d;
   for (i = 0; i < 4; ++i) {
@@ -327,7 +330,7 @@ static void InvMixColumns(state_t* state) {
 
 // The SubBytes Function Substitutes the values in the
 // state matrix with values in an S-box.
-static void InvSubBytes(state_t* state) {
+static void InvSubBytes(state_t *state) {
   uint8_t i, j;
   for (i = 0; i < 4; ++i) {
     for (j = 0; j < 4; ++j) {
@@ -336,7 +339,7 @@ static void InvSubBytes(state_t* state) {
   }
 }
 
-static void InvShiftRows(state_t* state) {
+static void InvShiftRows(state_t *state) {
   uint8_t temp;
 
   // Rotate first row 1 columns to right
@@ -364,12 +367,18 @@ static void InvShiftRows(state_t* state) {
 }
 
 // Cipher is the main function that encrypts the PlainText.
-static void Cipher(uint8_t RoundKey[176], state_t* state) {
+static void Cipher(uint8_t RoundKey[176], state_t *state) {
   uint8_t round = 0;
 
   // Add the First round key to the state before starting the rounds.
   AddRoundKey(0, RoundKey, state);
-
+  char buffer[32];
+  for (uint8_t i = 0; i < 4; ++i) {
+    for (uint8_t j = 0; j < 4; ++j) {
+      pass_write_int((*state)[i][j], buffer);
+      pass_print_uart0(buffer);
+    }
+  }
   // There will be Nr rounds.
   // The first Nr-1 rounds are identical.
   // These Nr-1 rounds are executed in the loop below.
@@ -395,7 +404,7 @@ static void Cipher(uint8_t RoundKey[176], state_t* state) {
   AddRoundKey(Nr, RoundKey, state);
 }
 
-static void InvCipher(uint8_t RoundKey[176], state_t* state) {
+static void InvCipher(uint8_t RoundKey[176], state_t *state) {
   uint8_t round = 0;
 
   // Add the First round key to the state before starting the rounds.
@@ -432,7 +441,7 @@ void AES128_ECB_encrypt(const uint8_t *input, const uint8_t *key,
                         uint8_t *output) {
   // Copy input to output, and work in-memory on output
   BlockCopy(output, input);
-  state_t* state = (state_t*) output;
+  state_t *state = (state_t *)output;
 
   uint8_t RoundKey[176];
   KeyExpansion(RoundKey, key);
@@ -446,7 +455,7 @@ void AES128_ECB_decrypt(const uint8_t *input, const uint8_t *key,
                         uint8_t *output) {
   // Copy input to output, and work in-memory on output
   BlockCopy(output, input);
-  state_t* state = (state_t*) output;
+  state_t *state = (state_t *)output;
 
   // The KeyExpansion routine must be called before encryption.
   uint8_t RoundKey[176];
