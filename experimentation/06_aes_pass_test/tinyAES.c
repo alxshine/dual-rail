@@ -137,13 +137,16 @@ static const uint8_t Rcon[255] = {
 /*****************************************************************************/
 /* Private functions:                                                        */
 /*****************************************************************************/
-uint8_t getSBoxValue(uint8_t num) { return sbox[num]; }
-
-static uint8_t getSBoxInvert(uint8_t num) { return rsbox[num]; }
+void copyLookupTable(uint8_t* in, uint8_t *out, unsigned char count){
+  for(unsigned char i = 0; i<count-1; i++){ //if i pass 256 the loop won't finish without the -1
+    out[i] = in[i];
+  }
+  out[count-1] = in[count-1];
+}
 
 // This function produces Nb(Nr+1) round keys. The round keys are used in each
 // round to decrypt the states.
-static void KeyExpansion(uint8_t RoundKey[176], const uint8_t *Key) {
+static void KeyExpansion(uint8_t RoundKey[176], const uint8_t *Key, const uint8_t *sbox) {
   uint8_t i, j, k;
   uint8_t tempa[4]; // Used for the column/row operations
 
@@ -178,12 +181,12 @@ static void KeyExpansion(uint8_t RoundKey[176], const uint8_t *Key) {
       // Function Subword()
       {
         /* char buffer[16]; */
-        /* int test = getSBoxValue(tempa[1]); */
+        /* int test = sbox[tempa[1]); */
         /* pass_write_int(test, buffer); */
-        tempa[0] = getSBoxValue(tempa[0]);
-        tempa[1] = getSBoxValue(tempa[1]);
-        tempa[2] = getSBoxValue(tempa[2]);
-        tempa[3] = getSBoxValue(tempa[3]);
+        tempa[0] = sbox[tempa[0]];
+        tempa[1] = sbox[tempa[1]];
+        tempa[2] = sbox[tempa[2]];
+        tempa[3] = sbox[tempa[3]];
       }
       // CORRECT UNTIL HERE
 
@@ -191,10 +194,10 @@ static void KeyExpansion(uint8_t RoundKey[176], const uint8_t *Key) {
     } else if (Nk > 6 && i % Nk == 4) {
       // Function Subword()
       {
-        tempa[0] = getSBoxValue(tempa[0]);
-        tempa[1] = getSBoxValue(tempa[1]);
-        tempa[2] = getSBoxValue(tempa[2]);
-        tempa[3] = getSBoxValue(tempa[3]);
+        tempa[0] = sbox[tempa[0]];
+        tempa[1] = sbox[tempa[1]];
+        tempa[2] = sbox[tempa[2]];
+        tempa[3] = sbox[tempa[3]];
       }
     }
     RoundKey[i * 4 + 0] = RoundKey[(i - Nk) * 4 + 0] ^ tempa[0];
@@ -218,10 +221,10 @@ static void AddRoundKey(uint8_t round, uint8_t RoundKey[176], uint8_t *state) {
 
 // The SubBytes Function Substitutes the values in the
 // state matrix with values in an S-box.
-static void SubBytes(uint8_t *state) {
+static void SubBytes(uint8_t *state, const uint8_t* sbox) {
   uint8_t i;
   for (i = 0; i < 16; ++i) {
-    state[i] = getSBoxValue(state[i]);
+    state[i] = sbox[state[i]];
   }
 }
 
@@ -325,11 +328,11 @@ static void InvMixColumns(uint8_t *state) {
 
 // The SubBytes Function Substitutes the values in the
 // state matrix with values in an S-box.
-static void InvSubBytes(uint8_t *state) {
+static void InvSubBytes(uint8_t *state, const uint8_t *rsbox) {
   uint8_t i, j;
   for (i = 0; i < 4; ++i) {
     for (j = 0; j < 4; ++j) {
-      state[j*4+i] = getSBoxInvert(state[j*4+i]);
+      state[j*4+i] = rsbox[state[j*4+i]];
     }
   }
 }
@@ -362,7 +365,7 @@ static void InvShiftRows(uint8_t *state) {
 }
 
 // Cipher is the main function that encrypts the PlainText.
-static void Cipher(uint8_t RoundKey[176], uint8_t *state) {
+static void Cipher(uint8_t RoundKey[176], uint8_t *state, const uint8_t *sbox) {
   uint8_t round = 0;
 
   // Add the First round key to the state before starting the rounds.
@@ -372,7 +375,7 @@ static void Cipher(uint8_t RoundKey[176], uint8_t *state) {
   // The first Nr-1 rounds are identical.
   // These Nr-1 rounds are executed in the loop below.
   for (round = 1; round < Nr; ++round) {
-    SubBytes(state);
+    SubBytes(state, sbox);
     ShiftRows(state);
     MixColumns(state);
     AddRoundKey(round, RoundKey, state);
@@ -380,12 +383,12 @@ static void Cipher(uint8_t RoundKey[176], uint8_t *state) {
 
   // The last round is given below.
   // The MixColumns function is not here in the last round.
-  SubBytes(state);
+  SubBytes(state, sbox);
   ShiftRows(state);
   AddRoundKey(Nr, RoundKey, state);
 }
 
-static void InvCipher(uint8_t RoundKey[176], uint8_t *state) {
+static void InvCipher(uint8_t RoundKey[176], uint8_t *state, const uint8_t *rsbox) {
   uint8_t round = 0;
 
   // Add the First round key to the state before starting the rounds.
@@ -396,7 +399,7 @@ static void InvCipher(uint8_t RoundKey[176], uint8_t *state) {
   // These Nr-1 rounds are executed in the loop below.
   for (round = Nr - 1; round > 0; round--) {
     InvShiftRows(state);
-    InvSubBytes(state);
+    InvSubBytes(state, rsbox);
     AddRoundKey(round, RoundKey, state);
     InvMixColumns(state);
   }
@@ -404,7 +407,7 @@ static void InvCipher(uint8_t RoundKey[176], uint8_t *state) {
   // The last round is given below.
   // The MixColumns function is not here in the last round.
   InvShiftRows(state);
-  InvSubBytes(state);
+  InvSubBytes(state, rsbox);
   AddRoundKey(0, RoundKey, state);
 }
 
@@ -424,12 +427,17 @@ void AES128_ECB_encrypt(const uint8_t *input, const uint8_t *key,
   BlockCopy(output, input);
   uint8_t *state = output;
 
+  uint8_t stack_sbox[256];
+  for(uint8_t c = 0; c<255; c++)
+    stack_sbox[c] = sbox[c];
+  stack_sbox[255] = sbox[255];
+
   uint8_t RoundKey[176];
-  KeyExpansion(RoundKey, key);
+  KeyExpansion(RoundKey, key, stack_sbox);
 
   // The next function call encrypts the PlainText with the Key using AES
   // algorithm.
-  Cipher(RoundKey, state);
+  Cipher(RoundKey, state, stack_sbox);
 }
 
 void AES128_ECB_decrypt(const uint8_t *input, const uint8_t *key,
@@ -438,9 +446,19 @@ void AES128_ECB_decrypt(const uint8_t *input, const uint8_t *key,
   BlockCopy(output, input);
   uint8_t *state = output;
 
+  uint8_t stack_rsbox[256];
+  for(uint8_t c = 0; c<255; ++c)
+    stack_rsbox[c] = rsbox[c];
+  stack_rsbox[255] = rsbox[255];
+
+  uint8_t stack_sbox[256];
+  for(uint8_t c = 0; c<255; c++)
+    stack_sbox[c] = sbox[c];
+  stack_sbox[255] = sbox[255];
+
   // The KeyExpansion routine must be called before encryption.
   uint8_t RoundKey[176];
-  KeyExpansion(RoundKey, key);
+  KeyExpansion(RoundKey, key, stack_sbox);
 
-  InvCipher(RoundKey, state);
+  InvCipher(RoundKey, state, stack_rsbox);
 }
