@@ -615,7 +615,7 @@ struct SkeletonPass : public ModulePass {
 
     auto arithmetic = loadArithmetic(M);
 
-    balanceGlobals(M, balanced_values);
+    // balanceGlobals(M, balanced_values);
 
     for (auto *F : copied_functions) {
       balanceFunction(F, arithmetic, balanced_values);
