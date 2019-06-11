@@ -13,3 +13,4 @@ trace-*
 *.log
 *.aux
 *.dvi
+*.toc
