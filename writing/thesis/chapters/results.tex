@@ -1,15 +1,39 @@
 \section{Results}
+In this section I will discuss the balancing results for the two main algorithms I tested the pass on: RC4 and AES.
+Both algorithms have been written/adapted so that they utilize the stack as much as possible, maximizing the benefit of my balancing pass.
+
 \begin{figure}[h]
   \centering
-  \begin{subfigure}[b]{0.45\textwidth}
-    \tikzbox{rc4-unbalanced.tex}
+  \begin{subfigure}[b]{0.49\textwidth}
+    \input{tikz/rc4-unbalanced.tex}
     \caption{Unbalanced RC4}
-    \label{fig:rc4-unbalanced}
   \end{subfigure}
-  \begin{subfigure}[b]{0.45\textwidth}
-    %% \adjustbox{width=\textwidth}{\input{tikz/rc4-balanced.tex}}
-    \tikzbox{rc4-balanced.tex}
+  \begin{subfigure}[b]{0.49\textwidth}
+    \input{tikz/rc4-balanced.tex}
     \caption{Balanced RC4}
-    \label{fig:rc4-balanced}
   \end{subfigure}
+
+  \begin{subfigure}[b]{\textwidth}
+    \input{tikz/rc4-comparison.tex}
+    \caption{Scaled Hamming weight histograms for RC4}
+  \end{subfigure}
+  \caption{Hamming weight histograms for balanced and unbalanced RC4}
+\end{figure}
+
+\begin{figure}[h]
+  \centering
+  \begin{subfigure}[b]{0.49\textwidth}
+    \input{tikz/aes-unbalanced.tex}
+    \caption{Unbalanced AES}
+  \end{subfigure}
+  \begin{subfigure}[b]{0.49\textwidth}
+    \input{tikz/aes-balanced.tex}
+    \caption{Balanced AES}
+  \end{subfigure}
+
+  \begin{subfigure}[b]{\textwidth}
+    \input{tikz/aes-comparison.tex}
+    \caption{Scaled Hamming weight histograms for AES}
+  \end{subfigure}
+  \caption{Hamming weight histograms for balanced and unbalanced AES}
 \end{figure}

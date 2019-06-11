@@ -1,2 +1,29 @@
 \section{Introduction}
-aoeu
+Embedded devices very rarely utilize instruction level parallelism.
+Thus, as the power consumption is directly related to the bits in intermediate results that are set to 1, their power consumption directly reflects their computation results without much noise.
+If the device is running a cryptographic operation, this can result in a leakage of keys.
+This is known as a power analysis side channel attack\cite{kocher1999differential}.
+
+While there exist many different defenses against this, both in software and in hardware, the most versatile of them is \dual{}\cite{sokolov2005design}.
+Unlike most other defense mechanisms, \dual{} can be applied to any program, and works by calculating the inverse result $\bar{x}$ for each intermediate result $x$.
+This way, the power consumption (which is directly linked to the number of $1$s in the result) is always the same, and the program is thus more robust against power analysis.
+Unfortunately, using \dual{} requires a significant overhead, doubling the circuit size or more\cite{baddam2008path}.
+This requirement makes it unsuitable for small embedded applications like e.g. SmartCards.
+In order to create a way of hardening \emph{any} application against power analysis attacks, even when there are tight constraints on space, I would like to implement something similar to \dual{} in software.
+By balancing the values on the data bus, the registers, and the address bus, in this order of priority, I can harden execution against power analysis.
+\\
+\\
+To do this, I want to find a way to represent a balanced 8-bit arithmetic in a 32-bit architecture.
+While representing $\bar{x}$ and $x$ should in theory only halve the word size, I will need additional space to represent carry bits and (new) intermediate steps in the registers as well, so the word size will probably be reduced to a quarter.
+The idea is to find a balancing scheme that allows me to perform all arithmetic and logic operations present in the intermediate representation (IR) of the \llvm{} compiler.
+Ideally, this scheme has no unbalanced intermediate results at all and utilizes no table lookups.
+
+After finding such a balancing scheme and arithmetic, I want to transform the original code into balanced code in a custom \llvm{} optimization pass.
+This pass will transform the IR code of the original program into my balanced arithmetic operation by operation.
+Keeping the performance impact of this transformation as low as possible - both during compile- and runtime - will be a major concern.
+
+Finally I need a way of evaluating my work.
+For this I assume a perfect attacker capable of observing the power signature of every intermediate value.
+The robustness against such an attacker is then represented by the number of unbalanced values during the execution, as well as the ratio of balanced vs. unbalanced values.
+To find this number I run the resulting code in the \qemu{} emulator, observing the result of every operation.
+This allows me to easily test my work in a controlled environment and without any additional hardware.
