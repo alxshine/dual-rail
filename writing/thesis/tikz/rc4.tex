@@ -1,0 +1,15 @@
+\begin{tikzpicture}
+  \begin{axis}[
+	x tick label style={
+	  /pgf/number format/1000 sep= },
+        xticks={0,8,16,24,32},
+	ylabel=Count,
+        xlabel=Hamming Weight,
+	enlargelimits=0.05,
+	legend style={at={(0.5,-0.1)},
+	anchor=north,legend columns=-1},
+	ybar interval=0.7,
+]
+    \addplot table [col sep=comma,trim cells=true,y=unbalanced-total] {data/rc4.csv};
+  \end{axis}
+\end{tikzpicture}

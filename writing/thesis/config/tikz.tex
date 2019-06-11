@@ -1,0 +1,44 @@
+\usepackage{tikz}
+\usetikzlibrary{patterns}
+
+\definecolor{pantoneblack7}{RGB}{62,62,59}
+\definecolor{pantone144}{cmyk}{0,0.5,1,0}
+\definecolor{pantone289}{cmyk}{1,0.6,0,0.56}
+
+\tikzset{candidate/.style={draw, align=center, rounded corners=0.1cm, fill=white}}
+\tikzset{balanced/.append style={draw=pantone144, thick, fill=pantone144!40}}
+\tikzset{todo/.append style={draw=pantone144, thick, pattern=north west lines, pattern color=pantone144!40}}
+\tikzset{target/.style={align=center, draw, thick, fill=white}}
+
+\usepackage{pgfplots}
+\usepackage[eulergreek]{sansmath}
+\pgfplotsset{every axis/.append style={
+                    %% axis x line=middle,    % put the x axis in the middle
+                    %% axis y line=middle,    % put the y axis in the middle
+                    %% axis line style={<->}, % arrows on the axis
+                    label style={font=\small\sansmath\sffamily},
+                    tick label style={font=\small\sansmath\sffamily}  
+}}
+
+% Code from Christian Feuersänger
+% http://tex.stackexchange.com/questions/54794/using-a-pgfplots-style-legend-in-a-plain-old-tikzpicture#54834
+
+% argument #1: any options
+\newenvironment{customlegend}[1][]{%
+    \begingroup
+    % inits/clears the lists (which might be populated from previous
+    % axes):
+    \csname pgfplots@init@cleared@structures\endcsname
+    \pgfplotsset{#1}%
+}{%
+    % draws the legend:
+    \csname pgfplots@createlegend\endcsname
+    \endgroup
+}%
+
+% makes \addlegendimage available (typically only available within an
+% axis environment):
+\def\addlegendimage{\csname pgfplots@addlegendimage\endcsname}
+
+\usepackage{adjustbox}
+\newcommand{\tikzbox}[1]{\adjustbox{width=\textwidth}{\input{tikz/#1}}}
