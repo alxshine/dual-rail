@@ -1,0 +1,11 @@
+\begin{tikzpicture}
+\begin{axis}[
+    ybar,
+    bar width=0.015\textwidth,
+    enlargelimits=0.05,
+    xtick={0,8,16,24,32},
+    width=\textwidth
+]
+\addplot[pantone289,fill=pantone289!40] table [x=i, y=balanced-total, col sep=comma] {data/aes.csv};
+\end{axis}
+\end{tikzpicture}

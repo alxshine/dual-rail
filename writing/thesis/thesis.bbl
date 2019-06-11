@@ -1,0 +1,20 @@
+\begin{thebibliography}{1}
+
+\bibitem{baddam2008path}
+Karthik Baddam and Mark Zwolinski.
+\newblock Path switching: a technique to tolerate dual rail routing imbalances.
+\newblock {\em {D}esign {A}utomation for {E}mbedded {S}ystems}, 12(3):207--220,
+  2008.
+
+\bibitem{kocher1999differential}
+Paul Kocher, Joshua Jaffe, and Benjamin Jun.
+\newblock Differential power analysis.
+\newblock In {\em Annual International Cryptology Conference}, pages 388--397.
+  Springer, 1999.
+
+\bibitem{sokolov2005design}
+Danil Sokolov, Julian Murphy, Alexander Bystrov, and Alexandre Yakovlev.
+\newblock Design and analysis of dual-rail circuits for security applications.
+\newblock {\em IEEE Transactions on Computers}, 54(4):449--460, 2005.
+
+\end{thebibliography}
