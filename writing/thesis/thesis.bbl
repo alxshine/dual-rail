@@ -1,28 +1,177 @@
-\begin{thebibliography}{1}
+% $ biblatex auxiliary file $
+% $ biblatex bbl format version 3.0 $
+% Do not modify the above lines!
+%
+% This is an auxiliary file used by the 'biblatex' package.
+% This file may safely be deleted. It will be recreated by
+% biber as required.
+%
+\begingroup
+\makeatletter
+\@ifundefined{ver@biblatex.sty}
+  {\@latex@error
+     {Missing 'biblatex' package}
+     {The bibliography requires the 'biblatex' package.}
+      \aftergroup\endinput}
+  {}
+\endgroup
 
-\bibitem{armbare}
 
+\refsection{0}
+  \datalist[entry]{nty/global//global/global}
+    \entry{armbare}{online}{}
+      \field{sortinit}{}
+      \field{sortinithash}{495dc9894017a8b12cafa9c619d10c0c}
+      \field{urlday}{12}
+      \field{urlmonth}{6}
+      \field{urlyear}{2019}
+      \field{urldateera}{ce}
+      \verb{urlraw}
+      \verb https://balau82.wordpress.com/2010/02/28/hello-world-for-bare-metal-arm-using-qemu/
+      \endverb
+      \verb{url}
+      \verb https://balau82.wordpress.com/2010/02/28/hello-world-for-bare-metal-arm-using-qemu/
+      \endverb
+    \endentry
+    \entry{baddam2008path}{article}{}
+      \name{author}{2}{}{%
+        {{hash=316a9f98c89bb7edd7b1542815fb4b60}{%
+           family={Baddam},
+           familyi={B\bibinitperiod},
+           given={Karthik},
+           giveni={K\bibinitperiod}}}%
+        {{hash=cf7306f9f807b527cb6cf3d762b128f7}{%
+           family={Zwolinski},
+           familyi={Z\bibinitperiod},
+           given={Mark},
+           giveni={M\bibinitperiod}}}%
+      }
+      \list{publisher}{1}{%
+        {Springer}%
+      }
+      \strng{namehash}{687540c30f6fa761adb39c3ae38cd9ff}
+      \strng{fullhash}{687540c30f6fa761adb39c3ae38cd9ff}
+      \strng{bibnamehash}{687540c30f6fa761adb39c3ae38cd9ff}
+      \strng{authorbibnamehash}{687540c30f6fa761adb39c3ae38cd9ff}
+      \strng{authornamehash}{687540c30f6fa761adb39c3ae38cd9ff}
+      \strng{authorfullhash}{687540c30f6fa761adb39c3ae38cd9ff}
+      \field{sortinit}{B}
+      \field{sortinithash}{8de16967003c7207dae369d874f1456e}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{{D}esign {A}utomation for {E}mbedded {S}ystems}
+      \field{number}{3}
+      \field{title}{Path switching: a technique to tolerate dual rail routing imbalances}
+      \field{volume}{12}
+      \field{year}{2008}
+      \field{pages}{207\bibrangedash 220}
+      \range{pages}{14}
+    \endentry
+    \entry{kocher1999differential}{inproceedings}{}
+      \name{author}{3}{}{%
+        {{hash=f0a163cdbf4dbde1c36f8457b3e2278e}{%
+           family={Kocher},
+           familyi={K\bibinitperiod},
+           given={Paul},
+           giveni={P\bibinitperiod}}}%
+        {{hash=452e8e6a857cdafce4ff896fe410fbf1}{%
+           family={Jaffe},
+           familyi={J\bibinitperiod},
+           given={Joshua},
+           giveni={J\bibinitperiod}}}%
+        {{hash=282b66bdaa90f6abf07947e407f1d736}{%
+           family={Jun},
+           familyi={J\bibinitperiod},
+           given={Benjamin},
+           giveni={B\bibinitperiod}}}%
+      }
+      \list{organization}{1}{%
+        {Springer}%
+      }
+      \strng{namehash}{722ec14d03dfa9727cc012eea2659567}
+      \strng{fullhash}{722ec14d03dfa9727cc012eea2659567}
+      \strng{bibnamehash}{722ec14d03dfa9727cc012eea2659567}
+      \strng{authorbibnamehash}{722ec14d03dfa9727cc012eea2659567}
+      \strng{authornamehash}{722ec14d03dfa9727cc012eea2659567}
+      \strng{authorfullhash}{722ec14d03dfa9727cc012eea2659567}
+      \field{sortinit}{K}
+      \field{sortinithash}{d3edc18d54b9438a72c24c925bfb38f4}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{Annual International Cryptology Conference}
+      \field{title}{Differential power analysis}
+      \field{year}{1999}
+      \field{pages}{388\bibrangedash 397}
+      \range{pages}{10}
+    \endentry
+    \entry{lattner2008llvm}{inproceedings}{}
+      \name{author}{1}{}{%
+        {{hash=082d304bf1444853e07be11590d172a2}{%
+           family={Lattner},
+           familyi={L\bibinitperiod},
+           given={Chris},
+           giveni={C\bibinitperiod}}}%
+      }
+      \strng{namehash}{082d304bf1444853e07be11590d172a2}
+      \strng{fullhash}{082d304bf1444853e07be11590d172a2}
+      \strng{bibnamehash}{082d304bf1444853e07be11590d172a2}
+      \strng{authorbibnamehash}{082d304bf1444853e07be11590d172a2}
+      \strng{authornamehash}{082d304bf1444853e07be11590d172a2}
+      \strng{authorfullhash}{082d304bf1444853e07be11590d172a2}
+      \field{sortinit}{L}
+      \field{sortinithash}{dad3efd0836470093a7b4a7bb756eb8c}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{The BSD conference}
+      \field{title}{LLVM and Clang: Next generation compiler technology}
+      \field{volume}{5}
+      \field{year}{2008}
+    \endentry
+    \entry{sokolov2005design}{article}{}
+      \name{author}{4}{}{%
+        {{hash=47d127b16d2c9f5ead8cbe57c17423d7}{%
+           family={Sokolov},
+           familyi={S\bibinitperiod},
+           given={Danil},
+           giveni={D\bibinitperiod}}}%
+        {{hash=c2be5c32535a401c60c46bfe32329052}{%
+           family={Murphy},
+           familyi={M\bibinitperiod},
+           given={Julian},
+           giveni={J\bibinitperiod}}}%
+        {{hash=2c5aba185f36b3d686d67a9471ca67ed}{%
+           family={Bystrov},
+           familyi={B\bibinitperiod},
+           given={Alexander},
+           giveni={A\bibinitperiod}}}%
+        {{hash=9d1bb58136a5763337ffabbd7ac28bf0}{%
+           family={Yakovlev},
+           familyi={Y\bibinitperiod},
+           given={Alexandre},
+           giveni={A\bibinitperiod}}}%
+      }
+      \list{publisher}{1}{%
+        {IEEE}%
+      }
+      \strng{namehash}{6b16d11eab4aab4997256297a1a5edbe}
+      \strng{fullhash}{bdbcd4e32e9c131179ddc7c53b800b76}
+      \strng{bibnamehash}{6b16d11eab4aab4997256297a1a5edbe}
+      \strng{authorbibnamehash}{6b16d11eab4aab4997256297a1a5edbe}
+      \strng{authornamehash}{6b16d11eab4aab4997256297a1a5edbe}
+      \strng{authorfullhash}{bdbcd4e32e9c131179ddc7c53b800b76}
+      \field{sortinit}{S}
+      \field{sortinithash}{c319cff79d99c853d775f88277d4e45f}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{IEEE Transactions on Computers}
+      \field{number}{4}
+      \field{title}{Design and analysis of dual-rail circuits for security applications}
+      \field{volume}{54}
+      \field{year}{2005}
+      \field{pages}{449\bibrangedash 460}
+      \range{pages}{12}
+    \endentry
+  \enddatalist
+\endrefsection
+\endinput
 
-\bibitem{baddam2008path}
-Karthik Baddam and Mark Zwolinski.
-\newblock Path switching: a technique to tolerate dual rail routing imbalances.
-\newblock {\em {D}esign {A}utomation for {E}mbedded {S}ystems}, 12(3):207--220,
-  2008.
-
-\bibitem{kocher1999differential}
-Paul Kocher, Joshua Jaffe, and Benjamin Jun.
-\newblock Differential power analysis.
-\newblock In {\em Annual International Cryptology Conference}, pages 388--397.
-  Springer, 1999.
-
-\bibitem{lattner2008llvm}
-Chris Lattner.
-\newblock Llvm and clang: Next generation compiler technology.
-\newblock In {\em The BSD conference}, volume~5, 2008.
-
-\bibitem{sokolov2005design}
-Danil Sokolov, Julian Murphy, Alexander Bystrov, and Alexandre Yakovlev.
-\newblock Design and analysis of dual-rail circuits for security applications.
-\newblock {\em IEEE Transactions on Computers}, 54(4):449--460, 2005.
-
-\end{thebibliography}

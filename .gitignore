@@ -14,3 +14,5 @@ trace-*
 *.aux
 *.dvi
 *.toc
+*.bcf
+*.run.xml
