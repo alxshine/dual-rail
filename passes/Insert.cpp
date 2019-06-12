@@ -13,13 +13,14 @@
 #include "llvm/Transforms/IPO/PassManagerBuilder.h"
 #include "llvm/Transforms/Utils/BasicBlockUtils.h"
 #include "llvm/Transforms/Utils/Cloning.h"
+
 using namespace llvm;
 using namespace std;
 
 namespace {
-struct SkeletonPass : public ModulePass {
+struct InsertPass : public ModulePass {
   static char ID;
-  SkeletonPass() : ModulePass(ID) {}
+  InsertPass() : ModulePass(ID) {}
 
   unsigned int balanceValue(unsigned char v) {
     unsigned char inverse = ~v;
@@ -648,17 +649,17 @@ struct SkeletonPass : public ModulePass {
 }; // namespace
 } // namespace
 
-char SkeletonPass::ID = 0;
+char InsertPass::ID = 0;
 
 // Automatically enable the pass.
 // http://adriansampson.net/blog/clangpass.html
-static void registerSkeletonPass(const PassManagerBuilder &,
+static void registerInsertPass(const PassManagerBuilder &,
                                  legacy::PassManagerBase &PM) {
-  PM.add(new SkeletonPass());
+  PM.add(new InsertPass());
 }
 static RegisterStandardPasses
     RegisterMyPass(PassManagerBuilder::EP_EarlyAsPossible,
-                   registerSkeletonPass);
+                   registerInsertPass);
 
-static RegisterPass<SkeletonPass> X("insert", "Operator function insert pass",
+static RegisterPass<InsertPass> X("insert", "Operator function insert pass",
                                     false, false);

@@ -1,50 +1,15 @@
-This is BibTeX, Version 0.99d (TeX Live 2018/Arch Linux)
-Capacity: max_strings=100000, hash_size=100000, hash_prime=85009
-The top-level auxiliary file: thesis.aux
-The style file: plain.bst
-Database file #1: sources.bib
-Warning--entry type for "armbare" isn't style-file defined
---line 129 of file sources.bib
-Warning--to sort, need author or key in armbare
-You've used 5 entries,
-            2118 wiz_defined-function locations,
-            524 strings with 4620 characters,
-and the built_in function-call counts, 1628 in all, are:
-= -- 157
-> -- 62
-< -- 2
-+ -- 25
-- -- 20
-* -- 110
-:= -- 252
-add.period$ -- 14
-call.type$ -- 5
-change.case$ -- 24
-chr.to.int$ -- 0
-cite$ -- 6
-duplicate$ -- 66
-empty$ -- 147
-format.name$ -- 20
-if$ -- 350
-int.to.chr$ -- 0
-int.to.str$ -- 5
-missing$ -- 4
-newline$ -- 26
-num.names$ -- 8
-pop$ -- 32
-preamble$ -- 1
-purify$ -- 20
-quote$ -- 0
-skip$ -- 53
-stack$ -- 0
-substring$ -- 107
-swap$ -- 17
-text.length$ -- 2
-text.prefix$ -- 0
-top$ -- 0
-type$ -- 20
-warning$ -- 1
-while$ -- 15
-width$ -- 6
-write$ -- 51
-(There were 2 warnings)
+[0] Config.pm:304> INFO - This is Biber 2.12
+[1] Config.pm:307> INFO - Logfile is 'thesis.blg'
+[24] biber:315> INFO - === Wed Jun 12, 2019, 15:32:31
+[41] Biber.pm:371> INFO - Reading 'thesis.bcf'
+[95] Biber.pm:889> INFO - Found 3 citekeys in bib section 0
+[106] Biber.pm:4093> INFO - Processing section 0
+[115] Biber.pm:4254> INFO - Looking for bibtex format file 'sources.bib' for section 0
+[115] bibtex.pm:1523> INFO - LaTeX decoding ...
+[133] bibtex.pm:1340> INFO - Found BibTeX data source 'sources.bib'
+[149] UCollate.pm:68> INFO - Overriding locale 'en-US' defaults 'normalization = NFD' with 'normalization = prenormalized'
+[149] UCollate.pm:68> INFO - Overriding locale 'en-US' defaults 'variable = shifted' with 'variable = non-ignorable'
+[149] Biber.pm:3921> INFO - Sorting list 'nty/global//global/global' of type 'entry' with template 'nty' and locale 'en-US'
+[149] Biber.pm:3927> INFO - No sort tailoring available for locale 'en-US'
+[155] bbl.pm:636> INFO - Writing 'thesis.bbl' with encoding 'UTF-8'
+[156] bbl.pm:739> INFO - Output to thesis.bbl

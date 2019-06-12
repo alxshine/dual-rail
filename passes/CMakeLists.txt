@@ -9,11 +9,10 @@ add_library(Passes MODULE
     Insert.cpp
 )
 
-# Use C++11 to compile our pass (i.e., supply -std=c++11).
 set(CMAKE_CXX_STANDARD 14)
 
 # LLVM is (typically) built with no C++ RTTI. We need to match that;
-# otherwise, we'll get linker errors about missing RTTI data.
+# otherwise, we will get linker errors about missing RTTI data.
 set_target_properties(PROPERTIES
     COMPILE_FLAGS "-fno-rtti"
 )
