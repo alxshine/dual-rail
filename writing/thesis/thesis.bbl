@@ -1,5 +1,8 @@
 \begin{thebibliography}{1}
 
+\bibitem{armbare}
+
+
 \bibitem{baddam2008path}
 Karthik Baddam and Mark Zwolinski.
 \newblock Path switching: a technique to tolerate dual rail routing imbalances.
@@ -11,6 +14,11 @@ Paul Kocher, Joshua Jaffe, and Benjamin Jun.
 \newblock Differential power analysis.
 \newblock In {\em Annual International Cryptology Conference}, pages 388--397.
   Springer, 1999.
+
+\bibitem{lattner2008llvm}
+Chris Lattner.
+\newblock Llvm and clang: Next generation compiler technology.
+\newblock In {\em The BSD conference}, volume~5, 2008.
 
 \bibitem{sokolov2005design}
 Danil Sokolov, Julian Murphy, Alexander Bystrov, and Alexandre Yakovlev.

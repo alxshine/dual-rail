@@ -95,7 +95,7 @@ struct SkeletonPass : public ModulePass {
           name.startswith("unbalanced_") || name.startswith_lower("llvm"))
         continue;
 
-      errs() << "Cloning " << name << "\n";
+      // errs() << "Cloning " << name << "\n";
 
       // create cloned function
       std::vector<Type *> argumentTypes;
@@ -138,7 +138,7 @@ struct SkeletonPass : public ModulePass {
     }
 
     for (auto *F : copied_functions) {
-      errs() << "Inserting new function " << F->getName() << "\n";
+      // errs() << "Inserting new function " << F->getName() << "\n";
       M.getFunctionList().push_back(F);
     }
 
@@ -536,7 +536,7 @@ struct SkeletonPass : public ModulePass {
 
   void balanceFunction(Function *F, arithmetic_ret arithmetic,
                        unordered_set<Value *> &balanced_values) {
-    errs() << "Balancing function " << F->getName() << "\n";
+    // errs() << "Balancing function " << F->getName() << "\n";
     vector<Instruction *> to_remove;
 
     for (inst_iterator I = inst_begin(F), E = inst_end(F); I != E; ++I) {
@@ -603,7 +603,7 @@ struct SkeletonPass : public ModulePass {
   }
 
   virtual bool runOnModule(Module &M) {
-    errs() << "Running on module: " << M.getName() << "\n";
+    errs() << "Balancing module: " << M.getName() << "\n";
     ModuleSlotTracker MST(&M, true);
 
     auto &context = M.getContext();

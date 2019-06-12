@@ -2,6 +2,21 @@
 \renewcommand*\familydefault{\sfdefault}  %% Only if the base font of the document is to be sans serif
 \usepackage[T1]{fontenc}
 
+\usepackage[%
+  %% backend=bibtex      % biber or bibtex
+%,style=authoryear    % Alphabeticalsch
+ %% ,style=numeric-comp  % numerical-compressed
+ %% ,sorting=none        % no sorting
+ %% ,sortcites=true      % some other example options ...
+ %% ,block=none
+ %% ,indexing=false
+ %% ,citereset=none
+ %% ,isbn=true
+ %% ,url=true
+ %% ,doi=true            % prints doi
+ %% ,natbib=true         % if you need natbib functions
+]{biblatex}
+
 \usepackage{subcaption}
 
 \usepackage{graphicx}
@@ -12,5 +27,8 @@
 \newcommand{\llvm}{LLVM}
 \newcommand{\lc}{\llvm{} Core}
 \newcommand{\poc}{PoC}
+\newcommand{\crossgcc}{GNU ARM Cross GCC}
+\newcommand{\ir}{\llvm{} IR}
 
+\usepackage{hyperref}
 \usepackage{cleveref}

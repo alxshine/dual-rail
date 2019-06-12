@@ -3,44 +3,48 @@ Capacity: max_strings=100000, hash_size=100000, hash_prime=85009
 The top-level auxiliary file: thesis.aux
 The style file: plain.bst
 Database file #1: sources.bib
-You've used 3 entries,
+Warning--entry type for "armbare" isn't style-file defined
+--line 129 of file sources.bib
+Warning--to sort, need author or key in armbare
+You've used 5 entries,
             2118 wiz_defined-function locations,
-            518 strings with 4514 characters,
-and the built_in function-call counts, 1244 in all, are:
-= -- 128
-> -- 54
-< -- 1
-+ -- 21
-- -- 18
-* -- 93
-:= -- 201
-add.period$ -- 10
-call.type$ -- 3
-change.case$ -- 18
+            524 strings with 4620 characters,
+and the built_in function-call counts, 1628 in all, are:
+= -- 157
+> -- 62
+< -- 2
++ -- 25
+- -- 20
+* -- 110
+:= -- 252
+add.period$ -- 14
+call.type$ -- 5
+change.case$ -- 24
 chr.to.int$ -- 0
-cite$ -- 3
-duplicate$ -- 45
-empty$ -- 96
-format.name$ -- 18
-if$ -- 263
+cite$ -- 6
+duplicate$ -- 66
+empty$ -- 147
+format.name$ -- 20
+if$ -- 350
 int.to.chr$ -- 0
-int.to.str$ -- 3
-missing$ -- 3
-newline$ -- 18
-num.names$ -- 6
-pop$ -- 17
+int.to.str$ -- 5
+missing$ -- 4
+newline$ -- 26
+num.names$ -- 8
+pop$ -- 32
 preamble$ -- 1
-purify$ -- 15
+purify$ -- 20
 quote$ -- 0
-skip$ -- 33
+skip$ -- 53
 stack$ -- 0
-substring$ -- 97
-swap$ -- 13
-text.length$ -- 1
+substring$ -- 107
+swap$ -- 17
+text.length$ -- 2
 text.prefix$ -- 0
 top$ -- 0
-type$ -- 12
-warning$ -- 0
-while$ -- 13
-width$ -- 4
-write$ -- 36
+type$ -- 20
+warning$ -- 1
+while$ -- 15
+width$ -- 6
+write$ -- 51
+(There were 2 warnings)

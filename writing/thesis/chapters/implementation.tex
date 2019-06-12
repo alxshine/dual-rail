@@ -1,34 +1,124 @@
 \section{Implementation}
 \label{implementation}
+aoeu
+
+\subsection{Arithmetic}
+aoeu
+
+\subsubsection{Finding Equivalent Operations}
+aoeu
+
+\subsubsection{Testing For Correctness}
+aoeu
+
+\subsection{Build Processes}
+aoeu
+
+\subsubsection{Building the Compiler Pass}
+
+
+\subsubsection{Building the Test Code}
+As discussed in \Cref{llvm} the \llvm{} compilation process can be split into multiple steps.
+I use this feature multiple times in the build process of my test code.
+The output of the build process for the RC4 code is shown in \Cref{lst:makefile-output}.
+
+\begin{lstlisting}[caption=Output of the Makefile, label=lst:makefile-output]
+arm-none-eabi-gcc --specs=nosys.specs program.c -o program_unbalanced.bin
+arm-none-eabi-as -ggdb  startup.s -o startup.o
+clang -target arm-v7m-eabi -mcpu=arm926ej-s -O0 rtlib.c -S -emit-llvm -o rtlib.ll
+clang -target arm-v7m-eabi -mcpu=arm926ej-s -O0 program.c -S -emit-llvm -o program.ll
+llvm-link rtlib.ll program.ll -S -o linked.ll
+opt -load="../../passes/build/libPasses.so" -insert linked.ll -S -o optimized.ll
+Balancing module: linked.ll
+llc optimized.ll -o optimized.S
+arm-none-eabi-as -ggdb  optimized.S -o optimized.o
+arm-none-eabi-ld -T startup.ld startup.o optimized.o -o program.elf
+arm-none-eabi-objcopy -O binary program.elf program.bin
+\end{lstlisting}
+
+Line 1 shows the compilation of the unbalanced version that I use for comparison.
+This version is compiled using only the \crossgcc{} compiler.
+Lines 3 and 4 show the translation of the C code into LLVM code, using the Clang\cite{lattner2008llvm} C frontend for \llvm{}.
+\emph{Program.c} is the file containing the RC4 code and \emph{rtlib.c} contains the balanced binary operations.
+The \emph{-S} flag specifies output to be in human readabale \ir{} instead of bytecode, which allows for easier debugging.
+The specified \emph{-target} platform and CPU (\emph{-mcpu}) are written into the preamble of the \ir{}, and carried on through the entire toolchain until the compilation into target code on line 8.
+
+Then both \llvm{} files are merged using \emph{llvm-link}, which is simply a concatenation of both files and some reordering.
+This merger puts the functions declared in \emph{rtlib.c} in the same module as the target code, and makes them accessible to the compilation pass running on that module.
+
+Line 6 runs the \llvm{} optimizer on the module, loading my balancing pass, which is contained in \emph{libPasses.so}.
+The pass is run by issuing the flag assigned to it during registering (\emph{-insert} in this case).
+As discussed in \Cref{llvm} both the input and output of the optimizer are \ir{}.
+Again the \emph{-S} flag is used for human readable output.
+Line 7 shows output of the actual compiler pass.
+
+In line 8 the \ir{} code is compiled into target code, in this case ARM assembly.
+The specification of the target platform is taken from the preamble of the \ir{} file, as specified in the frontend call.
+
+The final three steps are handled by the GNU Cross Tools.
+First the target code is assembled (line 9) and then it is linked with a prewritten memory map and a fixed startup assembly file (line 10).
+The memory map is required due to \qemu{} specifics, as described in \Cref{memory}.
+\qemu{} starts execution with the program counter set to address \emph{0x1000} 
+Unfortunately, I cannot control the memory layout of the code during and after the compilation process, so I have no guarantee that the \emph{main} main function will land at the desired address.
+For this I use a memory map \emph{startup.ld} (as described in \cite{armbare}), which causes the code defined in \emph{startup.s} to be at memory address \emph{0x1000}.
+The content of \emph{startup.ld} is shown in \Cref{lst:mmap}.
+
+\begin{lstlisting}[caption=Memory map in \emph{startup.ld}, label=lst:mmap]
+ENTRY(_Reset)
+SECTIONS
+{
+ . = 0x10000;
+ .startup . : { startup.o(.text) }
+ .text : { *(.text) }
+ .data : { *(.data) }
+ .bss : { *(.bss COMMON) }
+ . = ALIGN(8);
+ . = . + 0x1000; /* 4kB of stack memory */
+ stack_top = .;
+}
+\end{lstlisting}
+
+The code in \emph{startup.s} then fixes the stack location and loads the entry function \emph{c\_entry} in my test code.
+Its contents are shown in \Cref{lst:startup}.
+
+\begin{lstlisting}[caption=Startup code in \emph{startup.s}, label=lst:startup]
+.global _Reset
+_Reset:
+ LDR sp, =stack_top
+ BL balanced_c_entry
+ B .
+\end{lstlisting}
+
+\subsection{Balancing Pass}
+Here I will describe the individual parts of the balancing process.
+First is an outline of the build process (i.e. the \emph{Makefile}) because the binary operators are not generated in the compiler pass itself, but in a different C file.
+This file has to be translated into \llvm{} IR and then linked together with the rest of the code in order to be accessible for the compiler pass.
 
 \begin{figure}[h]
   \tikzbox{diagram.tex}
   \caption{Balancing diagram for LLVM}
 \end{figure}
 
-\subsection{Build Process}
+\subsubsection{Cloning Functions}
 aoeu
 
-\subsection{Cloning Functions}
+\subsubsection{Balanced Allocates}
 aoeu
 
-\subsection{Balanced Allocates}
+\subsubsection{Balanced Stores}
 aoeu
 
-\subsection{Balanced Stores}
+\subsubsection{Balanced Loads}
 aoeu
 
-\subsection{Balanced Loads}
+\subsubsection{Balanced ZExts}
 aoeu
 
-\subsection{Balanced ZExts}
+\subsubsection{Balanced Operators}
 aoeu
 
-\subsection{Balanced Operators}
+\subsubsection{Balanced Pointer Arithmetic}
 aoeu
 
-\subsection{Balanced Pointer Arithmetic}
-aoeu
-
-\subsection{Balanced Compares}
+\subsubsection{Balanced Compares}
 aoeu
