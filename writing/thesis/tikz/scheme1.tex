@@ -1,0 +1,10 @@
+\begin{tikzpicture}
+  \node[minimum width=1.5cm, minimum height=0.5cm, draw] at (-2.25, 0) {$00\dots00$}; 
+  \node[minimum width=1.5cm, minimum height=0.5cm, draw] at (-0.75, 0) {$\bar{x}$};
+  \node[minimum width=1.5cm, minimum height=0.5cm, draw] at (0.75, 0) {$00\dots00$}; 
+  \node[minimum width=1.5cm, minimum height=0.5cm, draw] at (2.25, 0) {$x$};
+
+  \foreach \x in {0, 8, ..., 32}{
+    \node at (3-0.1875*\x, 0.6) {\scriptsize{\x}};
+  }
+\end{tikzpicture}
