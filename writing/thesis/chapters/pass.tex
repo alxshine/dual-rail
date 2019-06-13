@@ -1,4 +1,4 @@
-\subsection{Balancing Pass}
+\section{Balancing Pass}
 \label{pass}
 The idea behind the balancing pass is very simple.
 \begin{enumerate}
@@ -12,7 +12,7 @@ In the following subsections I will describe the changes that my pass makes, ord
 As I decided to focus on stack memory only, the operations and lifecycle are specific to local variables.
 %TODO: talk about the llvm c++ api
 
-\subsubsection{Cloning Functions}
+\subsection{Cloning Functions}
 The first types used in a function are its return type and the types of its function parameters.
 As these types cannot be changed for an existing function in \llvm{} I need to clone the functions with updated types.
 
@@ -27,7 +27,7 @@ Without any additional parameters, the copied instructions will still reference 
 To avoid this I use a so-called \emph{Value Mapper} to replace the old parameters with the new ones everywhere they are referenced.
 This change alone would cause type mismatches and generates code that does not compile, but the other steps of my pass fix these problems.
 
-\subsubsection{Balancing Allocations}
+\subsection{Balancing Allocations}
 In order to declare and use local variables in \ir{} the memory for them first has to be allocated using the \emph{alloca} instruction.
 Even function parameters are not used directly but first copied into memory explicitly allocated for this function.
 Note that even though the naming is similare to C's \emph{malloc} call, the memory for \emph{alloca} is on the stack in this case.
@@ -36,37 +36,37 @@ The \emph{alloca} instruction takes the type to be allocated as parameter, and r
 This means that for balancing all the pass has to do is replace the \emph{alloca} for \lli8 with one for \lli32.
 Allocations for local arrays work the same way, the pass just needs to extract the number of elements from the old allocation.
 
-\subsubsection{Balancing Stores}
+\subsection{Balancing Stores}
 It can happen that the target code tries to store a balanced variable (\lli32) into an unbalanced pointer (\lli8).
 In this case the pass unbalances the variable in a temporary before storing it.
 
 While this does cause information leakage and a reduction in robustness, such a case can be avoided fairly easily.
 As only global memory is unbalanced, this does not happen when the program stores all values on the stack.
 
-\subsubsection{Balancing Loads}
+\subsection{Balancing Loads}
 Balancing loads is a mirror case of balancing stores.
 When loading from an unbalanced pointer into a balanced variable, the pass first loads into an unbalanced temporary and then balances the value before storing it in the local variable.
 
-\subsubsection{Balancing ZExts}
+\subsection{Balancing ZExts}
 \emph{ZExt} stands for zero extend, and it is an instruction used to promote integer types to larger bit sizes.
 While my pass is meant to balance code utilizes \emph{only 8bit integers}, I needed to balance \emph{ZExts} for compatibilty reasons during development and have left the balancing procedure in the code.
 
 When zero extending from 8 to 32 bit, the pass replaces the instruction with a call to my balance function.
 When extending from 32 to 64 bit it unbalances the value first and then zero extends to the target type.
 
-\subsubsection{Balancing Binary Operations}
+\subsection{Balancing Binary Operations}
 I implemented the balanced operations described in \Cref{operations} in C, each as an individual function.
 In order to balance binary operations they need to be replaced by calls to these new functions.
 As all binary operations are represented by the same instruction in the \llvm{} API, the pass needs to examine the \emph{opcode} of the instruction.
 Based on that it decides which function to call.
 
-\subsubsection{Balancing Pointer Arithmetic}
+\subsection{Balancing Pointer Arithmetic}
 Balanced values cannot be used as indices directly.
 Therefore, whenever a balanced variable is used as index for an array access it is unbalanced before usage.
 All array accesses use the \emph{getelementptr} instruction in \ir{}, so this is easy to catch.
 What is not handled is manual arithmetic with pointers, but that is by design.
 
-\subsubsection{Balancing Compares}
+\subsection{Balancing Compares}
 In my main balancing scheme (\Cref{fig:scheme1}) the inverse occupies more significant bits than the value itself.
 This changes the direction of comparison operations, meaning $<$ becomes $>$, $>=$ becomes $<=$ etc.
 For $==$ nothing changes and the other comparisons are simply replaced.
