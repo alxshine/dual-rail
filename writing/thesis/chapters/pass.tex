@@ -9,7 +9,7 @@ The idea behind the balancing pass is very simple.
 \end{enumerate}
 
 In the following subsections I will describe the changes that my pass makes, ordered by the lifecycle of a variable in \ir{}.
-As we decided to focus on stack memory only, the operations and lifecycle are specific to local variables.
+As I decided to focus on stack memory only, the operations and lifecycle are specific to local variables.
 %TODO: talk about the llvm c++ api
 
 \subsubsection{Cloning Functions}
@@ -22,11 +22,10 @@ During creation the pass goes through all parameter and changes their types from
 The same is done for the return type.
 This gives me a skeleton for the balanced function, which can be inserted into the module, making it accessible in the future.
 
-Even though copying the instructions from the original function to the balanced function should be more complex in theory, \llvm{} provides a nice way of doing this.
-The main work of copying the instructions is done by the \llvm{} function \emph{CloneFunctionInto}.
-This function takes a \emph{ValueToValueMapper} as parameter, which can be used to replace SSA references in instructions.
-My pass uses this mapper to update references of the function parameters.
-This change alone results in type mismatches and keeps the code from compiling successfully, but it gives me a nice entry point to start balancing my functions from.
+The content of the original function is then copied using a helper in the \llvm{} API called \emph{CloneFunctionInto}.
+Without any additional parameters, the copied instructions will still reference function parameters of the original function, which are invalid in the new function.
+To avoid this I use a so-called \emph{Value Mapper} to replace the old parameters with the new ones everywhere they are referenced.
+This change alone would cause type mismatches and generates code that does not compile, but the other steps of my pass fix these problems.
 
 \subsubsection{Balancing Allocations}
 In order to declare and use local variables in \ir{} the memory for them first has to be allocated using the \emph{alloca} instruction.
