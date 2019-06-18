@@ -46,7 +46,7 @@ char t = 3;
 void c_entry() {
   char buffer[20];
   for (char i = 0; i < 100; i++) {
-    i = i*2;
+    char temp = i*2;
     /*if (i % 15 == 0)*/
       /*string_copy("fizzbuzz", buffer, 8);*/
     /*else if (i % 5 == 0)*/
@@ -54,7 +54,7 @@ void c_entry() {
     /*else if (i % 3 == 0)*/
       /*string_copy("fizz", buffer, 4);*/
     /*else*/
-      write_int(i, buffer);
+    write_int(temp, buffer);
 
     print_uart0(buffer);
   }
