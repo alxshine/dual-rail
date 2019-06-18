@@ -17,3 +17,4 @@ trace-*
 *.bcf
 *.run.xml
 *.blg
+*.bbl

@@ -103,25 +103,94 @@ This also means that $\neg{x} = -x - 1$ and therefore:
 
 Using associativity of addition the balanced variant of ADD looks like the following:
 \begin{align*}
-  \%1 &= 0 \bsep \neg{x} \bsep 0 \bsep x &\\
-  \%2 &= 0 \bsep \neg{y} \bsep 0 \bsep y &\\
-  \%3 &= 0 \bsep \neg{x}+1 \bsep 0 \bsep x &\qquad |\ \%1 + \hex{00010000}\\
-  \%4 &= c \bsep \neg{x+y} \bsep c' \bsep x+y &\qquad |\ \%3 + \%2\\
-  \%5 &= 0 \bsep \neg{x+y} \bsep 0 \bsep x+y &\qquad |\ \%4 \land \hex{00ff00ff}
+  \%1 &= 0 && \bsep \neg{x} &&\bsep 0 &&\bsep x      &&\\
+  \%2 &= 0 && \bsep \neg{y} &&\bsep 0 &&\bsep y      &&\\
+  \%3 &= 0 && \bsep \neg{x}+1 &&\bsep 0 &&\bsep x    &&\;|\ \%1 + \hex{00010000}\\
+  \%4 &= c && \bsep \neg{x+y} &&\bsep c' &&\bsep x+y &&\;|\ \%3 + \%2\\
+  \%5 &= 0 && \bsep \neg{x+y} &&\bsep 0 &&\bsep x+y  &&\;|\ \%4 \land \hex{00ff00ff}
 \end{align*}
 Both $c$ and $c'$ denote possible carry bits that need to be filtered.
 
 \subsubsection{SUB}
 For subtraction I again use the definition of 2s complement, giving me the following for the inverse result:
 \begin{equation*}
-  \neg{x-y} = - (x-y) - 1 = y - x - 1 = y + (-x -1) = y + \neg{x}
+  \neg{x-y} = - (x-y) - 1 = y - x - 1 = y + (-x -1) = y + \neg{x} = \neg{x} + y
+\end{equation*}
+Applying the same definition to the regular result yields
+\begin{equation*}
+  x-y = x + \neg{y} + 1
+\end{equation*}
+resulting in a quick and convenient balanced subtraction:
+\begin{align*}
+  \%1 &= 0 && \bsep \neg{x} &&\bsep 0 &&\bsep x      &&\\
+  \%2 &= 0 && \bsep \neg{y} &&\bsep 0 &&\bsep y      &&\\
+  \%3 &= 0 && \bsep y &&\bsep 0 &&\bsep \neg{y}    &&\;|\ \%2 \ror 16\\
+  \%4 &= 0 && \bsep y &&\bsep c &&\bsep \neg{y}+1 &&\;|\ \%3 + \hex{00000001}\\
+  \%5 &= c' && \bsep \neg{x}+y &&\bsep c'' &&\bsep x+\neg{y}+1  &&\;|\ \%1 + \%4\\
+  \%6 &= 0 && \bsep \neg{x-y} &&\bsep 0 &&\bsep x-y &&\;|\ \%5 \land \hex{00ff00ff}
+\end{align*}
+
+\subsubsection{MUL}
+The inverse result of multiplication can be calculated as follows:
+\begin{equation*}
+  \neg{x \cdot y} = -(x \cdot y) - 1 = (-x) \cdot y - 1 = (\neg{x} + 1) \cdot y = \neg{x} \cdot y + y - 1
 \end{equation*}
 
+Which gives us the following balanced multiplication:
+\begin{align*}
+  \%1 &= 0 && \bsep \neg{x} && \bsep 0 && \bsep x &&\\
+  \%2 &= 0 && \bsep \neg{y} && \bsep 0 && \bsep y &&\\
+  \%3 &= \neg{y} && \bsep 0 && \bsep 0 && \bsep y &&\;|\ \trans21(\%2)\\
+  \%4 &= c && \bsep \neg{x} \cdot y && \bsep c' && \bsep x \cdot y &&\;|\ \%1 \cdot \%3\\
+  \%5 &= c'' && \bsep \neg{x \cdot y} + 1 && \bsep c' && \bsep x \cdot y &&\;|\ \%4 + (\%2 << 16)\\
+  \%6 &= c''' && \bsep \neg{x \cdot y} + 1 && \bsep c' && \bsep x \cdot y &&\;|\ \%5 + \hex{00ff0000}\\
+  \%7 &= 0 && \bsep \neg{x \cdot y} + 1 && \bsep 0 && \bsep x \cdot y &&\;|\ \%6 \land \hex{00ff00ff}
+\end{align*}
 
+Practical evaluation shows that computing multiplication via repeated balanced addition shows better balancing properties (see \Cref{balance-eval}) than the direct variant, so I used that for my thesis.
+
+\subsubsection{DIV and REM}
+Just like multiplication, I used repeated balanced subtraction for DIV (division) and REM (remainder) operations.
+The code was written in C and can be found in the git of my thesis\cite{git}.
+
+\subsubsection{Shifting}
+When performing logical shifts, I need to ensure that the correct bits are pushed in.
+As 0s are shifted in for $x$ I have to shift in 1s for $\neg{x}$.
+This means that I have to ORR \hex{ff000000} for right shifts and \hex{0000ff00} for left shifts.
+The shifting is performed normally and the result is then AND filtered with \hex{00ff00ff} to comply with Scheme 1 again.
 
 \subsection{Testing for Correctness}
-aoeu
+Before I started implementing my balancing pass I wanted to verify the correctness of my arithmetic.
+For this purpose I wrote python code to calcuate all operations step by step while saving the intermediate results.
+\Cref{lst:multiop} shows the intermediate steps for addition.
+
+\begin{lstlisting}[language=python, caption=Step-by-step execution of balanced multiplication, label=lst:multiop]
+m = MultiStepOperation([
+    Convert_1_2(1), #2
+    BinaryOperation(0,2, lambda x,y: (x*y) & 0xffffffff),#3
+    BinaryOperation(3,1, lambda x,y: x + (y << 16)), #4
+    UnaryOperation(4, lambda x: x + 0x00ff0000), #5
+    UnaryOperation(5, lambda x: x & 0x00ff00ff), #6
+])
+\end{lstlisting}
+
+The \emph{Unary-} and \emph{BinaryOperation} classes take the indices of the layers to operate on (0 and 1 are the inputs, all others are intermediate values), as well as the operation in form of a lambda.
+Executing the \emph{MultiStepOperation} will then execute all lambdas in order and store the intermediate results in \emph{numpy} arrays.
+After the execution there are $2^8 \cdot 2^8 = 2^{16}$ intermediate results for each operation (the inputs only have $2^8$ values each).
+Correctness is then tested by checking if all final results are equal to the output of a function to compare to ($x \cdot y$ in this case).
 
 \subsection{Evaluating the Balancedness}
 \label{balance-eval}
-aoeu
+Balancedness of my operations is evaluated using the same python code.
+As all intermediate results are stored during evaluation I can easily calculate the distribution of their \hammingw s, as shown in \Cref{fig:mult}.
+I used these histograms to check if operations needed improvement, and if that was the case, I tried to find a different, more balanced way of performing them.
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=\textwidth]{multiplication.png}
+  \caption{Histogram of \hammingw s of direct balanced multiplication}
+  \label{fig:mult}
+\end{figure}
+
+\Cref{fig:mult} also shows that while directly computing multiplication is balanced for a lot of values, it still leaks information in almost every step.
+For this reason I implemented it as repeated addition in my pass.

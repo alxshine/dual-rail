@@ -10,4 +10,4 @@ m = MultiStepOperation([
 m.execute()
 incorrectResults = m.testCorrectness(lambda x,y: (x*y)&0xff)
 print(f"Number of incorrect results: {len(incorrectResults.keys())}")
-m.visualize("SUB")
+m.visualize("MUL")
