@@ -1,10 +1,13 @@
 \section{Results}
 \label{results}
 In this section I will discuss the balancing results for the two main algorithms I tested the pass on: RC4 and AES.
-Both algorithms have been written/adapted so that they utilize the stack as much as possible, maximizing the benefit of my balancing pass.
+Both algorithms have been written/adapted so that they utilize the stack as much as possible, maximizing the benefits of my balancing pass.
+For the evaluation of both the performance and the robustness I use histograms of the \hammingw{}s over the entire execution of the code.
+\Cref{fig:rc4,fig:aes} show a comparison of balanced and unbalanced histograms for RC4 and AES respectively.
 
-\subsection{Security}
-\begin{figure}[h]
+The balanced version of both algorithms have been compiled with my balancing pass, while the unbalanced versions were compiled with \crossgcc.
+
+\begin{figure}[hp]
   \centering
   \begin{subfigure}[b]{0.49\textwidth}
     \input{tikz/rc4-unbalanced.tex}
@@ -20,9 +23,10 @@ Both algorithms have been written/adapted so that they utilize the stack as much
     \caption{Scaled Hamming weight histograms for RC4}
   \end{subfigure}
   \caption{Hamming weight histograms for balanced and unbalanced RC4}
+  \label{fig:rc4}
 \end{figure}
 
-\begin{figure}[h]
+\begin{figure}[hp]
   \centering
   \begin{subfigure}[b]{0.49\textwidth}
     \input{tikz/aes-unbalanced.tex}
@@ -38,7 +42,28 @@ Both algorithms have been written/adapted so that they utilize the stack as much
     \caption{Scaled Hamming weight histograms for AES}
   \end{subfigure}
   \caption{Hamming weight histograms for balanced and unbalanced AES}
+  \label{fig:aes}
 \end{figure}
 
+\subsection{Robustness}
+For both algorithm the balancig works very well.
+The \hammingw{}s are concentrated around 8, with other values being much less frequent.
+A significant number of operations also exhibit a \hammingw{} of 9 and 10, which is probably due to carry bits in arithmetic operations.
+This theory is supported by the fact that these \hammingw{}s are more prevalent in AES, which utilizes a lot more loops and therefore additions.
+
+The balancing is not perfect, as some intermediate steps of my balanced operators will \emph{always} have unbalanced values.
+E.g. the spike around 4 for RC4 is probably due to the many AND operations in the algorithm.
+Value unbalancing for array indexing is also a factor for the distribution of \hammingw{}s in the balanced code.
+
 \subsection{Performance}
-aoeu
+The number of operations is $77349$ for unbalanced RC4, and $584598$ for balanced RC4.
+That is an increase in the number of operations by a factor of $7.56$.
+
+For AES the unbalanced code has $83549$ operations, while the balanced code has $2873960$ operations.
+This is an increase by a factor of $34.4$.
+The performance impact for AES can be reduced to a factor of $28.51$ when directly computing multiplication, which drops the number of operations to $2382048$.
+
+For both algorithms the largest part of the performance impact is probably due to MUL, DIV and REM operations being calculated via repeated addition/subtraction.
+
+In general it is also important to note that when the full 32bit range is required for the program the performance drops by an additional factor of 4, because then every operation needs to be performed on the individual bytes of a 32bit word.
+This is less true for cryptographic algorithms, as they mostly work on individual bytes.
