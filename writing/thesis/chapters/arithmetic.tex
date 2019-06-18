@@ -35,38 +35,36 @@ A more detailed analysis can be found in \Cref{balance-eval}.
 For better reusability I wrote down the transformations between the schemes once, and then referenced this transformation.
 I thought this a better solution than implicitly including these transformations in multiple operations.
 
-The transformation from Scheme 1 to Scheme 2 is shown in \Cref{lst:s12}.
-
-\begin{lstlisting}[caption={Transforming from Scheme 1 to Scheme 2}, label=lst:s12]
-  %1 = 00 | ~x | 00 |  x
-  %2 = ~x | ~x |  x |  x                | << 8
-  %3 = ~x | 00 | 00 |  x                | & 0xff0000ff
-\end{lstlisting}
+The transformation from Scheme 1 to Scheme 2 looks as follows:
+\begin{align*}
+  \binp{1}{0}{\neg{x}}{0}{x}\\
+  \btrans{2}{\neg{x}}{\neg{x}}{x}{x}{\%1 << 8}\\
+  \btrans{3}{\neg{x}}{0}{0}{x}{\%2 \band \hex{ff0000ff}}
+\end{align*}
 
 \subsubsection{Scheme 2 to Scheme 1}
 The other direction works very similar to the first, it is shown in \Cref{lst:s21}.
 Note that ROR is the ARM assembly instruction for rotational right shift, i.e. the values shifted out on the right are shifted back in on the left.
-
-\begin{lstlisting}[caption=Transforming from Scheme 2 to Scheme 1, label=lst:s21]
-  %1 = ~x | 00 | 00 |  x
-  %2 = ff | ~x | 00 |  x                | ROR 24
-  %3 = 00 | ~x | 00 |  x                | & 0x00ff00ff
-\end{lstlisting}
+The transformation looks as follows:
+\begin{align*}
+  \binp{1}{\neg{x}}{0}{0}{x}\\
+  \btrans{2}{\hex{ff}}{\neg{x}}{0}{x}{\%1 \borr (\%1 \bror 24)}\\
+  \btrans{3}{0}{\neg{x}}{0}{x}{\%2 \band \hex{00ff00ff}}
+\end{align*}
 
 \subsubsection{ORR}
 Before finding a balanced variant of binary or, I needed to find an expression for the inverse of the result.
 For this I utilized DeMorgan's law $\neg{x \lor y} = \neg{x} \land \neg{y}$.
-
-\begin{lstlisting}[caption=Balanced ORR, label=lst:orr]
-  %1 = 00 | ~x | 00 | x
-  %2 = 00 | ~y | 00 | y
-  %3 = 00 | ~x ORR ~y | 00 | x ORR y    | %1 ORR %2
-  %4 = 00 | ~x AND ~y | 00 | x AND y    | %1 AND %2
-  %5 = ~x AND ~y | 00 | x AND y | 00    | %3 << 8
-  %6 = ~x AND ~y | ~x ORR ~y | x AND y | x ORR y   | %3 ORR %5
-  %7 = ~(x ORR y) | 00 | 00 | x ORR y   | & 0xff0000ff
-  %8 = 00 | ~(x ORR y) | 00 | x ORR y   | transform_2_1(%7)
-\end{lstlisting}
+With this equality ORR looks as follows:
+\begin{align*}
+  \binp{1}{0}{\neg{x}}{0}{x}\\
+  \binp{2}{0}{\neg{y}}{0}{y}\\
+  \btrans{3}{0}{\neg{x} \borr \neg{y}}{0}{x \borr y}{\%1 \borr \%2}\\
+  \btrans{4}{0}{\neg{x} \band \neg{y}}{0}{x \band y}{\%1 \band \%2}\\
+  \btrans{5}{\neg{x} \band \neg{y}}{\neg{x} \borr \neg{y}}{x \band y}{x \borr y}{\%3 \borr (\%4 << 8)}\\
+  \btrans{6}{\neg{x \borr y}}{0}{0}{x \borr y}{\%5 \band \hex{ff0000ff}}\\
+  \btrans{7}{0}{\neg{x \borr y}}{0}{x \borr y}{\trans21(\%6)}
+\end{align*}
 
 \subsubsection{AND}
 As $\neg{x \land y} = \neg{x} \lor \neg{y}$ AND works almost the same as ORR, but uses different parts of the intermediate results.
@@ -82,17 +80,17 @@ My version of balanced XOR already includes some ARM specific optimizations.
 In ARM shift operations happen in a so-called barrel shifter, and can be applied to the right-hand argument of any other instruction.
 I utilize this property in my balanced version of XOR to save some unnecessary cycles.
 
-\begin{lstlisting}[caption=Balanced XOR, label=lst:xor]
-  %1 = 00 | ~x | 00 |  x
-  %2 = 00 | ~y | 00 |  y
-  %3 = ~x | ~x |  x |  x              | %1 ORR (%1 << 8)
-  %4 =  y | ~y | ~y |  y              | %2 ORR (%2 ROR 8)
-  %5 = ~x AND y | ~x AND ~y | x AND ~y | x AND y   | %3 AND %4
-  %6 = x XOR y | ~(x XOR y) | x XOR y | ~(x XOR y)   | %5 AND (%5 ROR 16)
-  %6 = ~(x XOR y) | x XOR y | ~(x XOR y) | x XOR y   | %6 ROR 8
-  %7 = ~(x XOR y) | 00 | 00 | x XOR y   | %7 & 0xff0000ff
-  %8 = transform_2_1(%7)
-\end{lstlisting}
+\begin{align*}
+  \binp{1}{0}{\neg{x}}{0}{x}\\
+  \binp{2}{0}{\neg{y}}{0}{y}\\
+  \btrans{3}{\neg{x}}{\neg{x}}{x}{x}{\%1 \borr (\%1 << 8)}\\
+  \btrans{4}{y}{\neg{y}}{\neg{y}}{y}{\%2 \borr (\%2 \bror 24)}\\
+  \btrans{5}{\neg{x} \band y}{\neg{x} \band \neg{y}}{x \band \neg{y}}{x \band y}{\%3 \band \%4}\\
+  \btrans{6}{x \bxor y}{\neg{x \bxor y}}{x \bxor y}{\neg{x \bxor y}}{\%5 \band (\%5 \bror 16)}\\
+  \btrans{7}{\neg{x \bxor y}}{x \bxor y}{\neg{x \bxor y}}{x \bxor y}{\%6 \bror 8}\\
+  \btrans{8}{\neg{x \bxor y}}{0}{0}{x \bxor y}{\%7 \band \hex{ff0000ff}}\\
+  \btrans{9}{0}{\neg{x \bxor y}}{0}{x \bxor y}{\trans21 (\%8)}
+\end{align*}
 
 \subsubsection{ADD}
 For the inverse of arithmetic operations I utilized the definition of the negation in 2s complement: $-x = \neg{x} + 1$.
@@ -122,12 +120,12 @@ Applying the same definition to the regular result yields
 \end{equation*}
 resulting in a quick and convenient balanced subtraction:
 \begin{align*}
-  \%1 &= 0 && \bsep \neg{x} &&\bsep 0 &&\bsep x      &&\\
-  \%2 &= 0 && \bsep \neg{y} &&\bsep 0 &&\bsep y      &&\\
-  \%3 &= 0 && \bsep y &&\bsep 0 &&\bsep \neg{y}    &&\;|\ \%2 \ror 16\\
-  \%4 &= 0 && \bsep y &&\bsep c &&\bsep \neg{y}+1 &&\;|\ \%3 + \hex{00000001}\\
-  \%5 &= c' && \bsep \neg{x}+y &&\bsep c'' &&\bsep x+\neg{y}+1  &&\;|\ \%1 + \%4\\
-  \%6 &= 0 && \bsep \neg{x-y} &&\bsep 0 &&\bsep x-y &&\;|\ \%5 \land \hex{00ff00ff}
+  \binp{1}{0}{\neg{x}}{0}{x}\\
+  \binp{2}{0}{\neg{y}}{0}{y}\\
+  \btrans{3}{0}{y}{0}{\neg{y}}{\%2 \bror 16}\\
+  \btrans{4}{0}{y}{c}{\neg{y}+1}{\%3 + \hex{00000001}}\\
+  \btrans{5}{c'}{\neg{x}+y}{c''}{x+\neg{y}+1}{\%1 + \%4}\\
+  \btrans{6}{0}{\neg{x-y}}{0}{x-y}{\%5 \band \hex{00ff00ff}}
 \end{align*}
 
 \subsubsection{MUL}
@@ -138,13 +136,13 @@ The inverse result of multiplication can be calculated as follows:
 
 Which gives us the following balanced multiplication:
 \begin{align*}
-  \%1 &= 0 && \bsep \neg{x} && \bsep 0 && \bsep x &&\\
-  \%2 &= 0 && \bsep \neg{y} && \bsep 0 && \bsep y &&\\
-  \%3 &= \neg{y} && \bsep 0 && \bsep 0 && \bsep y &&\;|\ \trans21(\%2)\\
-  \%4 &= c && \bsep \neg{x} \cdot y && \bsep c' && \bsep x \cdot y &&\;|\ \%1 \cdot \%3\\
-  \%5 &= c'' && \bsep \neg{x \cdot y} + 1 && \bsep c' && \bsep x \cdot y &&\;|\ \%4 + (\%2 << 16)\\
-  \%6 &= c''' && \bsep \neg{x \cdot y} + 1 && \bsep c' && \bsep x \cdot y &&\;|\ \%5 + \hex{00ff0000}\\
-  \%7 &= 0 && \bsep \neg{x \cdot y} + 1 && \bsep 0 && \bsep x \cdot y &&\;|\ \%6 \land \hex{00ff00ff}
+  \binp{1}{0}{\neg{x}}{0}{x}\\
+  \binp{2}{0}{\neg{y}}{0}{y}\\
+  \btrans{3}{\neg{y}}{0}{0}{y}{\trans21(\%2)}\\
+  \btrans{4}{c}{\neg{x}\cdot y}{c'}{x \cdot y}{\%1 \cdot \%3}\\
+  \btrans{5}{c''}{\neg{x \cdot y} +1}{c'}{x \cdot y}{\%4 + (\%2 << 16)}\\
+  \btrans{6}{c'''}{\neg{x \cdot y}}{c'}{x \cdot y}{\%5 + \hex{00ff0000}}\\
+  \btrans{7}{0}{\neg{x \cdot y}}{0}{x \cdot y}{\%6 \band \hex{00ff00ff}}
 \end{align*}
 
 Practical evaluation shows that computing multiplication via repeated balanced addition shows better balancing properties (see \Cref{balance-eval}) than the direct variant, so I used that for my thesis.
