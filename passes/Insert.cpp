@@ -369,31 +369,31 @@ struct InsertPass : public ModulePass {
     auto opcode = op->getOpcode();
 
     Value *call;
-    if (opcode == llvm::Instruction::BinaryOps::Or)
+    if (opcode == llvm::Instruction::Or)
       call = builder.CreateCall(arithmetic.op_or, operands);
-    else if (opcode == llvm::Instruction::BinaryOps::And)
+    else if (opcode == llvm::Instruction::And)
       call = builder.CreateCall(arithmetic.op_and, operands);
-    else if (opcode == llvm::Instruction::BinaryOps::Xor)
+    else if (opcode == llvm::Instruction::Xor)
       call = builder.CreateCall(arithmetic.op_xor, operands);
-    else if (opcode == llvm::Instruction::BinaryOps::Add)
+    else if (opcode == llvm::Instruction::Add)
       call = builder.CreateCall(arithmetic.op_add, operands);
-    else if (opcode == llvm::Instruction::BinaryOps::Sub)
+    else if (opcode == llvm::Instruction::Sub)
       call = builder.CreateCall(arithmetic.op_sub, operands);
-    else if (opcode == llvm::Instruction::BinaryOps::Mul)
+    else if (opcode == llvm::Instruction::Mul)
       call = builder.CreateCall(arithmetic.op_mul, operands);
-    else if (opcode == llvm::Instruction::BinaryOps::SDiv)
+    else if (opcode == llvm::Instruction::SDiv)
       call = builder.CreateCall(arithmetic.op_sdiv, operands);
-    else if (opcode == llvm::Instruction::BinaryOps::UDiv)
+    else if (opcode == llvm::Instruction::UDiv)
       call = builder.CreateCall(arithmetic.op_udiv, operands);
-    else if (opcode == llvm::Instruction::BinaryOps::SRem)
+    else if (opcode == llvm::Instruction::SRem){
       call = builder.CreateCall(arithmetic.op_srem, operands);
-    else if (opcode == llvm::Instruction::BinaryOps::URem)
+    }    else if (opcode == llvm::Instruction::URem)
       call = builder.CreateCall(arithmetic.op_urem, operands);
-    else if (opcode == llvm::Instruction::BinaryOps::Shl)
+    else if (opcode == llvm::Instruction::Shl)
       call = builder.CreateCall(arithmetic.op_shl, operands);
-    else if (opcode == llvm::Instruction::BinaryOps::AShr)
+    else if (opcode == llvm::Instruction::AShr)
       call = builder.CreateCall(arithmetic.op_ashr, operands);
-    else if (opcode == llvm::Instruction::BinaryOps::LShr)
+    else if (opcode == llvm::Instruction::LShr)
       call = builder.CreateCall(arithmetic.op_lshr, operands);
     else {
       errs() << "No balanced variant found for operation "

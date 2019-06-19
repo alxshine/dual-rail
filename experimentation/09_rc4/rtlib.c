@@ -111,25 +111,24 @@ uint32_t balanced_udiv(uint32_t lhs, uint32_t rhs) {
 }
 
 int balanced_sdiv(int lhs, int rhs) {
-  /*
-   *  int ret = 0;
-   *  int sign = 1;
-   *  if (lhs < 0) {
-   *    sign = -sign;
-   *    lhs = -lhs;
-   *  }
-   *  if (rhs < 0) {
-   *    sign = -sign;
-   *    rhs = -rhs;
-   *  }
-   *
-   *  while (lhs >= rhs) {
-   *    lhs -= rhs;
-   *    ret++;
-   *  }
-   *  return sign * ret;
-   */
-  return balanced_udiv(lhs, rhs);
+  uint32_t ret = 0x00ff0000;
+
+  uint8_t negative = 0;
+  if(rhs & 0x00000080){
+    negative = 1;
+    rhs = balanced_negative(rhs);
+  }
+
+
+  while (lhs <= rhs) {
+    lhs = balanced_sub(lhs, rhs);
+    ret = balanced_add(ret, 0x00fe0001);
+  }
+
+  if(negative)
+    return balanced_negative(ret);
+  else
+    return ret;
 }
 
 uint32_t balanced_urem(uint32_t lhs, uint32_t rhs) {
@@ -139,23 +138,24 @@ uint32_t balanced_urem(uint32_t lhs, uint32_t rhs) {
 }
 
 int balanced_srem(int lhs, int rhs) {
-  /* int sign = 1;
+  uint32_t ret = 0x00ff0000;
 
-   * TODO: fix sign checking and -=
-   *if (lhs < 0) {
-   *  sign = -sign;
-   *  lhs = -lhs;
-   *}
-   *if (rhs < 0) {
-   *  sign = -sign;
-   *  rhs = -rhs;
-   *}
-   */
-  /*while (lhs <= rhs) //<= because of the inverse*/
-  /*lhs = balanced_sub(lhs, rhs);*/
+  uint8_t negative = 0;
+  if(lhs & 0x00000080){
+    lhs = balanced_negative(lhs);
+    negative = 1;
+  }
+  if(rhs & 0x00000080){
+    rhs = balanced_negative(rhs);
+  }
 
-  /*return sign * lhs;*/
-  return balanced_urem(lhs, rhs);
+  while (lhs <= rhs) //<= because of the inverse
+    lhs = balanced_sub(lhs, rhs);
+
+  if(negative)
+    return balanced_negative(lhs);
+  else
+    return lhs;
 }
 
 uint32_t balanced_shl(uint32_t lhs, uint32_t rhs) {
