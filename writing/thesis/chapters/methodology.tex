@@ -1,7 +1,12 @@
 \section{Methodology}
 \label{methodology}
+This section describes the goals and general approach of my thesis project.
+
 \subsection{Arithmetic}
-aoeu
+The largest caveat of finding a balanced arithmetic was that $\neg{x \circ y}$ is not $\neg{x} \circ \neg{y}$ ($\circ$ here denotes any operator).
+As the ALU cannot execute two different operations on parts of the same register at the same time, this means that there \emph{must} be imbalanced temporary values during execution.
+My goal then is to limit the number of these imbalanced values.
+
 \subsection{Balancing Pass}
 aoeu
 \begin{figure}[h]
