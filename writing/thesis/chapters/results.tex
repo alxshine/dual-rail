@@ -48,11 +48,14 @@ The balanced version of both algorithms have been compiled with my balancing pas
 \subsection{Robustness}
 For both algorithm the balancig works very well.
 The \hammingw{}s are concentrated around 8, with other values being much less frequent.
+Note that for an attacker performing Power Analysis, all values with the same \hammingw{} look the same.
+Thus, the less evenly distributed the \hammingw{}s of intermediate values are, the lower the confidence of her statistical attack.
+As such, a perfect scenario for the defender would be all \hammingw{}s having exactly the same value.
+
 A significant number of operations also exhibit a \hammingw{} of 9 and 10, which is probably due to carry bits in arithmetic operations.
 This theory is supported by the fact that these \hammingw{}s are more prevalent in AES, which utilizes a lot more loops and therefore additions.
 
 The balancing is not perfect, as some intermediate steps of my balanced operators will \emph{always} have unbalanced values.
-E.g. the spike around 4 for RC4 is probably due to the many AND operations in the algorithm.
 Value unbalancing for array indexing is also a factor for the distribution of \hammingw{}s in the balanced code.
 
 \subsection{Performance}
