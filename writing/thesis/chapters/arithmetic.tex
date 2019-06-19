@@ -1,4 +1,5 @@
 \section{Arithmetic}
+\label{arithmetic}
 The first step in finding a balanced arithmetic was finding a scheme for the balancing of the individual values.
 While the general shape of the scheme was pretty much clear from the start, the location of $x$ and $\bar{x}$ emerged during my work on the balanced operation.
 \Cref{fig:schemes} shows the two schemes that are used in my project.
@@ -23,6 +24,10 @@ While the general shape of the scheme was pretty much clear from the start, the 
 In my theoretical work I found balanced operations for both schemes, but in the end decided to use Scheme 1 because it exhibits nicer behaviour for shifts, especially rotations.
 Both are worth mentioning however, because many of my operations will result in values formatted in Scheme 2 and require explicit transformation.
 By having explicit ``names'' for both schemes and finding standardized transformations in both directions I could simplify the process of finding the balanced arithmetic.
+
+The largest caveat of finding a balanced arithmetic was that $\neg{x \circ y}$ is not $\neg{x} \circ \neg{y}$ ($\circ$ here denotes any operator).
+As the ALU cannot execute two different operations on parts of the same register at the same time, this means that there \emph{must} be imbalanced temporary values during execution.
+My goal then was to limit the number of these imbalanced values.
 
 \subsection{Finding Balanced Operations}
 \label{operations}

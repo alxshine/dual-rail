@@ -1,19 +1,52 @@
 \section{Methodology}
 \label{methodology}
-This section describes the goals and general approach of my thesis project.
+Before the implementation I wanted to specify what would and would not be part of my thesis.
+This allowed me to have a clear set of goals while also limiting the scope of my thesis to a feasible range.
 
 \subsection{Arithmetic}
-The largest caveat of finding a balanced arithmetic was that $\neg{x \circ y}$ is not $\neg{x} \circ \neg{y}$ ($\circ$ here denotes any operator).
-As the ALU cannot execute two different operations on parts of the same register at the same time, this means that there \emph{must} be imbalanced temporary values during execution.
-My goal then is to limit the number of these imbalanced values.
+As the goal of my thesis was to work towards balancing arbitrary code, the first step to achieving this was finding an arithmetic capable of supporting this.
+It should include a scheme for balancing individual values, as well as a balanced way of performing operations on balanced values.
+
+I needed to find balanced variants for all operations existing in \ir{}:
+\begin{itemize}
+\item \texttt{add}, addition
+\item \texttt{sub}, subtraction
+\item \texttt{mul}, multiplication
+\item \texttt{div}, division
+\item \texttt{rem}, division remainder (Modulo)
+\item \texttt{shl}, shift left
+\item \texttt{ashr}, arithmetic shift right
+\item \texttt{lshr}, logical shift right
+\item \texttt{and}, bitwise AND
+\item \texttt{or}, bitwise OR
+\item \texttt{xor}, bitwise XOR
+\end{itemize}
+
+All operators should work on signed and unsigned 8bit numbers, and be semantically consistent with existing \llvm{} operators.
 
 \subsection{Balancing Pass}
-aoeu
+For the pass itself I first tried to identify all different types of values in \ir{}.
+Then I split them into groups, depending on whether they are local or global values in the program.
+With this separation and based on the interaction between variable types I built the dependency graph shown in \Cref{fig:balancing}.
+
 \begin{figure}[h]
   \tikzbox{diagram.tex}
-  \caption{Balancing diagram for LLVM}
+  \caption{Balancing dependency graph in \llvm{}}
   \label{fig:balancing}
 \end{figure}
 
+The memory locations in \Cref{fig:balancing} are sources of information leakage that depend on code or data.
+A memory location is balanced if all data stored in that location is balanced.
+For my thesis I wanted to balance all local variables, which gives me balanced registers and a balanced stack.
+While loading from non-stack memory does cause imbalanced values to be stored in registers temporarily, this can be avoided by not using global variables.
+
 \subsection{Evaluation}
-aoeu
+At first my plan was to evaluate the performance of my pass using a full Power Analysis attack on an Arduino Due\cite{arduino}.
+It is based on an ARM Cortex-M3 CPU with 32bit registers and a clock rate of 84 MHz.
+While I have performed power analysis attacks on a microcontroller before, my experience in tweaking the parameters for collecting the power traces is very limited.
+As such, with the amount of trial and error required and the time required for each trial the prospects of getting meaningful results in a reasonable amount of time were very small.
+
+My supervisor then had the idea to emulate the processor, completely removing the need for any external hardware.
+This drastically reduced the turnaround time between tries, and made the whole project feasible.
+As emulator we decided on \qemu{}, as it is very powerful and open-source, giving me ``easy'' access to its internals and allowing me to generate metrics.
+The primary evaluation metric we decided on was the distribution of \hammingw{}s over the entire execution.
