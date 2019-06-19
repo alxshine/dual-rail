@@ -20,7 +20,7 @@ Cloning functions is done in two parts.
 First the prototype for the new function is created.
 During creation the pass goes through all parameter and changes their types from \lli8 to \lli32.
 The same is done for the return type.
-This gives me a skeleton for the balanced function, which can be inserted into the module, making it accessible in the future.
+This gives me a skeleton for the balanced function, which is then inserted into the module, making it accessible in the future.
 
 The content of the original function is then copied using a helper in the \llvm{} API called \emph{CloneFunctionInto}.
 Without any additional parameters, the copied instructions will still reference function parameters of the original function, which are invalid in the new function.
@@ -58,13 +58,42 @@ When extending from 32 to 64 bit it unbalances the value first and then zero ext
 I implemented the balanced operations described in \Cref{operations} in C, each as an individual function.
 In order to balance binary operations they need to be replaced by calls to these new functions.
 As all binary operations are represented by the same instruction in the \llvm{} API, the pass needs to examine the \emph{opcode} of the instruction.
-Based on that it decides which function to call.
+Based on that it decides which function call to generate.
+
+For most operations the balanced operation is a direct implementation of the respective steps in \Cref{arithmetic}.
+Multiplication, division, and remainder however are implemented by repeated addition/subtraction.
+As an example, \Cref{lst:sdiv} shows the balanced function for the \texttt{sdiv} operation in \ir{}.
+
+\begin{lstlisting}[language=C, caption=Balanced sdiv, label=lst:sdiv]
+int balanced_sdiv(int lhs, int rhs) {
+  uint32_t ret = 0x00ff0000;
+
+  uint8_t negative = 0;
+  if(rhs & 0x00000080){
+    negative = 1;
+    rhs = balanced_negative(rhs);
+  }
+
+
+  while (lhs <= rhs) { //~x <= ~y iff x >= y
+    lhs = balanced_sub(lhs, rhs);
+    ret = balanced_add(ret, 0x00fe0001);
+  }
+
+  if(negative)
+    return balanced_negative(ret);
+  else
+    return ret;
+}
+\end{lstlisting}
+
+The semantics, especially the handling of negative values are made to be consistent with the semantics of \llvm{}.
 
 \subsection{Balancing Pointer Arithmetic}
-Balanced values cannot be used as indices directly.
-Therefore, whenever a balanced variable is used as index for an array access it is unbalanced before usage.
+Balanced values cannot be used for array indexing directly.
+Therefore, whenever a balanced variable is used as index for an array access it is unbalanced before use.
 All array accesses use the \emph{getelementptr} instruction in \ir{}, so this is easy to catch.
-What is not handled is manual arithmetic with pointers, but that is by design.
+This does not handle manual arithmetic operations with pointers, but that is by design.
 
 \subsection{Balancing Compares}
 In my main balancing scheme (\Cref{fig:scheme1}) the inverse occupies more significant bits than the value itself.
