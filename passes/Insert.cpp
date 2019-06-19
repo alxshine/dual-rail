@@ -73,7 +73,8 @@ struct InsertPass : public ModulePass {
     ret.op_mul = balanced_mul;
     ret.op_sdiv = balanced_sdiv;
     ret.op_udiv = balanced_udiv;
-    ret.op_srem = balanced_urem;
+    ret.op_srem = balanced_srem;
+    ret.op_urem = balanced_urem;
     ret.op_shl = balanced_shl;
     ret.op_ashr = balanced_ashr;
     ret.op_lshr = balanced_lshr;
