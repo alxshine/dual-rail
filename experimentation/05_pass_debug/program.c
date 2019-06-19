@@ -45,8 +45,8 @@ char t = 3;
 
 void c_entry() {
   char buffer[20];
-  for (char i = 0; i < 100; i++) {
-    char temp = i*2;
+  for (char i = 0; i < 10; i++) {
+    char temp = i/-2;
     /*if (i % 15 == 0)*/
       /*string_copy("fizzbuzz", buffer, 8);*/
     /*else if (i % 5 == 0)*/
