@@ -37,7 +37,7 @@ struct InsertPass : public ModulePass {
   struct arithmetic_ret {
     Function *balance, *balance_wide, *unbalance;
     Function *op_or, *op_and, *op_xor, *op_add, *op_sub, *op_mul, *op_sdiv,
-        *op_udiv, *op_srem, *op_urem, *op_shl, *op_ashr;
+      *op_udiv, *op_srem, *op_urem, *op_shl, *op_ashr, *op_lshr;
   };
 
   arithmetic_ret loadArithmetic(Module &M) {
@@ -58,6 +58,7 @@ struct InsertPass : public ModulePass {
     auto *balanced_urem = loadWithError(M, "balanced_urem");
     auto *balanced_shl = loadWithError(M, "balanced_shl");
     auto *balanced_ashr = loadWithError(M, "balanced_ashr");
+    auto *balanced_lshr = loadWithError(M, "balanced_lshr");
 
     arithmetic_ret ret;
     ret.balance = balance_func;
@@ -75,6 +76,7 @@ struct InsertPass : public ModulePass {
     ret.op_srem = balanced_urem;
     ret.op_shl = balanced_shl;
     ret.op_ashr = balanced_ashr;
+    ret.op_lshr = balanced_lshr;
 
     return ret;
   }
@@ -390,6 +392,8 @@ struct InsertPass : public ModulePass {
       call = builder.CreateCall(arithmetic.op_shl, operands);
     else if (opcode == llvm::Instruction::BinaryOps::AShr)
       call = builder.CreateCall(arithmetic.op_ashr, operands);
+    else if (opcode == llvm::Instruction::BinaryOps::LShr)
+      call = builder.CreateCall(arithmetic.op_lshr, operands);
     else {
       errs() << "No balanced variant found for operation "
              << op->getOpcodeName() << "\n";

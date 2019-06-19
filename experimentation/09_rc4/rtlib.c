@@ -139,8 +139,8 @@ uint32_t balanced_urem(uint32_t lhs, uint32_t rhs) {
 }
 
 int balanced_srem(int lhs, int rhs) {
-  int sign = 1;
-  /*
+  /* int sign = 1;
+
    * TODO: fix sign checking and -=
    *if (lhs < 0) {
    *  sign = -sign;
@@ -164,8 +164,17 @@ uint32_t balanced_shl(uint32_t lhs, uint32_t rhs) {
   return ret & 0x00ff00ff;
 } // TODO
 
-uint32_t balanced_ashr(uint32_t lhs, uint32_t rhs) {
+uint32_t balanced_lshr(uint32_t lhs, uint32_t rhs){
   lhs |= 0xff000000;
   uint32_t ret = lhs >> rhs;
   return ret & 0x00ff00ff;
-} // TODO
+}
+
+uint32_t balanced_ashr(uint32_t lhs, uint32_t rhs) {
+  if(lhs & 0x0080)
+    lhs |= 0xff000000;
+  else
+    lhs |= 0x0000ff00;
+  uint32_t ret = lhs >> rhs;
+  return ret & 0x00ff00ff;
+}
