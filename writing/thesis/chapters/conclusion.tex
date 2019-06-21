@@ -1,3 +1,30 @@
 \section{Conclusion}
 \label{conclusion}
-aoeu
+In my thesis I explored the robustness of a pure software implementation of \dual{}.
+By writing a proof of concept implementation I explore a new perspective on hardening embedded platforms against power analysis attacks.
+Preliminary evaluation shows a drastic reduction in the signal to noise ratio of the power consumption, due to a decreased variance in \hammingw{}s of intermediate values.
+
+The security of balanced code is not perfect, as it is limited by the inability to perform different operations on parts of the same register at the same time.
+However, with this limitation in mind, I believe my balancing pass achieves quite good performance.
+Histograms of the \hammingw{}s show a significant shift towards values around 8, as would be ideal.
+This causes a relative decrease of other values, reducing the information an attacker can gain from power analysis attacks.
+
+A major disadvantage of the approach in my thesis is the increased number of operations taking place.
+The number of clock cycles increases by a factor of 8, and when taking into account the reduction in word size this leads to a factor of 32.
+Future work could reduce this performance impact by removing unnecessary transformations between balancing schemes, but the design of embedded platforms and RISC architectures in general sets a lower bound for the performance impact of my approach.
+While something like Intel's SIMD extensions\cite{lomont2011introduction} could drastically reduce the performance impact of software \dual{}, this is not possible for the intended target platforms.
+
+As currently only stack values are balanced, balancing all types of variables is another avenue for future work.
+This would balance main memory, and thus the data bus at all times.
+The logical next step after this would be to balance the address bus as well, completely cutting an attacker of from getting any information via the power consumption.
+Howeve, this last approach would require making major changes to the way memory is indexed, possibly changing paging controllers and (if present) cache controllers.
+
+A third possibility for future work would be attacking actual hardware running balanced code, providing some real-world evaluation.
+The difficulty in this evaluation lies in the fact that my approach requires 32bit registers, which are typically only found in more powerful embedded processors running higher clock speeds, which makes power analysis harder by itself.
+\\
+\\
+With the way it currently is, my proof of work provides a way for programmers without explicit security knowledge to harden their code against power analysis attacks, without making too large adjustments to their code.
+As my compiler pass balances all code, as long as it is on the stack, even substitution boxes can be used, they simply need to be passed as function parameters.
+
+This reduces the number of considerations for the programmer to a minimum, handing them off to the compiler.
+With this I hope to provide a step towards compilers generating secure code automatically, akin to parallelization libraries like OpenMP\cite{dagum1998openmp}, thus reducing the number of easily avoidable security flaws in practice.
