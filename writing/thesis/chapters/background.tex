@@ -1,40 +1,108 @@
 \section{Background}
 \label{background}
+Finishing my thesis project required knowledge from many different areas and projects.
+The contents of the Information Security I and II, as well as from the Compiler Construction lectures.
+This section will give a brief introduction to the relevant topics of those lectures.
 
 \subsection{Power Analysis Attacks}
-aoeu
+In most cases the power consumption during execution is data-dependent.
+Setting a bit to 1 requires more power than setting it to 0.
+While this difference is very hard to observe in real time, it is easy to detect using statistical analysis of the power consumptions of multiple executions.
+For easier analysis, the power consumption is quantized and stored in numerical format as a so-called power trace.
+
+Embedded devices are often exposed to this kind of attack, as an attacker has physical access to the device.
+Their power consumption is also fairly low in noise, as they lack any kind of parallelism.
+Additionally, many use-cases for embedded devices include some cryptographic operation on sent input without much validation, giving the attacker an easy and valuable target for her attack.
+\\
+\\
+An example attack would go like this:
+An attacker solders a resistor between the target processor and the ground of its power supply.
+She then measures the voltage difference between both ends with an oscilloscope (this voltage is directly proportional to the current flowing through the resistor).
+This gives her easy access to the power traces at a high resolution and for every clock cycle.
+
+After the setup, she submits a large number of different plaintexts to the target processor (\textasciitilde 1000 is a good starting point), collecting the power traces.
+She then starts attacking the secret key byte by byte (attacking the key byte by byte drastically reduces the search space, keeping this attack feasible).
+For this she calculates the expected power consumption of an operation she \emph{knows} happens during the encryption, for each combination of plaintext and possible value of key byte.
+An example operation would be the first substitution box lookup in AES.
+
+Now that she has the actual power traces and the expected power consumption per guessed key byte, she can calculate the correlation between the two.
+This will give her the most probable value for the current key byte, as well as a confidence measure for it.
 
 \subsection{Power Analysis Defenses}
-aoeu
+There is no absolute defense against power analysis attacks.
+All defensive measures can do is increase the amount of effort (required number of traces, computation time for analysis, etc.) required for an attacker to perform a successful attack.
+
+Masking for example is an algorithm specific defensive measure that adds a third factor to the power consumption.
+The attacker then has to calculate her correlation for each possible key byte value and mask value.
+This increases the number of traces she needs to capture (to still provide the same confidence in her analysis) and the computation time of her analysis.
+
+Other defensive measures focus on creating a worse signal to noise ratio for the entire power consumption.
+One technique that has gained a lot of traction is \dual{}\cite{sokolov2005design}.
+It works by calculating the inverse of every intermediate result along with the actual result.
+This, in theory, keeps the power consumption constant and thus independent of the data.
+
+Unfortunately, \dual{} suffers from multiple engineering problems.
+The power required to set the value of a bit to 1 is dependent on the properties of the underlying transistor, which is subject to variances in manufacturing.\cite{razafindraibe2006formal}
+Minimal differences in clock timings between both paths can also reduce the security of \dual{}\cite{baddam2008path}.
+\dual{} also requires significantly larger cuitry, doubling the required size or more\cite{baddam2008path}.
+
+Even with these caveats, \dual{} has the major advantage that once it is applied to the circuitry, \emph{any} code can be run on it without modifications, while still benefitting from the incresed robustness.
 
 \subsection{\llvm{}}
 \label{llvm}
-aoeu
+The \llvm{} compiler infrastructure project\cite{lattner2010llvm} contains a number of subprojects.
+For my thesis the \lc{} libraries are the only part that is relevant.
+They contain a source and target independent compiler, which can be extended using multiple front- and backends.
+This makes \llvm{} the most versatile compiler available.
+
+At the heart of \lc{} is a number of optimization passes.
+These passes take \ir{} as input and provide \ir{} as output.
+This allows easy addition and reordering of compiler passes, making it perfect for my thesis.
+
+\llvm{} also has Clang as a frontend, making it an industry-grade C and C++ compiler, which keeps my project from being unusable due to some obscure toolchain.
 
 \subsection{Static Single Assignment Form}
 \label{ssa}
-aoeu
+In order to understand \ir{} we first need to understand the basics of static single assignment form (SSA).
+The basic premise of SSA is simple: every value assignment is stored in a new variable.
+Analysis of variable usage, register requirements (liveness), dead code, etc. is thus greatly simplified.
+
+Some notations for SSA annotate the variable names with indices to make them unique.
+\ir{} completely forgoes the names of variables, instead using just numbers, preceded by a \%.
 
 \subsection{\llvm{} Intermediate Representation}
 \label{ir}
-aoeu
+\ir{} is best described as typed assembly written in SSA.
+The instructions provided by \ir{} are very similar to RISC assembly.
+\ir{} uses SSA variables, which have types associated with them, based on their assignment.
+This allows typechecking during every step of the compiler, especially between optimization passes.
+
+\ir{} also explicitly defines functions with a prototype, complete with typed arguments and return type.
 
 \subsection{\llvm{} C++ API}
 \label{api}
-aoeu
+\llvm{} provides a C++ API for extending the compiler.
+This API exposes all libraries that \llvm{} itself uses, giving the programmer full access to all capabilities.
+For my thesis I mainly used the code inspection and generation utilities, going through the generated \ir{} code and balancing it, in an optimization pass.
+
+The pass can then be compiled into a library (see \Cref{buildpass}), which is loaded as an \llvm{} plugin during the compilation process.
 
 \subsection{\qemu{}}
-aoeu
+\label{qemu}
+\qemu{} is a generic and open source machine emulator and virtualizer.\cite{bellard2005qemu}
+While it can be used as a full fledged virtualization environment and sandbox, it can also emulate different processor architectures for programs without first emulating an OS.
+This process is called bare-metal emulation, and is used for my thesis.
+
+\qemu{} is also open source, allowing for ``easy'' modification and addition of my evaluation code.
+Easy is a relative term here, as its size, the complexity of its build process, and its relative lack of documentation make this still a hard problem to tackle.
 
 \subsubsection{Memory Layout of \qemu{} Kernels}
 \label{memory}
-aoeu
+Even with bare-metal emulation, \qemu{} still takes its input as a kernel (same term as in Linux kernel).
+Due to this, it starts execution at addres \hex{1000}, as everything before that address is usually reserved for interrupt handling.
+This requires some additional setup in my build process.
 
-\subsection{GNU Cross Tools}
-aoeu
-
-\subsection{AES}
-aoeu
-
-\subsection{RC4}
-aoeu
+\subsection{AES and RC4}
+AES\cite{daemen2013design} and RC4\cite{rc4} are the two evaluation programs for my compiler pass.
+I chose RC4 because it is very simple and used to be the industry standard, and AES because it is the current industry standard for symmetric encryption.
+Both fit the main usecases of embedded devices, and are thus reasonable choices for evaluating the robustness of my thesis project.

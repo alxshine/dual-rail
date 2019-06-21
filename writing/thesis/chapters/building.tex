@@ -1,12 +1,13 @@
 
-\subsection{Build Processes}
+\section{Build Processes}
 Because my thesis project modifies the behaviour of the actual compiler and I thus need to control the individual steps of the compilation process, building the test code is a lot more involved than would be for simple cross-compilation.
 Building the pass itself also requires some additional configuration as it needs \llvm{} resources during compilation and it needs to be compatible to my build of the \llvm{} toolchain.
 
 The following sections describe the build setup for the pass and the test code.
 They also explain why the additional steps and configurations are necessary, and include code where it benefits understanding.
 
-\subsubsection{Building the Compiler Pass}
+\subsection{Building the Compiler Pass}
+\label{buildpass}
 The compiler pass is built using CMake as that makes loading the required parts of \llvm{} very easy.
 \Cref{lst:cmakelists} shows the \emph{CMakeLists.txt} for my balancing pass.
 The code is based on the template repository provided in \cite{sampson2015llvm}.
@@ -18,7 +19,7 @@ All these locations are needed to build my pass.
 The pass itself is then built as a \emph{MODULE} library, which tells CMake to build a shared library (\emph{.so} file) that can be dynamically loaded at runtime by the optimizer.
 As the pass is loaded by the optimizer, which is usually built without run-time type information (RTTI), the pass needs to be built without RTTI as well.
 
-\subsubsection{Building the Test Code}
+\subsection{Building the Test Code}
 As discussed in \Cref{llvm} the \llvm{} compilation process can be split into multiple steps.
 I use this feature multiple times in the build process of my test code.
 The output of the build process for the RC4 code is shown in \Cref{lst:makefile-output}.
