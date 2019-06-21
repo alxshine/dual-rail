@@ -13,7 +13,8 @@ A comparatively low clock rate and power traces that are low in noise due to the
 
 As performing cryptographic operations is \emph{exactly} the use case of many embedded devices (SmartCards etc.) defensese against \poweranalysis{} have been amply explored.
 However, the most commonly used defenses are either algorithm specific, like masking, or require significant changes to the hardware, like \dual{}.
-\dual{} is applicable to any code as it computes the inverse of every intermediate value, along with the values itself, to ensure the power consumption is always constant.
+\dual{} is the only defensive measure that is algorithm independent.
+It computes the inverse of every intermediate value, along with the values itself, to try and keep the power consumption constant and thus independent of processed data.
 \\
 \\
 In my thesis I explore the possibilities of implementing \dual{} in software.
@@ -21,5 +22,5 @@ I simulate the computation of the inverse by keeping the inverse of an 8bit valu
 By doing so I drastically reduce the variance of \hammingw{}s during execution, and thus make the program more robust to power analysis.
 While this requires making significant changes to the code, all of these changes are made automatically in the compiler, and the hardening is thus applicable to \emph{any} code that is written for an 8bit architecture.
 
-By providing a proof of concept with evaluation I hope to open a new perspective on this problem, providing a solution for cases where execution time is not of the essence, but circuit space is limited.
+By providing a proof of concept and an evaluation thereof I hope to open a new perspective on defending against side channel attacks, providing a solution for cases where execution time is not of the essence, but circuit space is limited.
 For these cases my thesis can provide a way of hardening the execution without any security knowledge of the programmer at all.
