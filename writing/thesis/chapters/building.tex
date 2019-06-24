@@ -20,6 +20,7 @@ The pass itself is then built as a \emph{MODULE} library, which tells CMake to b
 As the pass is loaded by the optimizer, which is usually built without run-time type information (RTTI), the pass needs to be built without RTTI as well.
 
 \subsection{Building the Test Code}
+\label{buildtest}
 As discussed in \Cref{llvm} the \llvm{} compilation process can be split into multiple steps.
 I use this feature multiple times in the build process of my test code.
 The output of the build process for the RC4 code is shown in \Cref{lst:makefile-output}.

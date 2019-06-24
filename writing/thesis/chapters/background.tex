@@ -1,13 +1,13 @@
 \section{Background}
 \label{background}
-Finishing my thesis project required knowledge from many different areas and projects.
-The contents of the Information Security I and II, as well as from the Compiler Construction lectures.
-This section will give a brief introduction to the relevant topics of those lectures.
+Finishing my thesis project required knowledge from many different areas and courses.
+I needed the contents of Information Security I and II, as well as those of Compiler Construction and Advanced C++ Programming.
+This section will give a brief introduction to the relevant topics from those courses.
 
 \subsection{Power Analysis Attacks}
 In most cases the power consumption during execution is data-dependent.
-Setting a bit to 1 requires more power than setting it to 0.
-While this difference is very hard to observe in real time, it is easy to detect using statistical analysis of the power consumptions of multiple executions.
+Setting a bit to 1 requires more power than setting it to 0, and power consumption is thus directly linked to the \hammingw{} of processed data.
+While this connection is very hard to observe in real time, it is easy to detect using statistical analysis of the power consumptions of multiple executions.
 For easier analysis, the power consumption is quantized and stored in numerical format as a so-called power trace.
 
 Embedded devices are often exposed to this kind of attack, as an attacker has physical access to the device.
@@ -20,20 +20,19 @@ An attacker solders a resistor between the target processor and the ground of it
 She then measures the voltage difference between both ends with an oscilloscope (this voltage is directly proportional to the current flowing through the resistor).
 This gives her easy access to the power traces at a high resolution and for every clock cycle.
 
-After the setup, she submits a large number of different plaintexts to the target processor (\textasciitilde 1000 is a good starting point), collecting the power traces.
-She then starts attacking the secret key byte by byte (attacking the key byte by byte drastically reduces the search space, keeping this attack feasible).
-For this she calculates the expected power consumption of an operation she \emph{knows} happens during the encryption, for each combination of plaintext and possible value of key byte.
-An example operation would be the first substitution box lookup in AES.
-
-Now that she has the actual power traces and the expected power consumption per guessed key byte, she can calculate the correlation between the two.
-This will give her the most probable value for the current key byte, as well as a confidence measure for it.
+After the setup, she submits a large number of different plaintexts to the target (\textasciitilde 1000 is a good starting point), collecting the power traces.
+She then starts attacking the secret key byte by byte (attacking individual bytes drastically reduces the search space, keeping this attack feasible).
+Because she knows the plaintexts, she can calculate the expected power consumption up until a certain point of the cryptographic operation.
+She can then calculate the correlation between expected and actual power consumptions, giving her the probabilities for the key byte guesses.
+If everything goes correctly, the correct key byte will have the highest probabality.
+By repeating this process for every byte, the attacker will eventually recover the entire secret key.
 
 \subsection{Power Analysis Defenses}
 There is no absolute defense against power analysis attacks.
-All defensive measures can do is increase the amount of effort (required number of traces, computation time for analysis, etc.) required for an attacker to perform a successful attack.
+All defensive measures can do is increase the amount of effort (required number of traces, computation time for analysis, etc.) an attacker requires for a successful attack.
 
 Masking for example is an algorithm specific defensive measure that adds a third factor to the power consumption.
-The attacker then has to calculate her correlation for each possible key byte value and mask value.
+The attacker then has to calculate her correlation for each possible combination of key byte and mask value.
 This increases the number of traces she needs to capture (to still provide the same confidence in her analysis) and the computation time of her analysis.
 
 Other defensive measures focus on creating a worse signal to noise ratio for the entire power consumption.
@@ -42,18 +41,55 @@ It works by calculating the inverse of every intermediate result along with the 
 This, in theory, keeps the power consumption constant and thus independent of the data.
 
 Unfortunately, \dual{} suffers from multiple engineering problems.
-The power required to set the value of a bit to 1 is dependent on the properties of the underlying transistor, which is subject to variances in manufacturing.\cite{razafindraibe2006formal}
+The power required to set the value of a bit to 1 is dependent on properties of the underlying transistors, which are subject to variances in manufacturing.\cite{razafindraibe2006formal}
 Minimal differences in clock timings between both paths can also reduce the security of \dual{}\cite{baddam2008path}.
-\dual{} also requires significantly larger cuitry, doubling the required size or more\cite{baddam2008path}.
+Storing the inverse also requires significantly larger circuitry, doubling the circuit size or more\cite{baddam2008path}.
 
-Even with these caveats, \dual{} has the major advantage that once it is applied to the circuitry, \emph{any} code can be run on it without modifications, while still benefitting from the incresed robustness.
+Even with these caveats, \dual{} has the major advantage that once it is applied, \emph{any} code can be run without modifications while still benefitting from the incresed robustness.
 
 \subsection{\llvm{}}
 \label{llvm}
-The \llvm{} compiler infrastructure project\cite{lattner2010llvm} contains a number of subprojects.
-For my thesis the \lc{} libraries are the only part that is relevant.
+The \llvm{} compiler infrastructure project\cite{lattner2010llvm} contains a number of subprojects, but for my thesis the \lc{} libraries are the only part that is relevant.
 They contain a source and target independent compiler, which can be extended using multiple front- and backends.
 This makes \llvm{} the most versatile compiler available.
+\Cref{fig:llvm} shows a sketch of the general architecture of \llvm{}.
+
+\begin{figure}[h]
+  \centering
+  \begin{tikzpicture}
+    \node[draw, minimum width=1.3cm, minimum height=0.6cm] at (-2.5,1.5) (C) {C};
+    \node[draw, minimum width=1.3cm, minimum height=0.6cm] at (-2.5,0.5) (C++) {C++};
+    \node[draw, minimum width=1.3cm, minimum height=0.6cm] at (-2.5, -0.5) (Haskell) {Haskell};
+    \node[draw, minimum width=1.3cm, minimum height=0.6cm] at (-2.5, -1.5) (otherl) {...};
+    \node[draw] at (-0.75, 0) (irl) {IR};
+    
+    \node[draw, label=Optimization Passes, minimum width=4cm, minimum height=1.3cm] at (2,0) (optimization) {};
+    \node[draw, minimum size=0.5cm] at (0.6,0) {};
+    \node[draw, minimum size=0.5cm] at (1.2,0) {};
+    \node[draw, minimum size=0.5cm] at (1.8,0) {};
+    \node[draw, minimum size=0.5cm] at (2.4,0) {};
+    \node at (3.0, 0) {...};
+
+    \node[draw] at (4.75, 0) (irr) {IR};
+    \node[draw, minimum width=1.3cm, minimum height=0.6cm] at (6.5,1) (x86) {x86};
+    \node[draw, minimum width=1.3cm, minimum height=0.6cm] at (6.5,0) (arm) {ARM};
+    \node[draw, minimum width=1.3cm, minimum height=0.6cm] at (6.5,-1) (otherr) {...};
+
+    \draw[->] (C) -- (irl);
+    \draw[->] (C++) -- (irl);
+    \draw[->] (Haskell) -- (irl);
+    \draw[->] (otherl) -- (irl);
+
+    \draw[->] (irl) -- (optimization);
+    \draw[->] (optimization) -- (irr);
+
+    \draw[->] (irr) -- (x86);
+    \draw[->] (irr) -- (arm);
+    \draw[->] (irr) -- (otherr);
+  \end{tikzpicture}
+  \caption{The general architecture of the \llvm{} compiler}
+  \label{fig:llvm}
+\end{figure}
 
 At the heart of \lc{} is a number of optimization passes.
 These passes take \ir{} as input and provide \ir{} as output.
@@ -61,28 +97,28 @@ This allows easy addition and reordering of compiler passes, making it perfect f
 
 \llvm{} also has Clang as a frontend, making it an industry-grade C and C++ compiler, which keeps my project from being unusable due to some obscure toolchain.
 
-\subsection{Static Single Assignment Form}
-\label{ssa}
-In order to understand \ir{} we first need to understand the basics of static single assignment form (SSA).
-The basic premise of SSA is simple: every value assignment is stored in a new variable.
-Analysis of variable usage, register requirements (liveness), dead code, etc. is thus greatly simplified.
+%% \subsection{Static Single Assignment Form}
+%% \label{ssa}
+%% In order to understand \ir{} we first need to understand the basics of static single assignment form (SSA).
+%% The basic premise of SSA is simple: every value assignment is stored in a new variable.
+%% Analysis of variable usage, register requirements (liveness), dead code, etc. is thus greatly simplified.
 
-Some notations for SSA annotate the variable names with indices to make them unique.
-\ir{} completely forgoes the names of variables, instead using just numbers, preceded by a \%.
+%% Some notations for SSA annotate the variable names with indices to make them unique.
+%% \ir{} completely forgoes the names of variables, instead using just numbers, preceded by a \%.
 
-\subsection{\llvm{} Intermediate Representation}
-\label{ir}
-\ir{} is best described as typed assembly written in SSA.
-The instructions provided by \ir{} are very similar to RISC assembly.
-\ir{} uses SSA variables, which have types associated with them, based on their assignment.
-This allows typechecking during every step of the compiler, especially between optimization passes.
+%% \subsection{\llvm{} Intermediate Representation}
+%% \label{ir}
+%% \ir{} is best described as typed assembly written in SSA.
+%% The instructions provided by \ir{} are very similar to RISC assembly.
+%% \ir{} uses SSA variables, which have types associated with them, based on their assignment.
+%% This allows typechecking during every step of the compiler, especially between optimization passes.
 
-\ir{} also explicitly defines functions with a prototype, complete with typed arguments and return type.
+%% \ir{} also explicitly defines functions with a prototype, complete with typed arguments and return type.
 
 \subsection{\llvm{} C++ API}
 \label{api}
 \llvm{} provides a C++ API for extending the compiler.
-This API exposes all libraries that \llvm{} itself uses, giving the programmer full access to all capabilities.
+This API exposes all functions that \llvm{} itself uses, giving the programmer full access to all capabilities.
 For my thesis I mainly used the code inspection and generation utilities, going through the generated \ir{} code and balancing it, in an optimization pass.
 
 The pass can then be compiled into a library (see \Cref{buildpass}), which is loaded as an \llvm{} plugin during the compilation process.
@@ -98,9 +134,9 @@ Easy is a relative term here, as its size, the complexity of its build process, 
 
 \subsubsection{Memory Layout of \qemu{} Kernels}
 \label{memory}
-Even with bare-metal emulation, \qemu{} still takes its input as a kernel (same term as in Linux kernel).
+Even with bare-metal emulation, \qemu{} still takes its input as a kernel.
 Due to this, it starts execution at addres \hex{1000}, as everything before that address is usually reserved for interrupt handling.
-This requires some additional setup in my build process.
+This requires some additional setup in my build process (see \Cref{buildtest}).
 
 \subsection{AES and RC4}
 AES\cite{daemen2013design} and RC4\cite{rc4} are the two evaluation programs for my compiler pass.
