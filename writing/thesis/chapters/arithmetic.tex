@@ -1,7 +1,7 @@
 \section{Arithmetic}
 \label{arithmetic}
-The first step in finding a balanced arithmetic was finding a scheme for the balancing of the individual values.
-While the general shape of the scheme was pretty much clear from the start, the location of $x$ and $\bar{x}$ emerged during my work on the balanced operation.
+The first step in finding a balanced arithmetic was finding a balancing scheme for individual values.
+While the general shape of the scheme was pretty much clear from the start, the location of $x$ and $\bar{x}$ emerged during my work on the balanced operations.
 \Cref{fig:schemes} shows the two schemes that are used in my project.
 
 \begin{figure}[h]
@@ -23,34 +23,36 @@ While the general shape of the scheme was pretty much clear from the start, the 
 
 In my theoretical work I found balanced operations for both schemes, but in the end decided to use Scheme 1 because it exhibits nicer behaviour for shifts, especially rotations.
 Both are worth mentioning however, because many of my operations will result in values formatted in Scheme 2 and require explicit transformation.
-By having explicit ``names'' for both schemes and finding standardized transformations in both directions I could simplify the process of finding the balanced arithmetic.
+By finding standardized transformations in both directions I could reuse them in the rest of my arithmetic.
 
-The largest caveat of finding a balanced arithmetic was that $\neg{x \circ y}$ is not $\neg{x} \circ \neg{y}$ ($\circ$ here denotes any operator).
-As the ALU cannot execute two different operations on parts of the same register at the same time, this means that there \emph{must} be imbalanced temporary values during execution.
+The biggest problem of finding a balanced arithmetic was that $\neg{x \circ y}$ is not $\neg{x} \circ \neg{y}$ ($\circ$ here denotes any operator).
+As the ALU cannot execute two different operations on parts of the same register at the same time, there \emph{must} be imbalanced temporary values during execution.
 My goal then was to limit the number of these imbalanced values.
 
 \subsection{Finding Balanced Operations}
 \label{operations}
-After fixing the balancing scheme I started working on finding balanced variants for the binary operations in \ir{}.
-Unfortunately most operations do not preserve balancedness over all intermediate steps.
-They do however decrease the signal-to-noise ration for an attacker.
+After fixing the balancing scheme I started working on finding balanced variants for \ir{}'s binary operators.
+As stated above, most operations do not preserve balancedness over all intermediate steps.
+They do, however, decrease the signal-to-noise ration for an attacker.
 A more detailed analysis can be found in \Cref{balance-eval}.
 
-\subsubsection{Scheme 1 to Scheme 2}
-For better reusability I wrote down the transformations between the schemes once, and then referenced this transformation.
-I thought this a better solution than implicitly including these transformations in multiple operations.
+The notation for the rest of this section is the following:
+A single line denotes an intermediate 32bit value, with the individual bytes split by $\bsep{}$.
+Notes to the right of $|$ explain how the value in the current line was derived.
 
+\subsubsection{Scheme 1 to Scheme 2}
 The transformation from Scheme 1 to Scheme 2 looks as follows:
 \begin{align*}
   \binp{1}{0}{\neg{x}}{0}{x}\\
-  \btrans{2}{\neg{x}}{\neg{x}}{x}{x}{\%1 << 8}\\
+  \btrans{2}{\neg{x}}{\neg{x}}{x}{x}{\%1 \blsl 8}\\
   \btrans{3}{\neg{x}}{0}{0}{x}{\%2 \band \hex{ff0000ff}}
 \end{align*}
 
+LSL here stands for logical shift left.
+
 \subsubsection{Scheme 2 to Scheme 1}
-The other direction works very similar to the first, it is shown in \Cref{lst:s21}.
-Note that ROR is the ARM assembly instruction for rotational right shift, i.e. the values shifted out on the right are shifted back in on the left.
-The transformation looks as follows:
+The other direction works very similar to the first, and is shown below.
+Note that ROR stands for rotational right shift, i.e. the values shifted out on the right are shifted back in on the left.
 \begin{align*}
   \binp{1}{\neg{x}}{0}{0}{x}\\
   \btrans{2}{\hex{ff}}{\neg{x}}{0}{x}{\%1 \borr (\%1 \bror 24)}\\
@@ -58,37 +60,33 @@ The transformation looks as follows:
 \end{align*}
 
 \subsubsection{ORR}
-Before finding a balanced variant of binary or, I needed to find an expression for the inverse of the result.
-For this I utilized DeMorgan's law $\neg{x \lor y} = \neg{x} \land \neg{y}$.
+Before finding a balanced variant of bitwise OR, I needed to find an expression for the inverse of the result.
+For this I utilized DeMorgan's law: $\neg{x \lor y} = \neg{x} \land \neg{y}$.
 With this equality ORR looks as follows:
 \begin{align*}
   \binp{1}{0}{\neg{x}}{0}{x}\\
   \binp{2}{0}{\neg{y}}{0}{y}\\
   \btrans{3}{0}{\neg{x} \borr \neg{y}}{0}{x \borr y}{\%1 \borr \%2}\\
   \btrans{4}{0}{\neg{x} \band \neg{y}}{0}{x \band y}{\%1 \band \%2}\\
-  \btrans{5}{\neg{x} \band \neg{y}}{\neg{x} \borr \neg{y}}{x \band y}{x \borr y}{\%3 \borr (\%4 << 8)}\\
+  \btrans{5}{\neg{x} \band \neg{y}}{\neg{x} \borr \neg{y}}{x \band y}{x \borr y}{\%3 \borr (\%4 \blsl 8)}\\
   \btrans{6}{\neg{x \borr y}}{0}{0}{x \borr y}{\%5 \band \hex{ff0000ff}}\\
   \btrans{7}{0}{\neg{x \borr y}}{0}{x \borr y}{\trans21(\%6)}
 \end{align*}
 
 \subsubsection{AND}
-As $\neg{x \land y} = \neg{x} \lor \neg{y}$ AND works almost the same as ORR, but uses different parts of the intermediate results.
+As $\neg{x \land y} = \neg{x} \lor \neg{y}$, AND works almost the same as ORR, but uses different parts of the intermediate results.
 
 \subsubsection{XOR}
 XOR is at its base a combination of AND and ORR: $x \oplus y = (\neg{x} \land y) \lor (x \land \neg{y})$.
-As both balanced ORR and balanced AND have the same imbalanced intermediate values it is better to balance XOR from scratch instead of compositioning it.
-The inverse of the result can be found through repeated application of DeMorgan's law and simplification.
-I will skip the details of this simple transformation.
-The result is: $\neg{x \oplus y} = (x \land y) \lor (\neg{x} \land \neg{y})$.
+It is better to create a balanced XOR from scratch, instead of compositioning it from ORR and AND, because both ORR and AND have the same imbalanced intermediate values.
 
-My version of balanced XOR already includes some ARM specific optimizations.
-In ARM shift operations happen in a so-called barrel shifter, and can be applied to the right-hand argument of any other instruction.
-I utilize this property in my balanced version of XOR to save some unnecessary cycles.
+The inverse of the result can be found through repeated application of DeMorgan's law and simplification.
+I will skip the details of this simple transformation, and show only the result: $\neg{x \oplus y} = (x \land y) \lor (\neg{x} \land \neg{y})$.
 
 \begin{align*}
   \binp{1}{0}{\neg{x}}{0}{x}\\
   \binp{2}{0}{\neg{y}}{0}{y}\\
-  \btrans{3}{\neg{x}}{\neg{x}}{x}{x}{\%1 \borr (\%1 << 8)}\\
+  \btrans{3}{\neg{x}}{\neg{x}}{x}{x}{\%1 \borr (\%1 \blsl 8)}\\
   \btrans{4}{y}{\neg{y}}{\neg{y}}{y}{\%2 \borr (\%2 \bror 24)}\\
   \btrans{5}{\neg{x} \band y}{\neg{x} \band \neg{y}}{x \band \neg{y}}{x \band y}{\%3 \band \%4}\\
   \btrans{6}{x \bxor y}{\neg{x \bxor y}}{x \bxor y}{\neg{x \bxor y}}{\%5 \band (\%5 \bror 16)}\\
@@ -112,7 +110,7 @@ Using associativity of addition the balanced variant of ADD looks like the follo
   \%4 &= c && \bsep \neg{x+y} &&\bsep c' &&\bsep x+y &&\;|\ \%3 + \%2\\
   \%5 &= 0 && \bsep \neg{x+y} &&\bsep 0 &&\bsep x+y  &&\;|\ \%4 \land \hex{00ff00ff}
 \end{align*}
-Both $c$ and $c'$ denote possible carry bits that need to be filtered.
+Both $c$ and $c'$ denote possible carry values that need to be filtered.
 
 \subsubsection{SUB}
 For subtraction I again use the definition of 2s complement, giving me the following for the inverse result:
@@ -145,32 +143,31 @@ Which gives us the following balanced multiplication:
   \binp{2}{0}{\neg{y}}{0}{y}\\
   \btrans{3}{\neg{y}}{0}{0}{y}{\trans21(\%2)}\\
   \btrans{4}{c}{\neg{x}\cdot y}{c'}{x \cdot y}{\%1 \cdot \%3}\\
-  \btrans{5}{c''}{\neg{x \cdot y} +1}{c'}{x \cdot y}{\%4 + (\%2 << 16)}\\
+  \btrans{5}{c''}{\neg{x \cdot y} +1}{c'}{x \cdot y}{\%4 + (\%2 \blsl 16)}\\
   \btrans{6}{c'''}{\neg{x \cdot y}}{c'}{x \cdot y}{\%5 + \hex{00ff0000}}\\
   \btrans{7}{0}{\neg{x \cdot y}}{0}{x \cdot y}{\%6 \band \hex{00ff00ff}}
 \end{align*}
 
-Practical evaluation shows that computing multiplication via repeated balanced addition shows better balancing properties (see \Cref{balance-eval}) than the direct variant, so I used that for my thesis.
-
 \subsubsection{DIV and REM}
-Just like multiplication, I used repeated balanced subtraction for DIV (division) and REM (remainder) operations.
+I used repeated balanced subtraction for DIV and REM operations.
 The code was written in C and can be found in the git of my thesis\cite{git}.
+%TODO: include?
 
 \subsubsection{Shifting}
-When performing logical shifts, I need to ensure that the correct bits are pushed in.
-As 0s are shifted in for $x$ I have to shift in 1s for $\neg{x}$.
-This means that I have to ORR \hex{ff000000} for right shifts and \hex{0000ff00} for left shifts.
+While performing logical shifts, I need to ensure that the correct bits are pushed in.
+When 0s are shifted in for $x$ I have to shift in 1s for $\neg{x}$, and vice versa.
+This is done by ORRing the target value with \hex{ff000000} or \hex{0000ff00}, as needed.
 The shifting is performed normally and the result is then AND filtered with \hex{00ff00ff} to comply with Scheme 1 again.
 
 \subsection{Testing for Correctness}
 Before I started implementing my balancing pass I wanted to verify the correctness of my arithmetic.
 For this purpose I wrote python code to calcuate all operations step by step while saving the intermediate results.
-\Cref{lst:multiop} shows the intermediate steps for addition.
+\Cref{lst:multiop} shows the intermediate steps for multiplication.
 
 \begin{lstlisting}[language=python, caption=Step-by-step execution of balanced multiplication, label=lst:multiop]
 m = MultiStepOperation([
     Convert_1_2(1), #2
-    BinaryOperation(0,2, lambda x,y: (x*y) & 0xffffffff),#3
+    BinaryOperation(0,2, lambda x,y: (x*y) & 0xffffffff), #3 the AND is required due to python's arbitrary precision integers
     BinaryOperation(3,1, lambda x,y: x + (y << 16)), #4
     UnaryOperation(4, lambda x: x + 0x00ff0000), #5
     UnaryOperation(5, lambda x: x & 0x00ff00ff), #6
@@ -179,8 +176,26 @@ m = MultiStepOperation([
 
 The \emph{Unary-} and \emph{BinaryOperation} classes take the indices of the layers to operate on (0 and 1 are the inputs, all others are intermediate values), as well as the operation in form of a lambda.
 Executing the \emph{MultiStepOperation} will then execute all lambdas in order and store the intermediate results in \emph{numpy} arrays.
-After the execution there are $2^8 \cdot 2^8 = 2^{16}$ intermediate results for each operation (the inputs only have $2^8$ values each).
 Correctness is then tested by checking if all final results are equal to the output of a function to compare to ($x \cdot y$ in this case).
+
+%% \begin{lstlisting}[language=python, caption=Testing correctness of balanced operation, label=lst:correctness]
+%% def unbalanceScheme1(x):
+%%     return x & word_filter
+
+%% vUS1 = np.vectorize(unbalanceScheme1)
+
+
+%% def testCorrectness(self, equivalentUnbalancedFunction):
+%%     uResults = vUS1(self.results[-1])
+%%     incorrectResults = {}
+%%     for i in range(word_max):
+%%         for j in range(word_max):
+%%             r = equivalentUnbalancedFunction(i, j)
+%%             r &= word_filter
+%%             if r != uResults[i*word_max + j]:
+%%                 incorrectResults[(i,j)] = (r, uResults[i*word_max + j])
+%%     return incorrectResults
+%% \end{lstlisting}
 
 \subsection{Evaluating the Balancedness}
 \label{balance-eval}
@@ -195,5 +210,25 @@ I used these histograms to check if operations needed improvement, and if that w
   \label{fig:mult}
 \end{figure}
 
-\Cref{fig:mult} also shows that while directly computing multiplication is balanced for a lot of values, it still leaks information in almost every step.
-For this reason I implemented it as repeated addition in my pass, which performed a lot better in practice.
+While \Cref{fig:mult} shows imbalanced values in the intermediate steps, it performed faster and better than multiplication via repeated addition.
+\Cref{fig:mult-comparison} shows an evaluation of both variants, evaluated over the multiplications of all possible 8bit factors.
+
+\begin{figure}[hp]
+  \centering
+  \begin{subfigure}[b]{0.49\textwidth}
+    \input{tikz/mult-loop.tex}
+    \caption{Addition-loop multiplication}
+  \end{subfigure}
+  \begin{subfigure}[b]{0.49\textwidth}
+    \input{tikz/mult-direct.tex}
+    \caption{Direct multiplication}
+  \end{subfigure}
+
+  \begin{subfigure}[b]{\textwidth}
+    \input{tikz/rc4-comparison.tex}
+    \caption{Scaled Hamming weight histograms for multiplication variants}
+  \end{subfigure}
+  \caption{Hamming weight histograms for direct and addition-loop multiplication}
+  \label{fig:mult-comparison}
+\end{figure}
+

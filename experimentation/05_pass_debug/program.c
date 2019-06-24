@@ -45,17 +45,25 @@ char t = 3;
 
 void c_entry() {
   char buffer[20];
-  for (char i = 0; i < 10; i++) {
-    char temp = -i%-4;
-    /*if (i % 15 == 0)*/
-      /*string_copy("fizzbuzz", buffer, 8);*/
-    /*else if (i % 5 == 0)*/
-      /*string_copy("buzz", buffer, 4);*/
-    /*else if (i % 3 == 0)*/
-      /*string_copy("fizz", buffer, 4);*/
-    /*else*/
-    write_int(temp, buffer);
+  for(unsigned char i=0; i<255; i++){
+    for(unsigned char j=0; j<255; j++){
+      unsigned char test = i*j;
+      write_int(test, buffer);
 
-    print_uart0(buffer);
+      print_uart0(buffer);
+    }
   }
+  /*for (char i = 0; i < 10; i++) {*/
+    /*char temp = -i%-4;*/
+    /*[>if (i % 15 == 0)<]*/
+      /*[>string_copy("fizzbuzz", buffer, 8);<]*/
+    /*[>else if (i % 5 == 0)<]*/
+      /*[>string_copy("buzz", buffer, 4);<]*/
+    /*[>else if (i % 3 == 0)<]*/
+      /*[>string_copy("fizz", buffer, 4);<]*/
+    /*[>else<]*/
+    /*write_int(temp, buffer);*/
+
+    /*print_uart0(buffer);*/
+  /*}*/
 }

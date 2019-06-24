@@ -78,7 +78,7 @@ uint32_t balanced_negative(uint32_t val) {
 
 uint32_t balanced_mul(uint32_t lhs, uint32_t rhs) {
   /*
-   *v2 = balanced_1_2(rhs);
+   *uint32_t v2 = balanced_1_2(rhs);
    *uint32_t v3 = lhs*v2;
    *uint32_t v4 = v3 + (v2 << 16);
    *uint32_t v5 = v4 + 0x00ff0000;
