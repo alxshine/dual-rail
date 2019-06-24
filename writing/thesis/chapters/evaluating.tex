@@ -5,7 +5,7 @@ Instead it translates the machine code for the guest platform into machine code 
 A second executor thread then runs that code as it becomes available.
 
 This translation backend is called the Tiny Code Generator (TCG), which not only performs the translation but also some optimizations.
-Instrumenting \qemu{} for analysis is hard due to the fact that the TCG works through multiple layers of indirection, utilizing both helper functions and preprocessor macros, some of which are defined in different files depending on the host architecture (the specific definition file is chosen during compilation).
+Instrumenting \qemu{} for analysis is hard due to the fact that the TCG works through multiple layers of indirection, utilizing both helper functions and preprocessor macros, some of which are defined in different files depending on the host architecture (the specific definition file is chosen while building \qemu{}).
 As documentation is also sparse, finding a good place to put my evaluation code required a lot of time and effort.
 
 Even after understanding all the parts of \qemu{}'s way of emulating code, I was left with a problem.
