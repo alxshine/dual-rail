@@ -102,7 +102,6 @@ This does not handle manual arithmetic operations with pointers, but that is by 
 \subsection{Balancing Compares}
 In my main balancing scheme (\Cref{fig:scheme1}) the inverse occupies more significant bits than the value itself.
 This changes the direction of comparison operations, meaning $<$ becomes $>$, $>=$ becomes $<=$ etc.
-For $==$ nothing changes and the other comparisons are simply replaced.
 
 \subsection{Implementation Status}
 With all of these instructions balanced, all operations on local variables are fully balanced.
