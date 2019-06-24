@@ -1,7 +1,7 @@
 \section{Build Processes}
 \label{build}
-Because my thesis project modifies the behaviour of the actual compiler and I thus need to control the individual steps of the compilation process, building the test code is a lot more involved than would be for simple cross-compilation.
-Building the pass itself also requires some additional configuration as it needs \llvm{} resources during compilation and it needs to be compatible to my build of the \llvm{} toolchain.
+Because my thesis project modifies the behaviour of the actual compiler and I thus need to control the individual steps of the compilation process, building the test code is a lot more involved than it would be for normal cross-compilation.
+Building the pass itself also requires some additional configuration as it needs \llvm{} resources during compilation and it needs to be compatible to my version of the \llvm{} toolchain.
 
 The following sections describe the build setup for the pass and the test code.
 They also explain why the additional steps and configurations are necessary, and include code where it benefits understanding.
@@ -15,9 +15,9 @@ The code is based on the template repository provided in \cite{sampson2015llvm}.
 \lstinputlisting[caption=CMake configuration for my balancing pass, label=lst:cmakelists, language=CMake]{\project/passes/CMakeLists.txt}
 
 It uses the \emph{find\_package} function of CMake, which sets the locations for definitions, header files, and link directories.
-All these locations are needed to build my pass.
-The pass itself is then built as a \emph{MODULE} library, which tells CMake to build a shared library (\emph{.so} file) that can be dynamically loaded at runtime by the optimizer.
-As the pass is loaded by the optimizer, which is usually built without run-time type information (RTTI), the pass needs to be built without RTTI as well.
+All these are needed to build my pass.
+The pass itself is then built as a \emph{MODULE} library, which tells CMake to build a shared library that can be dynamically loaded at runtime by the optimizer.
+As the pass is loaded by the optimizer, which is built without run-time type information (RTTI), the pass needs to be built without RTTI as well.
 
 \subsection{Building the Test Code}
 \label{buildtest}
@@ -50,7 +50,7 @@ Then both \llvm{} files are merged using \emph{llvm-link}, which is simply a con
 This merger puts the functions declared in \emph{rtlib.c} in the same module as the target code, and makes them accessible to the compilation pass running on that module.
 
 Line 6 runs the \llvm{} optimizer on the module, loading my balancing pass, which is contained in \emph{libPasses.so}.
-The pass is run by issuing the flag assigned to it during registering (\emph{-insert} in this case).
+The pass is run by issuing the flag assigned to it (\emph{-insert} in this case).
 As discussed in \Cref{llvm} both the input and output of the optimizer are \ir{}.
 Again the \emph{-S} flag is used for human readable output.
 Line 7 shows output of the actual compiler pass.
@@ -81,13 +81,4 @@ SECTIONS
 }
 \end{lstlisting}
 
-The code in \emph{startup.s} then fixes the stack location and loads the entry function \emph{c\_entry} in my test code.
-Its contents are shown in \Cref{lst:startup}.
-
-\begin{lstlisting}[caption=Startup code in \emph{startup.s}, label=lst:startup]
-.global _Reset
-_Reset:
- LDR sp, =stack_top
- BL c_entry
- B .
-\end{lstlisting}
+The code in \emph{startup.s} then fixes the stack pointer and loads the entry function \emph{c\_entry} in my test code.
