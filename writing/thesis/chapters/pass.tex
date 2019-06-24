@@ -3,14 +3,18 @@
 The idea behind the balancing pass is very simple.
 \begin{enumerate}
 \item Change the type of all 8bit integers (\lli8) to 32bit integers (\lli32)
+\item Balance constant initializers
+\item Balance results of load operations if necessary
+\item Unbalance values before store if necessary
 \item Use balanced arithmetic operations instead of regular operators
 \item Fix comparison directions
 \item Fix type issues that arise in the instructions that have not been replaced
 \end{enumerate}
 
-In the following subsections I will describe the changes that my pass makes, ordered by the lifecycle of a variable in \ir{}.
-As I decided to focus on stack memory only, the operations and lifecycle are specific to local variables.
-%TODO: talk about the llvm c++ api
+The \llvm{} C++ API provides an iterator over all instructions in a function.
+My pass uses this to go over all instructions, see if something needs to be done, and if so, performs the transformation.
+This is usually done by generating a new \ir{} instruction and replacing references to the old instruction with it.
+\llvm{} provides some convenient helpers for such a process.
 
 \subsection{Cloning Functions}
 The first types used in a function are its return type and the types of its function parameters.
@@ -18,12 +22,12 @@ As these types cannot be changed for an existing function in \llvm{} I need to c
 
 Cloning functions is done in two parts.
 First the prototype for the new function is created.
-During creation the pass goes through all parameter and changes their types from \lli8 to \lli32.
+During this creation the pass goes through all parameter and changes their types from \lli8 to \lli32.
 The same is done for the return type.
-This gives me a skeleton for the balanced function, which is then inserted into the module, making it accessible in the future.
+This gives me a skeleton for the balanced function, which is inserted into the module, making it accessible in the future.
 
 The content of the original function is then copied using a helper in the \llvm{} API called \emph{CloneFunctionInto}.
-Without any additional parameters, the copied instructions will still reference function parameters of the original function, which are invalid in the new function.
+Without any additional parameters, the copied instructions will still reference function parameters of the original function, will result in broken code in the new function.
 To avoid this I use a so-called \emph{Value Mapper} to replace the old parameters with the new ones everywhere they are referenced.
 This change alone would cause type mismatches and generates code that does not compile, but the other steps of my pass fix these problems.
 
@@ -34,7 +38,7 @@ Note that even though the naming is similare to C's \emph{malloc} call, the memo
 
 The \emph{alloca} instruction takes the type to be allocated as parameter, and returns a pointer to that type.
 This means that for balancing all the pass has to do is replace the \emph{alloca} for \lli8 with one for \lli32.
-Allocations for local arrays work the same way, the pass just needs to extract the number of elements from the old allocation.
+Allocations for local arrays work the same way, the pass just needs to extract the dimensions from the old allocation.
 
 \subsection{Balancing Stores}
 It can happen that the target code tries to store a balanced variable (\lli32) into an unbalanced pointer (\lli8).
@@ -47,12 +51,12 @@ As only global memory is unbalanced, this does not happen when the program store
 Balancing loads is a mirror case of balancing stores.
 When loading from an unbalanced pointer into a balanced variable, the pass first loads into an unbalanced temporary and then balances the value before storing it in the local variable.
 
-\subsection{Balancing ZExts}
-\emph{ZExt} stands for zero extend, and it is an instruction used to promote integer types to larger bit sizes.
-While my pass is meant to balance code utilizes \emph{only 8bit integers}, I needed to balance \emph{ZExts} for compatibilty reasons during development and have left the balancing procedure in the code.
+%% \subsection{Balancing ZExts}
+%% \emph{ZExt} stands for zero extend, and it is an instruction used to promote integer types to larger bit sizes.
+%% While my pass is meant to balance code that uses \emph{only 8bit integers}, I needed to balance \emph{ZExts} for compatibilty reasons during development and have left the balancing procedure in the code.
 
-When zero extending from 8 to 32 bit, the pass replaces the instruction with a call to my balance function.
-When extending from 32 to 64 bit it unbalances the value first and then zero extends to the target type.
+%% When zero extending from 8 to 32 bit, the pass replaces the instruction with a call to my balance function.
+%% When extending from 32 to 64 bit it unbalances the value first and then zero extends to the target type.
 
 \subsection{Balancing Binary Operations}
 I implemented the balanced operations described in \Cref{operations} in C, each as an individual function.
@@ -61,8 +65,8 @@ As all binary operations are represented by the same instruction in the \llvm{} 
 Based on that it decides which function call to generate.
 
 For most operations the balanced operation is a direct implementation of the respective steps in \Cref{arithmetic}.
-Multiplication, division, and remainder however are implemented by repeated addition/subtraction.
-As an example, \Cref{lst:sdiv} shows the balanced function for the \texttt{sdiv} operation in \ir{}.
+Division, and remainder however are implemented by repeated addition/subtraction.
+As an example, \Cref{lst:sdiv} shows the balanced function for the \texttt{sdiv} (signed division) operation in \ir{}.
 
 \begin{lstlisting}[language=C, caption=Balanced sdiv, label=lst:sdiv]
 int balanced_sdiv(int lhs, int rhs) {
@@ -99,3 +103,15 @@ This does not handle manual arithmetic operations with pointers, but that is by 
 In my main balancing scheme (\Cref{fig:scheme1}) the inverse occupies more significant bits than the value itself.
 This changes the direction of comparison operations, meaning $<$ becomes $>$, $>=$ becomes $<=$ etc.
 For $==$ nothing changes and the other comparisons are simply replaced.
+
+\subsection{Implementation Status}
+With all of these instructions balanced, all operations on local variables are fully balanced.
+To relate this to my plan in \Cref{methodology}, please see \Cref{fig:diagram-implemented}.
+%extend?
+
+\begin{figure}[h]
+  \centering
+  \tikzbox{diagram-implemented.tex}
+  \caption{Implementation status of the balancing diagram}
+  \label{fig:diagram-implemented}
+\end{figure}
