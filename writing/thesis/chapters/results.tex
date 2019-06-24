@@ -48,7 +48,7 @@ The balanced version of both algorithms have been compiled with my balancing pas
 \subsection{Robustness}
 For both algorithm the balancig works very well.
 The \hammingw{}s are concentrated around 8, with other values being much less frequent.
-Note that for an attacker performing Power Analysis, all values with the same \hammingw{} look the same.
+Note that for an attacker performing Power Analysis, all values with the same \hammingw{} look identical.
 Thus, the less evenly distributed the \hammingw{}s of intermediate values are, the lower the confidence of her statistical attack.
 As such, a perfect scenario for the defender would be all \hammingw{}s having exactly the same value.
 
@@ -59,14 +59,13 @@ The balancing is not perfect, as some intermediate steps of my balanced operator
 Value unbalancing for array indexing is also a factor for the distribution of \hammingw{}s in the balanced code.
 
 \subsection{Performance}
-The number of operations is $77349$ for unbalanced RC4, and $584598$ for balanced RC4.
-That is an increase in the number of operations by a factor of $7.56$.
-
-For AES the unbalanced code has $83549$ operations, while the balanced code has $2873960$ operations.
-This is an increase by a factor of $34.4$.
-The performance impact for AES can be reduced to a factor of $28.51$ when directly computing multiplication, which drops the number of operations to $2382048$.
+The number of operations is \num{77349} for unbalanced RC4, and \num{401287} for balanced RC4.
+That is an increase in the number of operations by a factor of \num{5.19}.
+For AES the unbalanced code has \num{83549} operations, while the balanced code has \num{2396186} operations.
+This is an increase by a factor of \num{28.68}.
 
 For both algorithms the largest part of the performance impact is probably due to MUL, DIV and REM operations being calculated via repeated addition/subtraction.
-
 In general it is also important to note that when the full 32bit range is required for the program the performance drops by an additional factor of 4, because then every operation needs to be performed on the individual bytes of a 32bit word.
-This is less true for cryptographic algorithms, as they mostly work on individual bytes.
+This is less prevalent in cryptographic algorithms, as they mostly work on individual bytes.
+
+However, performance was explicitly not a goal for my thesis, and I decided to focus solely on robustness.
