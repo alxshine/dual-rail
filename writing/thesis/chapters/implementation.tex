@@ -64,7 +64,7 @@ In order to balance binary operations they need to be replaced by calls to these
 As all binary operations are represented by the same instruction in the \llvm{} API, the pass needs to examine the \emph{opcode} of the instruction.
 Based on that it decides which function call to generate.
 
-For most operations the balanced operation is a direct implementation of the respective steps in \Cref{arithmetic}.
+For most operations the balanced operation is a direct implementation of the respective steps in \Cref{theory}.
 Division, and remainder however are implemented by repeated addition/subtraction.
 As an example, \Cref{lst:sdiv} shows the balanced function for the \texttt{sdiv} (signed division) operation in \ir{}.
 
