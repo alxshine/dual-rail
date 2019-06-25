@@ -34,7 +34,7 @@ This change alone would cause type mismatches and generates code that does not c
 \subsection{Balancing Allocations}
 In order to declare and use local variables in \ir{} the memory for them first has to be allocated using the \emph{alloca} instruction.
 Even function parameters are not used directly but first copied into memory explicitly allocated for this function.
-Note that even though the naming is similare to C's \emph{malloc} call, the memory for \emph{alloca} is on the stack in this case.
+Note that even though the naming is similar to C's \emph{malloc} call, the memory for \emph{alloca} is on the stack in this case.
 
 The \emph{alloca} instruction takes the type to be allocated as parameter, and returns a pointer to that type.
 This means that for balancing all the pass has to do is replace the \emph{alloca} for \lli8 with one for \lli32.

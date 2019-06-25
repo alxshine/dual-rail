@@ -1,6 +1,6 @@
 \section{Build Processes}
 \label{build}
-Because my thesis project modifies the behaviour of the actual compiler and I thus need to control the individual steps of the compilation process, building the test code is a lot more involved than it would be for normal cross-compilation.
+Because my thesis project modifies the behavior of the actual compiler and I thus need to control the individual steps of the compilation process, building the test code is a lot more involved than it would be for normal cross-compilation.
 Building the pass itself also requires some additional configuration as it needs \llvm{} resources during compilation and it needs to be compatible to my version of the \llvm{} toolchain.
 
 The following sections describe the build setup for the pass and the test code.
@@ -43,7 +43,7 @@ Line 1 shows the compilation of the unbalanced version that I use for comparison
 This version is compiled using only the \crossgcc{} compiler.
 Lines 3 and 4 show the translation of the C code into LLVM code, using the Clang\cite{lattner2008llvm} C frontend for \llvm{}.
 \emph{Program.c} is the file containing the RC4 code and \emph{rtlib.c} contains the balanced binary operations.
-The \emph{-S} flag specifies output to be in human readabale \ir{} instead of bytecode, which allows for easier debugging.
+The \emph{-S} flag specifies output to be in human readable \ir{} instead of bytecode, which allows for easier debugging.
 The specified \emph{-target} platform and CPU (\emph{-mcpu}) are written into the preamble of the \ir{}, and carried on through the entire toolchain until the compilation into target code on line 8.
 
 Then both \llvm{} files are merged using \emph{llvm-link}, which is simply a concatenation of both files and some reordering.

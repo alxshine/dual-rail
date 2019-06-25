@@ -15,5 +15,5 @@ It also has no way of accessing these values as they might not even be computed 
 So short of either parsing the memory at the simulated program counter or writing a symbolic execution engine (essentially replacing \qemu{}) I did not know how to proceed.
 
 Luckily, \qemu{} offers emulation via the TCG Interpreter (TCI).
-The TCI does exactly what I was looking for in the first place, ie. emulating the guest processor in C.
+The TCI does exactly what I was looking for in the first place, i.e. emulating the guest processor in C.
 I then placed my instrumentation code in the operator functions of the TCI, generating a histogram of \hammingw{}s during the execution.

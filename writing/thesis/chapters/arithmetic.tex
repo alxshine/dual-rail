@@ -21,7 +21,7 @@ While the general shape of the scheme was pretty much clear from the start, the 
   \label{fig:schemes}
 \end{figure}
 
-In my theoretical work I found balanced operations for both schemes, but in the end decided to use Scheme 1 because it exhibits nicer behaviour for shifts, especially rotations.
+In my theoretical work I found balanced operations for both schemes, but in the end decided to use Scheme 1 because it exhibits nicer behavior for shifts, especially rotations.
 Both are worth mentioning however, because many of my operations will result in values formatted in Scheme 2 and require explicit transformation.
 By finding standardized transformations in both directions I could reuse them in the rest of my arithmetic.
 
@@ -161,7 +161,7 @@ The shifting is performed normally and the result is then AND filtered with \hex
 
 \subsection{Testing for Correctness}
 Before I started implementing my balancing pass I wanted to verify the correctness of my arithmetic.
-For this purpose I wrote python code to calcuate all operations step by step while saving the intermediate results.
+For this purpose I wrote python code to calculate all operations step by step while saving the intermediate results.
 \Cref{lst:multiop} shows the intermediate steps for multiplication.
 
 \begin{lstlisting}[language=python, caption=Step-by-step execution of balanced multiplication, label=lst:multiop]

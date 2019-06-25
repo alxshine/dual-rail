@@ -24,7 +24,7 @@ After the setup, she submits a large number of different plaintexts to the targe
 She then starts attacking the secret key byte by byte (attacking individual bytes drastically reduces the search space, keeping this attack feasible).
 Because she knows the plaintexts, she can calculate the expected power consumption up until a certain point of the cryptographic operation.
 She can then calculate the correlation between expected and actual power consumptions, giving her the probabilities for the key byte guesses.
-If everything goes correctly, the correct key byte will have the highest probabality.
+If everything goes correctly, the correct key byte will have the highest probability.
 By repeating this process for every byte, the attacker will eventually recover the entire secret key.
 
 \subsection{Power Analysis Defenses}
@@ -45,7 +45,7 @@ The power required to set the value of a bit to 1 is dependent on properties of 
 Minimal differences in clock timings between both paths can also reduce the security of \dual{}\cite{baddam2008path}.
 Storing the inverse also requires significantly larger circuitry, doubling the circuit size or more\cite{baddam2008path}.
 
-Even with these caveats, \dual{} has the major advantage that once it is applied, \emph{any} code can be run without modifications while still benefitting from the incresed robustness.
+Even with these caveats, \dual{} has the major advantage that once it is applied, \emph{any} code can be run without modifications while still benefiting from the increased robustness.
 
 \subsection{\llvm{}}
 \label{llvm}
@@ -135,10 +135,10 @@ Easy is a relative term here, as its size, the complexity of its build process, 
 \subsubsection{Memory Layout of \qemu{} Kernels}
 \label{memory}
 Even with bare-metal emulation, \qemu{} still takes its input as a kernel.
-Due to this, it starts execution at addres \hex{1000}, as everything before that address is usually reserved for interrupt handling.
+Due to this, it starts execution at address \hex{1000}, as everything before that address is usually reserved for interrupt handling.
 This requires some additional setup in my build process (see \Cref{buildtest}).
 
 \subsection{AES and RC4}
 AES\cite{daemen2013design} and RC4\cite{rc4} are the two evaluation programs for my compiler pass.
 I chose RC4 because it is very simple and used to be the industry standard, and AES because it is the current industry standard for symmetric encryption.
-Both fit the main usecases of embedded devices, and are thus reasonable choices for evaluating the robustness of my thesis project.
+Both fit the main use cases of embedded devices, and are thus reasonable choices for evaluating the robustness of my thesis project.
