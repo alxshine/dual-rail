@@ -1,33 +1,44 @@
 \section{Introduction}
-Shipping microcontrollers to consumers exposes them to a wide range of attacks on the actual hardware.
-One class of such attacks focuses on analyzing unintended information leakage from the microcontroller, the so-called \sidechannel{} attacks.
-If the processed data influences some observable metric, an attacker can measure that metric and then reason about the values of said data.
-The microcontroller can thus leak information, which is especially devastating if the information in question is a cryptographic secret.
+Unintended signal emissions are a major source of information leakage in modern processors.
+Especially cryptographic secrets are valuable targets for analyzing these so-called \sidechannel{}s.
+While the physical access required for \sidechannel{} attacks is often a hurdle, embedded devices are usually shipped to consumers, making them vulnerable to this type of attack.
 
-One such metric is power consumption.
+One such side-channel that is especially easy to measure is the power consumption.
 Setting a binary value in registers, main memory etc. consumes power directly related to the number of bits to be set to 1.
 By measuring the power consumption traces during execution an attacker can gain information about the \hammingw{} (number of 1s) of the processed data.
 If she knows which cryptographic operation is being performed and can control the input (both reasonable assumptions for embedded devices), she can infer the value of the cryptographic secret via statistical anlysis of the power traces.
 %% As microcontrollers rarely utilize instruction level parallelism these power traces have relatively little noise, making them especially susceptible to such an attack.
-A comparatively low clock rate and power traces that are low in noise due to a lack of parallelism make embedded platforms especially susceptible to such an attack.
+A comparatively low clock rate and power traces that are low in noise due to a lack of parallelism make embedded platforms especially susceptible to such a \poweranalysis{} attack.
 
-As performing cryptographic operations is \emph{exactly} the use case of many embedded devices, defenses against \poweranalysis{} have been amply explored.
+As performing cryptographic operations is \emph{exactly} the use case of many embedded devices (e.g. SmartCards, verifying OTA updates, etc.), defenses against \poweranalysis{} have been amply explored.
 However, the most commonly used defenses are either algorithm specific, like masking, or require significant changes to the hardware, like \dual{}.
-\dual{} is the only defensive measure that is algorithm independent.
-It computes the inverse of every intermediate value, along with the values itself, to try and keep the power consumption constant and thus independent of processed data.
+\dual{} is especially notable because it is algorithm independent.
+It computes the inverse of every intermediate value, along with the values itself.
+By balancing the value with its inverse \dual{} achieves constant \hammingw{}s, and thus a constant power consumption.
+This makes it in theory impossible for an attacker to gain information via the power consumption.
+
+Unfortunately this strategy suffers from multiple engineering problems, such as minute differences in clock timings between the regular and inverted path\cite{baddam2008path}, or variances in the production of transistors\cite{razafindraibe2006formal}.
+It also requires a significant increase in circuit size, doubling the required size or more\cite{baddam2008path}.
+
+Even with these caveats, \dual{} still has the benefit that \emph{any} code can be modified circuitry, without any modifications, while still experiencing increased robustness.
 \\
 \\
-In my thesis I explore the possibilities of implementing \dual{} in software.
-I simulate the computation of the inverse by storing 8bit values, along with their inverse, in a 32 bit register.
-This drastically reduces the variance of \hammingw{}s during execution, and thus make the program more robust to power analysis.
-While this requires making significant changes to the code, all of these changes are made automatically in the compiler, and the hardening is thus applicable to \emph{any} code that is written for an 8bit architecture.
+In my thesis I explore the possibilities of implementing a similar balancing in software.
+It works by only using part of the available word size for actual data, leaving the rest for balancing.
+Specifically, I store 8bit values, along with their balancing counterpart, in a 32bit register.
+This then means that the data has no influence on the power consumption anymore.
+I also propose an arithmetic on these balanced values, giving a balanced replacement for all integer operations required for a modern RISC instruction set.
+With this arithmetic and the balanced values, one can then execute \emph{any} program, while benefiting from a massive increase in robustness against \poweranalysis{} attacks.
 
-By providing a proof of concept and an evaluation thereof I hope to open a new perspective on defending against side channel attacks, providing a solution for cases where execution time is not of the essence, but circuit space is limited.
-For these cases my thesis can provide a way of hardening the execution without any security knowledge of the programmer at all.
+I also provide a plugin for the \llvm{} compiler that transforms code written for 8bit word-sizes into this balanced form.
+This proof-of-concept shows that it is possible to execute code using this balanced form.
+Additionally, it also shows that even such significant changes to the way code is executed can come at no extra cost to the programmer, and the job of generating secure code can at least in part be handed off to the compiler.
 
-The rest of this thesis is organized as follows:
-\Cref{background} provides an introduction to the projects and lecture topics relevant to my thesis.
-\Cref{methodology} explains the design goals for my thesis project, organized in three major parts: arithmetic, optimization pass, and evaluation.
-In \Cref{arithmetic,pass,build,evaluation} I explain the implementation of these parts, also giving an insight into the larger issues that arose during implementation.
-\Cref{results} shows and explains the results of my balancing pass, both for performance and for robustness.
-Finally, in \Cref{conclusion} I give a summary of work, discuss the results and their implications, and share my thoughts on possible directions for future work.
+Finally I provide an evaluation of my balanced form.
+By running code compiled with my plugin in the \qemu{} emulator I can examine the \hammingw{} of values during the execution, and compare them to regular unbalanced code.
+Evaluating in such a manner simulates an extremely powerful attacker that can examine the \hammingw{} of the result of every single operation.
+An increased robustness in such a scenario then indicates increased robustness for every real-world attacker.
+\\
+\\
+The rest of this thesis is split into these tree parts.
+%TODO: description of structure
