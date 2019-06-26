@@ -3,18 +3,17 @@ Unintended signal emissions are a major source of information leakage in modern 
 Especially cryptographic secrets are valuable targets for analyzing these so-called \sidechannel{}s.
 While the physical access required for \sidechannel{} attacks is often a hurdle, embedded devices are usually shipped to consumers, making them vulnerable to this type of attack.
 
-One such side-channel that is especially easy to measure is the power consumption.
+One such side-channel that is especially easy to measure is power consumption.
 Setting a binary value in registers, main memory etc. consumes power directly related to the number of bits to be set to 1.
 By measuring the power consumption traces during execution an attacker can gain information about the \hammingw{} (number of 1s) of the processed data.
-If she knows which cryptographic operation is being performed and can control the input (both reasonable assumptions for embedded devices), she can infer the value of the cryptographic secret via statistical anlysis of the power traces.
+If she knows which cryptographic operation is being performed and can control the input (both reasonable assumptions for embedded devices), she can infer the value of the cryptographic secret via statistical anlysis of the power traces.\cite{brier2004correlation}
 %% As microcontrollers rarely utilize instruction level parallelism these power traces have relatively little noise, making them especially susceptible to such an attack.
 A comparatively low clock rate and power traces that are low in noise due to a lack of parallelism make embedded platforms especially susceptible to such a \poweranalysis{} attack.
 
 As performing cryptographic operations is \emph{exactly} the use case of many embedded devices (e.g. SmartCards, verifying OTA updates, etc.), defenses against \poweranalysis{} have been amply explored.
-However, the most commonly used defenses are either algorithm specific, like masking, or require significant changes to the hardware, like \dual{}.
+However, the most commonly used defenses are either algorithm specific, like masking, or require significant changes to the hardware, like \dual{}\cite{sokolov2005design}.
 \dual{} is especially notable because it is algorithm independent.
-It computes the inverse of every intermediate value, along with the values itself.
-By balancing the value with its inverse \dual{} achieves constant \hammingw{}s, and thus a constant power consumption.
+By computing the inverse, along with the actual value, \dual{} \emph{balances} the number of 1s in intermediate values, and thus makes the power consumption constant.
 This makes it in theory impossible for an attacker to gain information via the power consumption.
 
 Unfortunately this strategy suffers from multiple engineering problems, such as minute differences in clock timings between the regular and inverted path\cite{baddam2008path}, or variances in the production of transistors\cite{razafindraibe2006formal}.

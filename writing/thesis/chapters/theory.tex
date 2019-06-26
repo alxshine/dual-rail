@@ -1,5 +1,7 @@
 \section{Theory}
 \label{theory}
+
+\subsection{Balancing Individual Values}
 The first step in finding a balanced arithmetic was finding a balancing scheme for individual values.
 While the general shape of the scheme was pretty much clear from the start, the location of $x$ and $\bar{x}$ emerged during my work on the balanced operations.
 \Cref{fig:schemes} shows the two schemes that are used in my project.
@@ -29,7 +31,7 @@ The biggest problem of finding a balanced arithmetic was that $\neg{x \circ y}$ 
 As the ALU cannot execute two different operations on parts of the same register at the same time, there \emph{must} be imbalanced temporary values during execution.
 My goal then was to limit the number of these imbalanced values.
 
-\subsection{Finding Balanced Operations}
+\subsection{Balancing Binary Operations}
 \label{operations}
 After fixing the balancing scheme I started working on finding balanced variants for \ir{}'s binary operators.
 As stated above, most operations do not preserve balancedness over all intermediate steps.
