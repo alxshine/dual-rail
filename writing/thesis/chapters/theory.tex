@@ -1,10 +1,22 @@
 \section{Theory}
 \label{theory}
+By performing \poweranalysis{} an attacker can gain information about the \hammingw{}s during execution.
+This means that as long as their \hammingw{}s are identical, values are indistinguishable by such an attacker.
+Having only perfectly balanced values then means that an attacker can gain no information via the power consumption, as all values look exactly the same.
+
+Unfortunately, the design of the ALU does not permit such a scenario.
+The goal then is to come as close to this ideal as possible, i.e. having a minimal amount of unbalanced values.
+Balancing individual values can be done perfectly, only the balanced versions of binary operators \emph{must} have imbalanced intermediate values.
+For my thesis I did not care too much about their optimality, focussing instead on their correctness.
+The derivation of my binary operators is already a proof of their correctness, and additionally I checked all possible combinations of 8bit values for incorrect results.
 
 \subsection{Balancing Individual Values}
-The first step in finding a balanced arithmetic was finding a balancing scheme for individual values.
-While the general shape of the scheme was pretty much clear from the start, the location of $x$ and $\bar{x}$ emerged during my work on the balanced operations.
-\Cref{fig:schemes} shows the two schemes that are used in my project.
+In resemblence of \dual{} itself, I balance the \hammingw{} by storing the inverse in the same register as the actual value.
+While this could be done while still keeping 16bit for actual data, using only 8bit gives me more space to store temporary values.
+This gives me more freedom to balance values during binary operations.
+With that fixed the only remaining decision is where in the register to put $x$ and $\neg{x}$.
+I wanted to have room between $x$ and $\neg{x}$ for shifts, so this left only 2 candidates (and their inverses) for what I call the \emph{balancing schemes}.
+\Cref{fig:schemes} shows the two schemes I chose for my project.
 
 \begin{figure}[h]
   \centering
@@ -23,26 +35,26 @@ While the general shape of the scheme was pretty much clear from the start, the 
   \label{fig:schemes}
 \end{figure}
 
-In my theoretical work I found balanced operations for both schemes, but in the end decided to use Scheme 1 because it exhibits nicer behavior for shifts, especially rotations.
+I found balanced operations for both schemes, but in the end decided to use Scheme 1 as a default because it exhibits nicer behavior for shifts, especially rotations.
 Both are worth mentioning however, because many of my operations will result in values formatted in Scheme 2 and require explicit transformation.
 By finding standardized transformations in both directions I could reuse them in the rest of my arithmetic.
 
+\subsection{Balancing Binary Operations}
+\label{operations}
 The biggest problem of finding a balanced arithmetic was that $\neg{x \circ y}$ is not $\neg{x} \circ \neg{y}$ ($\circ$ here denotes any operator).
 As the ALU cannot execute two different operations on parts of the same register at the same time, there \emph{must} be imbalanced temporary values during execution.
 My goal then was to limit the number of these imbalanced values.
 
-\subsection{Balancing Binary Operations}
-\label{operations}
-After fixing the balancing scheme I started working on finding balanced variants for \ir{}'s binary operators.
-As stated above, most operations do not preserve balancedness over all intermediate steps.
-They do, however, decrease the signal-to-noise ration for an attacker.
-A more detailed analysis can be found in \Cref{balance-eval}.
+For every operation I give the intermediate steps, with a single line denoting an intermediate value.
+The values are in the form
+\begin{align*}
+  \btrans{i}{x_1}{x_2}{x_3}{x_4}{\texttt{operation}}
+\end{align*}
+where $\%i$ denotes the ``name'' of the current intermediate, and $x_1$ through $x_4$ are the individual bytes of a register, with $x_1$ having the most significant, and $x_4$ the least significant bits.
+The \texttt{operation} denotes how the current value is obtained.
 
-The notation for the rest of this section is the following:
-A single line denotes an intermediate 32bit value, with the individual bytes split by $\bsep{}$.
-Notes to the right of $|$ explain how the value in the current line was derived.
 
-\subsubsection{Scheme 1 to Scheme 2}
+\subsubsection{Transforming Scheme 1 to Scheme 2}
 The transformation from Scheme 1 to Scheme 2 looks as follows:
 \begin{align*}
   \binp{1}{0}{\neg{x}}{0}{x}\\
@@ -52,7 +64,7 @@ The transformation from Scheme 1 to Scheme 2 looks as follows:
 
 LSL here stands for logical shift left.
 
-\subsubsection{Scheme 2 to Scheme 1}
+\subsubsection{Transforming Scheme 2 to Scheme 1}
 The other direction works very similar to the first, and is shown below.
 Note that ROR stands for rotational right shift, i.e. the values shifted out on the right are shifted back in on the left.
 \begin{align*}
@@ -162,9 +174,12 @@ This is done by ORRing the target value with \hex{ff000000} or \hex{0000ff00}, a
 The shifting is performed normally and the result is then AND filtered with \hex{00ff00ff} to comply with Scheme 1 again.
 
 \subsection{Testing for Correctness}
-Before I started implementing my balancing pass I wanted to verify the correctness of my arithmetic.
-For this purpose I wrote python code to calculate all operations step by step while saving the intermediate results.
-\Cref{lst:multiop} shows the intermediate steps for multiplication.
+While the individual steps for each binary operator are themselves a theoretical proof for their correctness, I still wanted to validate them.
+As there are only 256 possible 8bit values, I could easily brute-force every combination of them, and verify the correctness of the result.
+For this purpose I wrote python code that allows execution of intermediate steps.
+By specifying the individual steps with lambdas, and then constructing the entire balanced operation from unary and binary operations, I can execute the operation step by step.
+The intermediate results are then stored in numpy arrays, allowing me to check if the results are correct, and for which values the results are incorrect.
+As an example, \Cref{lst:multiop} shows the intermediate steps for multiplication.
 
 \begin{lstlisting}[language=python, caption=Step-by-step execution of balanced multiplication, label=lst:multiop]
 m = MultiStepOperation([
@@ -174,6 +189,9 @@ m = MultiStepOperation([
     UnaryOperation(4, lambda x: x + 0x00ff0000), #5
     UnaryOperation(5, lambda x: x & 0x00ff00ff), #6
 ])
+m.execute()
+incorrectResults = m.testCorrectness(lambda x,y: (x*y)&0xff)
+print("Number of incorrect results: {len(incorrectResults.keys())}")
 \end{lstlisting}
 
 The \emph{Unary-} and \emph{BinaryOperation} classes take the indices of the layers to operate on (0 and 1 are the inputs, all others are intermediate values), as well as the operation in form of a lambda.
