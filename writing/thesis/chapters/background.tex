@@ -1,181 +1,92 @@
-\section{Background}
-\label{background}
-Finishing my thesis project required knowledge from many different areas and courses.
-I needed the contents of Information Security I and II, as well as those of Compiler Construction and Advanced C++ Programming.
-This section will give a brief introduction to the relevant topics from those courses.
 
-\subsection{Power Analysis}
-In most cases the power consumption during execution is data-dependent.
-Setting a bit to 1 requires more power than setting it to 0.
-Power consumption is thus directly linked to the \hammingw{} of processed data.
-An attacker can then measure the power consumption and make inferences on the data being processed.
+%% \subsection{\llvm{}}
+%% \label{llvm}
+%% The \llvm{} compiler infrastructure project\cite{lattner2010llvm} contains a number of subprojects, but for my thesis the \lc{} libraries are the only part that is relevant.
+%% They contain a source and target independent compiler, which can be extended using multiple front- and backends.
+%% This makes \llvm{} the extremely versatile, and allows for easy extension.
+%% \Cref{fig:llvm} sketches the general architecture of \llvm{}.
 
-Performing \poweranalysis{} requires some setup:
-An attacker solders a resistor between the target processor and the ground of its power supply.
-She then measures the voltage difference between both ends with an oscilloscope (this voltage is directly proportional to the current flowing through the resistor).
-This gives her easy access to the power traces at a high resolution and for every clock cycle.
-
-With these power traces an attacker then has the choice of multiple attack forms of varying complexity.\cite{kocher1998introduction}\cite{brier2004correlation}
-The simplest form is \emph{Simple \poweranalysis{}} (SPA), and it involves directly examining the power consumption.
-As large control blocks can be identified, a data-dependent control flow can leak information this way.
-An example target would be RSA decryption being calculated via the square-and-multiply algorithm.
-The difference between the multiply and the square operation is directly observable from a single power trace.
-As the order of these operations is linked to the private key, identifying the control flow leaks the private key.
-\Cref{fig:spa} shows a trace for square-and-multiply in RSA decryption, including the leaked private key bits.
-
-\begin{figure}[h]
-  \centering
-  \includegraphics[width=\textwidth]{spa.png}
-  \caption{Simple Power Analysis on square-and-multiply RSA\cite{boehme2017netsec}}
-  \label{fig:spa}
-\end{figure}
-
-The control flow is often not enough to leak the entire secret, and it is very hard to gain information about the actual data from only SPA.
-For this a more complex variant of \poweranalysis{} can be used, namely \emph{Differential \poweranalysis{}} (DPA).
-DPA requires a large number of traces, with one factor for the power consumption known.
-For cryptographic operations this equates a \emph{chosen plaintext} attack scenario.
-
-DPA then attacks the individual bits of the key.
-The attacker considers two cases, one for each value of the current key bit.
-First she assumes the value of the current key bit is 0.
-She then chooses a bitwise operation (e.g. XOR of the plaintext with the key in the first round of AES), and splits the power traces into two sets, based on the value of the target bit in the expected result of this operation.
-Next she calculates the mean power consumption of both sets.
-As the value of the other bits, as well as other factors for the power consumption, are randomly distributed, calculating the mean will neutralize them.
-If her assumption was correct, the difference of both means will exhibit a spike at the time of the chosen operation.
-Either way, the value of the current key bit is revealed to her.
-
-\Cref{fig:dpa} shows a typical DPA result with the mean power consumptions of both sets, the difference between the two, and the difference with the Y axis magnified by a factor of 15.
-This analysis was performed on the output of the least significant bit after the first S-box substitution in AES.
-
-\begin{figure}[h]
-  \centering
-  \includegraphics[width=0.8\textwidth]{dpa.png}
-  \caption{Difference in means during DPA\cite{kocher2011introduction}}
-  \label{fig:dpa}
-\end{figure}
-
-Even more higher order information about the key can be found with \emph{Correlational \poweranalysis{}} (CPA).
-CPA is the most complex of these attacks, but also offers the best results.
-The attacker starts by making a list of candidate values for every byte of the key.
-Attacking individual bytes at a time, instead of the whole key, still keeps the required effort feasible.
-As she knows which algorithm she is attacking, she knows which operations will take place, and can calculate expected intermediate results based on her chosen plaintexts and key candidates.
-She can then calculate the expected power consumptions for these intermediate results.
-
-The attacker can now calculate the correlation between the expected power consumptions for every key byte candidate and the actual power consumption.
-The candidate with the highest correlation coefficient is then the most probable value for the current key byte.
-
-\subsection{Power Analysis Defenses}
-There is no absolute defense against power analysis attacks.
-All defensive measures can do is increase the amount of effort (required number of traces, computation time for analysis, etc.) an attacker requires for a successful attack.
-
-Masking for example is an algorithm specific defensive measure that adds a third factor to the power consumption.
-The attacker then has to calculate her correlation for each possible combination of key byte and mask value.
-This increases the number of traces she needs to capture (to still provide the same confidence in her analysis) and the computation time of her analysis.
-
-Other defensive measures focus on creating a worse signal to noise ratio for the entire power consumption.
-One technique that has gained a lot of traction is \dual{}\cite{sokolov2005design}.
-It works by calculating the inverse of every intermediate result along with the actual result.
-This, in theory, keeps the power consumption constant and thus independent of the data.
-
-Unfortunately, \dual{} suffers from multiple engineering problems.
-The power required to set the value of a bit to 1 is dependent on properties of the underlying transistors, which are subject to variances in manufacturing.\cite{razafindraibe2006formal}
-Minimal differences in clock timings between both paths can also reduce the security of \dual{}\cite{baddam2008path}.
-Storing the inverse also requires significantly larger circuitry, doubling the circuit size or more\cite{baddam2008path}.
-
-Even with these caveats, \dual{} has the major advantage that once it is applied, \emph{any} code can be run without modifications while still benefiting from the increased robustness.
-
-\subsection{\llvm{}}
-\label{llvm}
-The \llvm{} compiler infrastructure project\cite{lattner2010llvm} contains a number of subprojects, but for my thesis the \lc{} libraries are the only part that is relevant.
-They contain a source and target independent compiler, which can be extended using multiple front- and backends.
-This makes \llvm{} the most versatile compiler available.
-\Cref{fig:llvm} shows a sketch of the general architecture of \llvm{}.
-
-\begin{figure}[h]
-  \centering
-  \begin{tikzpicture}
-    \node[draw, minimum width=1.3cm, minimum height=0.6cm] at (-2.5,1.5) (C) {C};
-    \node[draw, minimum width=1.3cm, minimum height=0.6cm] at (-2.5,0.5) (C++) {C++};
-    \node[draw, minimum width=1.3cm, minimum height=0.6cm] at (-2.5, -0.5) (Haskell) {Haskell};
-    \node[draw, minimum width=1.3cm, minimum height=0.6cm] at (-2.5, -1.5) (otherl) {...};
-    \node[draw] at (-0.75, 0) (irl) {IR};
+%% \begin{figure}[h]
+%%   \centering
+%%   \begin{tikzpicture}
+%%     \node[draw, minimum width=1.3cm, minimum height=0.6cm] at (-2.5,1.5) (C) {C};
+%%     \node[draw, minimum width=1.3cm, minimum height=0.6cm] at (-2.5,0.5) (C++) {C++};
+%%     \node[draw, minimum width=1.3cm, minimum height=0.6cm] at (-2.5, -0.5) (Haskell) {Haskell};
+%%     \node[draw, minimum width=1.3cm, minimum height=0.6cm] at (-2.5, -1.5) (otherl) {...};
+%%     \node[draw] at (-0.75, 0) (irl) {IR};
     
-    \node[draw, label=Optimization Passes, minimum width=4cm, minimum height=1.3cm] at (2,0) (optimization) {};
-    \node[draw, minimum size=0.5cm] at (0.6,0) {};
-    \node[draw, minimum size=0.5cm] at (1.2,0) {};
-    \node[draw, minimum size=0.5cm] at (1.8,0) {};
-    \node[draw, minimum size=0.5cm] at (2.4,0) {};
-    \node at (3.0, 0) {...};
+%%     \node[draw, label=Optimization Passes, minimum width=4cm, minimum height=1.3cm] at (2,0) (optimization) {};
+%%     \node[draw, minimum size=0.5cm] at (0.6,0) {};
+%%     \node[draw, minimum size=0.5cm] at (1.2,0) {};
+%%     \node[draw, minimum size=0.5cm] at (1.8,0) {};
+%%     \node[draw, minimum size=0.5cm] at (2.4,0) {};
+%%     \node at (3.0, 0) {...};
 
-    \node[draw] at (4.75, 0) (irr) {IR};
-    \node[draw, minimum width=1.3cm, minimum height=0.6cm] at (6.5,1) (x86) {x86};
-    \node[draw, minimum width=1.3cm, minimum height=0.6cm] at (6.5,0) (arm) {ARM};
-    \node[draw, minimum width=1.3cm, minimum height=0.6cm] at (6.5,-1) (otherr) {...};
+%%     \node[draw] at (4.75, 0) (irr) {IR};
+%%     \node[draw, minimum width=1.3cm, minimum height=0.6cm] at (6.5,1) (x86) {x86};
+%%     \node[draw, minimum width=1.3cm, minimum height=0.6cm] at (6.5,0) (arm) {ARM};
+%%     \node[draw, minimum width=1.3cm, minimum height=0.6cm] at (6.5,-1) (otherr) {...};
 
-    \draw[->] (C) -- (irl);
-    \draw[->] (C++) -- (irl);
-    \draw[->] (Haskell) -- (irl);
-    \draw[->] (otherl) -- (irl);
+%%     \draw[->] (C) -- (irl);
+%%     \draw[->] (C++) -- (irl);
+%%     \draw[->] (Haskell) -- (irl);
+%%     \draw[->] (otherl) -- (irl);
 
-    \draw[->] (irl) -- (optimization);
-    \draw[->] (optimization) -- (irr);
+%%     \draw[->] (irl) -- (optimization);
+%%     \draw[->] (optimization) -- (irr);
 
-    \draw[->] (irr) -- (x86);
-    \draw[->] (irr) -- (arm);
-    \draw[->] (irr) -- (otherr);
-  \end{tikzpicture}
-  \caption{The general architecture of the \llvm{} compiler}
-  \label{fig:llvm}
-\end{figure}
+%%     \draw[->] (irr) -- (x86);
+%%     \draw[->] (irr) -- (arm);
+%%     \draw[->] (irr) -- (otherr);
+%%   \end{tikzpicture}
+%%   \caption{The general architecture of the \llvm{} compiler}
+%%   \label{fig:llvm}
+%% \end{figure}
 
-At the heart of \lc{} is a number of optimization passes.
-These passes take \ir{} as input and provide \ir{} as output.
-This allows easy addition and reordering of compiler passes, making it perfect for my thesis.
+%% At the heart of \lc{} is a number of optimization passes.
+%% These passes take \ir{} as input and provide \ir{} as output, making it easy to insert new passes and reorder existing ones.
+%% My plugin is implemented as such a pass, and as such can simply be called during compilation.
 
-\llvm{} also has Clang as a frontend, making it an industry-grade C and C++ compiler, which keeps my project from being unusable due to some obscure toolchain.
+%% %% \subsection{Static Single Assignment Form}
+%% %% \label{ssa}
+%% %% In order to understand \ir{} we first need to understand the basics of static single assignment form (SSA).
+%% %% The basic premise of SSA is simple: every value assignment is stored in a new variable.
+%% %% Analysis of variable usage, register requirements (liveness), dead code, etc. is thus greatly simplified.
 
-%% \subsection{Static Single Assignment Form}
-%% \label{ssa}
-%% In order to understand \ir{} we first need to understand the basics of static single assignment form (SSA).
-%% The basic premise of SSA is simple: every value assignment is stored in a new variable.
-%% Analysis of variable usage, register requirements (liveness), dead code, etc. is thus greatly simplified.
+%% %% Some notations for SSA annotate the variable names with indices to make them unique.
+%% %% \ir{} completely forgoes the names of variables, instead using just numbers, preceded by a \%.
 
-%% Some notations for SSA annotate the variable names with indices to make them unique.
-%% \ir{} completely forgoes the names of variables, instead using just numbers, preceded by a \%.
+%% %% \subsection{\llvm{} Intermediate Representation}
+%% %% \label{ir}
+%% %% \ir{} is best described as typed assembly written in SSA.
+%% %% The instructions provided by \ir{} are very similar to RISC assembly.
+%% %% \ir{} uses SSA variables, which have types associated with them, based on their assignment.
+%% %% This allows typechecking during every step of the compiler, especially between optimization passes.
 
-%% \subsection{\llvm{} Intermediate Representation}
-%% \label{ir}
-%% \ir{} is best described as typed assembly written in SSA.
-%% The instructions provided by \ir{} are very similar to RISC assembly.
-%% \ir{} uses SSA variables, which have types associated with them, based on their assignment.
-%% This allows typechecking during every step of the compiler, especially between optimization passes.
+%% %% \ir{} also explicitly defines functions with a prototype, complete with typed arguments and return type.
 
-%% \ir{} also explicitly defines functions with a prototype, complete with typed arguments and return type.
+%% \subsubsection{\llvm{} C++ API}
+%% \label{api}
+%% \llvm{} provides a C++ API for extending the compiler.
+%% This API exposes all functions that \llvm{} itself uses, giving the programmer full access to all capabilities.
+%% For my thesis I mainly used the code inspection and generation utilities, going through the generated \ir{} code and balancing it, in an optimization pass.
 
-\subsection{\llvm{} C++ API}
-\label{api}
-\llvm{} provides a C++ API for extending the compiler.
-This API exposes all functions that \llvm{} itself uses, giving the programmer full access to all capabilities.
-For my thesis I mainly used the code inspection and generation utilities, going through the generated \ir{} code and balancing it, in an optimization pass.
+%% The pass can then be compiled into a library (see \Cref{buildpass}), which is loaded as an \llvm{} plugin during the compilation process.
 
-The pass can then be compiled into a library (see \Cref{buildpass}), which is loaded as an \llvm{} plugin during the compilation process.
+%% \subsection{\qemu{}}
+%% \label{qemu}
+%% \qemu{} is a generic and open source machine emulator and virtualizer.\cite{bellard2005qemu}
+%% While it can be used as a full fledged virtualization environment and sandbox, it can also emulate different processor architectures for programs without first emulating an OS.
+%% I use this ability for the evaluation of my thesis, executing the compiled program and storing the \hammingw{}s during execution.
 
-\subsection{\qemu{}}
-\label{qemu}
-\qemu{} is a generic and open source machine emulator and virtualizer.\cite{bellard2005qemu}
-While it can be used as a full fledged virtualization environment and sandbox, it can also emulate different processor architectures for programs without first emulating an OS.
-This process is called bare-metal emulation, and is used for my thesis.
 
-\qemu{} is also open source, allowing for ``easy'' modification and addition of my evaluation code.
-Easy is a relative term here, as its size, the complexity of its build process, and its relative lack of documentation make this still a hard problem to tackle.
+%% \subsubsection{Memory Layout of \qemu{} Kernels}
+%% \label{memory}
+%% Even with bare-metal emulation, \qemu{} still takes its input as a kernel.
+%% Due to this, it starts execution at address \hex{1000}, as everything before that address is usually reserved for interrupt handling.
+%% This requires some additional setup in my build process (see \Cref{buildtest}).
 
-\subsubsection{Memory Layout of \qemu{} Kernels}
-\label{memory}
-Even with bare-metal emulation, \qemu{} still takes its input as a kernel.
-Due to this, it starts execution at address \hex{1000}, as everything before that address is usually reserved for interrupt handling.
-This requires some additional setup in my build process (see \Cref{buildtest}).
-
-\subsection{AES and RC4}
-AES\cite{daemen2013design} and RC4\cite{rc4} are the two evaluation programs for my compiler pass.
-I chose RC4 because it is very simple and used to be the industry standard, and AES because it is the current industry standard for symmetric encryption.
-Both fit the main use cases of embedded devices, and are thus reasonable choices for evaluating the robustness of my thesis project.
+%% \subsection{AES and RC4}
+%% AES\cite{daemen2013design} and RC4\cite{rc4} are the two evaluation programs for my compiler pass.
+%% I chose RC4 because it is very simple and used to be the industry standard, and AES because it is the current industry standard for symmetric encryption.
+%% Both fit the main use cases of embedded devices, and are thus reasonable choices for evaluating the robustness of my thesis project.
