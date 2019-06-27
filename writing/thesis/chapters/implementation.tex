@@ -100,6 +100,9 @@ First the prototype for the new function is created.
 During this creation the pass goes through all parameter and changes their types from \lli8 to \lli32.
 The same is done for the return type.
 This gives me a skeleton for the balanced function, which is inserted into the module, making it accessible in the future.
+All new functions are given named with the old name, prepended with a \texttt{balanced\_}.
+This allows me to skip cloning already balanced functions and call the newly balanced functions.
+
 
 The content of the original function is then copied using a helper in the \llvm{} API called \emph{CloneFunctionInto}.
 Without any additional parameters, the copied instructions will still reference function parameters of the original function, will result in broken code in the new function.

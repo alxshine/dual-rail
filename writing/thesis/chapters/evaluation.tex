@@ -1,5 +1,31 @@
 \section{Evaluation}
 \label{evaluation}
+To test the effectiveness of my balancing I compared balanced code with regular code.
+In order to decrease the turnaround time during development I decided to run the code in an emulator, as opposed to on actual hardware.
+This also reduces the amount of effort for evaluation.
+
+Instead of running a full \poweranalysis{} attack on actual hardware I added code to the \qemu{} emulator that generates histograms of \hammingw{}s during execution.
+This essentially simulates a scenario where an attacker has precise enough instruments to measure the \hammingw{} of every register during every clock cycle.
+Such a scenario would equate an extremely powerful attacker, and any robustness improvements for this scenario indicate improvements in real-world scenarios with reasonable confidence.
+
+\subsection{\qemu{}}
+\qemu{} is a generic and open source machine emulator and virtualizer.\cite{bellard2005qemu}
+While it can be used as a full fledged virtualization environment and sandbox, it can also emulate different processor architectures for programs without first emulating an OS.
+This process, called \emph{bare-metal emulation}, allows me to evaluate the performance of my thesis project on a simulated ARM processor running on my computer.
+
+During the execution of emulated code, so-called guest code, it can also provide a GDB server, allowing for remote debugging of code running inside \qemu{}.
+Unfortunately this debugging has to be done in ARM assembly, as all C debugging information has been lost during the build process.
+
+\subsubsection{Memory Layout of \qemu{} Kernels}
+\label{memory}
+Even with bare-metal emulation, \qemu{} still takes its input as a kernel.
+Due to this, it starts execution at address \hex{1000}, as everything before that address is usually reserved for interrupt handling.
+This requires some additional setup in my build process (see \Cref{buildtest}).
+
+\subsubsection{Extending \qemu{}}
+To perform any evaluation I first needed to add code to \qemu{} that computes \hammingw{} histograms during execution.
+Doing this proved harder than expected, due to optimizations that happen during execution of guest code.
+
 \qemu{} does not simply interpret the guest code in a simulated processor.
 Instead it translates the machine code for the guest platform into machine code for the host platform, and places that ``patched'' machine code in memory.
 A second executor thread then runs that code as it becomes available.
@@ -17,3 +43,83 @@ So short of either parsing the memory at the simulated program counter or writin
 Luckily, \qemu{} offers emulation via the TCG Interpreter (TCI).
 The TCI does exactly what I was looking for in the first place, i.e. emulating the guest processor in C.
 I then placed my instrumentation code in the operator functions of the TCI, generating a histogram of \hammingw{}s during the execution.
+
+\subsubsection{Test Code}
+I tested my balancing with RC4\cite{rc4} and AES\cite{daemen2013design}.
+RC4 used to be the industry standard for symmetric encryption, and has an extremely small codebase.
+AES is the current symmetric encryption standard.
+Both algorithms fit my target use case of encryption on an embedded device.
+
+\subsubsection{Building the Test Code}
+\label{buildtest}
+Because I need to load my plugin and my balanced arithmetic functions during the optimization step, and because of the memory layout in \qemu{} kernels, the build process is a lot more involved than in normal cross compilation.
+
+As discussed in \Cref{llvm} the \llvm{} compilation process can be split into multiple steps.
+I use this feature multiple times in the build process of my test code.
+The output of the build process for the RC4 code is shown in \Cref{lst:makefile-output}.
+
+\begin{lstlisting}[caption=Output of the Makefile, label=lst:makefile-output]
+arm-none-eabi-gcc --specs=nosys.specs program.c -o program_unbalanced.bin
+arm-none-eabi-as -ggdb  startup.s -o startup.o
+clang -target arm-v7m-eabi -mcpu=arm926ej-s -O0 rtlib.c -S -emit-llvm -o rtlib.ll
+clang -target arm-v7m-eabi -mcpu=arm926ej-s -O0 program.c -S -emit-llvm -o program.ll
+llvm-link rtlib.ll program.ll -S -o linked.ll
+opt -load="../../passes/build/libPasses.so" -insert linked.ll -S -o optimized.ll
+Balancing module: linked.ll
+llc optimized.ll -o optimized.S
+arm-none-eabi-as -ggdb  optimized.S -o optimized.o
+arm-none-eabi-ld -T startup.ld startup.o optimized.o -o program.elf
+arm-none-eabi-objcopy -O binary program.elf program.bin
+\end{lstlisting}
+
+Line 1 shows the compilation of the unbalanced version that I use for comparison.
+This version is compiled using only the \crossgcc{} compiler.
+Lines 3 and 4 show the translation of the C code into LLVM code, using the Clang\cite{lattner2008llvm} C frontend for \llvm{}.
+\emph{Program.c} is the file containing the RC4 code and \emph{rtlib.c} contains the balanced binary operations.
+The \emph{-S} flag specifies output to be in human readable \ir{} instead of bytecode, which allows for easier debugging.
+The specified \emph{-target} platform and CPU (\emph{-mcpu}) are written into the preamble of the \ir{}, and carried on through the entire toolchain until the compilation into target code on line 8.
+
+Then both \llvm{} files are merged using \emph{llvm-link}, which is simply a concatenation of both files and some reordering.
+This merger puts the functions declared in \emph{rtlib.c} in the same module as the target code, and makes them accessible to the compilation pass running on that module.
+
+Line 6 runs the \llvm{} optimizer on the module, loading my balancing pass, which is contained in \emph{libPasses.so}.
+The pass is run by issuing the flag assigned to it (\emph{-insert} in this case).
+As discussed in \Cref{llvm} both the input and output of the optimizer are \ir{}.
+Again the \emph{-S} flag is used for human readable output.
+Line 7 shows output of the actual compiler pass.
+
+In line 8 the \ir{} code is compiled into target code, in this case ARM assembly.
+The specification of the target platform is taken from the preamble of the \ir{} file, as specified in the frontend call.
+
+The final three steps are handled by the GNU Cross Tools.
+First the target code is assembled (line 9) and then it is linked with a prewritten memory map and a fixed startup assembly file (line 10).
+The memory map is required due to \qemu{} specifics, as described in \Cref{memory}.
+\qemu{} starts execution with the program counter set to address \emph{0x1000} 
+Unfortunately, I cannot control the memory layout of the code during and after the compilation process, so I have no guarantee that the \emph{main} main function will land at the desired address.
+For this I use a memory map \emph{startup.ld} (as described in \cite{armbare}), which causes the code defined in \emph{startup.s} to be at memory address \emph{0x1000}.
+The content of \emph{startup.ld} is shown in \Cref{lst:mmap}.
+
+\begin{lstlisting}[caption=Memory map in \emph{startup.ld}, label=lst:mmap]
+ENTRY(_Reset)
+SECTIONS
+{
+ . = 0x10000;
+ .startup . : { startup.o(.text) }
+ .text : { *(.text) }
+ .data : { *(.data) }
+ .bss : { *(.bss COMMON) }
+ . = ALIGN(8);
+ . = . + 0x1000; /* 4kB of stack memory */
+ stack_top = .;
+}
+\end{lstlisting}
+
+The code in \emph{startup.s} then fixes the stack pointer and loads the entry function \emph{c\_entry} in my test code, as shown in \Cref{lst:startup}.
+
+\begin{lstlisting}[caption=Startup assembly code, label=lst:startup]
+.global _Reset
+_Reset:
+ LDR sp, =stack_top
+ BL balanced_c_entry
+ B .
+\end{lstlisting}
