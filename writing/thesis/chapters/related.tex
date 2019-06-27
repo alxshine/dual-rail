@@ -1,9 +1,10 @@
 \section{Related Work}
-There are multiple approaches to performing a \poweranalysis{} attack.
+\label{sec:related-work}
+The only paper applying defensive techniques in the compiler itself is by Junod et al.\cite{junod2015obfuscator}.
+They integrate a number of software obfuscation techniques, as well as software integrity checks into \llvm{} as optimization passes.
+Their approach is very close to my master thesis, however the goal is entirely different.
+Junod et al. work on defending programs against reverse engineering and tampering at runtime.
+Some of their passes are available online, so that can be used as a tutorial for more complex passes with more interaction with high level data structures like the syntax-tree and the control-flow-graph.
 
-Currently there are is no perfect defense against such an attack, and all current defenses do is increase the amount of effort required for successful attack.
-
-\poweranalysis{} is made possible by processed data directly affecting the power consumption.
-Defensive measures then either try to insert additional factors for the power consumption, or decrease the signal-to-noise ratio of the power consumption itself (by reducing variance in the power consumption).
-
-One popular class of defense that introduces additional factors is masking
+Another paper that works very closely with both \llvm{} and \qemu{} is Lyu et al.\cite{lyu2014dbill}.
+They combine the \llvm{} optimizer with \qemu{} to extend static analysis tools utilizing the \llvm{} IR to different target architectures, enabling powerful desktop machines to run the analysis instead of small embedded devices.

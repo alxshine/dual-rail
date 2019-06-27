@@ -44,7 +44,7 @@ Luckily, \qemu{} offers emulation via the TCG Interpreter (TCI).
 The TCI does exactly what I was looking for in the first place, i.e. emulating the guest processor in C.
 I then placed my instrumentation code in the operator functions of the TCI, generating a histogram of \hammingw{}s during the execution.
 
-\subsubsection{Test Code}
+\subsection{Test Code}
 I tested my balancing with RC4\cite{rc4} and AES\cite{daemen2013design}.
 RC4 used to be the industry standard for symmetric encryption, and has an extremely small codebase.
 AES is the current symmetric encryption standard.
