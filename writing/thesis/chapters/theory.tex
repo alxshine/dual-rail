@@ -178,7 +178,7 @@ While the individual steps for each binary operator are themselves a theoretical
 As there are only 256 possible 8bit values, I could easily brute-force every combination of them, and verify the correctness of the result.
 For this purpose I wrote python code that allows execution of intermediate steps.
 By specifying the individual steps with lambdas, and then constructing the entire balanced operation from unary and binary operations, I can execute the operation step by step.
-The intermediate results are then stored in numpy arrays, allowing me to check if the results are correct, and for which values the results are incorrect.
+The intermediate results are then stored in numpy arrays, allowing me to check if the results are correct, and for which values the results are incorrect, as well as where any errors happen.
 As an example, \Cref{lst:multiop} shows the intermediate steps for multiplication.
 
 \begin{lstlisting}[language=python, caption=Step-by-step execution of balanced multiplication, label=lst:multiop]
@@ -196,30 +196,11 @@ print("Number of incorrect results: {len(incorrectResults.keys())}")
 
 The \emph{Unary-} and \emph{BinaryOperation} classes take the indices of the layers to operate on (0 and 1 are the inputs, all others are intermediate values), as well as the operation in form of a lambda.
 Executing the \emph{MultiStepOperation} will then execute all lambdas in order and store the intermediate results in \emph{numpy} arrays.
-Correctness is then tested by checking if all final results are equal to the output of a function to compare to ($x \cdot y$ in this case).
-
-%% \begin{lstlisting}[language=python, caption=Testing correctness of balanced operation, label=lst:correctness]
-%% def unbalanceScheme1(x):
-%%     return x & word_filter
-
-%% vUS1 = np.vectorize(unbalanceScheme1)
-
-
-%% def testCorrectness(self, equivalentUnbalancedFunction):
-%%     uResults = vUS1(self.results[-1])
-%%     incorrectResults = {}
-%%     for i in range(word_max):
-%%         for j in range(word_max):
-%%             r = equivalentUnbalancedFunction(i, j)
-%%             r &= word_filter
-%%             if r != uResults[i*word_max + j]:
-%%                 incorrectResults[(i,j)] = (r, uResults[i*word_max + j])
-%%     return incorrectResults
-%% \end{lstlisting}
+Correctness is then tested by checking if all final results are equal to the output of a reference operation ($x \cdot y$ in this case).
 
 \subsection{Evaluating the Balancedness}
 \label{balance-eval}
-Balancedness of my operations is evaluated using the same python code.
+The balancedness of my operations is evaluated using the same python code.
 As all intermediate results are stored during evaluation I can easily calculate the distribution of their \hammingw s, as shown in \Cref{fig:mult}.
 I used these histograms to check if operations needed improvement, and if that was the case, I tried to find a different, more balanced way of performing them.
 
@@ -230,7 +211,7 @@ I used these histograms to check if operations needed improvement, and if that w
   \label{fig:mult}
 \end{figure}
 
-While \Cref{fig:mult} shows imbalanced values in the intermediate steps, it performed faster and better than multiplication via repeated addition.
+While \Cref{fig:mult} shows imbalanced values in the intermediate steps, it performed faster and more robust than multiplication via repeated addition.
 \Cref{fig:mult-comparison} shows an evaluation of both variants, evaluated over the multiplications of all possible 8bit factors.
 
 \begin{figure}[hp]
@@ -245,7 +226,7 @@ While \Cref{fig:mult} shows imbalanced values in the intermediate steps, it perf
   \end{subfigure}
 
   \begin{subfigure}[b]{\textwidth}
-    \input{tikz/rc4-comparison.tex}
+    \input{tikz/mult-comparison.tex}
     \caption{Scaled Hamming weight histograms for multiplication variants}
   \end{subfigure}
   \caption{Hamming weight histograms for direct and addition-loop multiplication}
