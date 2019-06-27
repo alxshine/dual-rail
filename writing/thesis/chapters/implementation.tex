@@ -180,3 +180,19 @@ This does not handle manual arithmetic operations with pointers, but that is by 
 \subsubsection{Balancing Compares}
 In both of my balancing schemes the inverse occupies more significant bits than the value itself.
 This changes the direction of comparison operations, meaning $<$ becomes $>$, $>=$ becomes $<=$ etc.
+
+\subsection{Building the Optimization Pass}
+\label{buildpass}
+The compiler pass is built using CMake as that makes loading the required parts of \llvm{} very easy.
+\Cref{lst:cmakelists} shows the \emph{CMakeLists.txt} for my balancing pass.
+The code is based on the template repository provided in \cite{sampson2015llvm}.
+
+\lstinputlisting[caption=CMake configuration for my balancing pass, label=lst:cmakelists, language=CMake]{\project/passes/CMakeLists.txt}
+
+It uses the \emph{find\_package} function of CMake, which sets the locations for definitions, header files, and link directories.
+All these are needed to build my pass.
+The pass itself is then built as a \emph{MODULE} library, which tells CMake to build a shared library that can be dynamically loaded at runtime by the optimizer.
+As the pass is loaded by the optimizer, which is built without run-time type information (RTTI), the pass needs to be built without RTTI as well.
+
+This configuration then builds a file called \texttt{libPasses.so}.
+During the compilation of my test code (\Cref{buildtest}) I can then load this library as a plugin for the \llvm{} optimizer.
