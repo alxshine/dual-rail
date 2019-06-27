@@ -1,5 +1,76 @@
 \section{Implementation}
 \label{pass}
+The transformation of normal code into my balanced form happens automatically inside the compiler.
+This requires no additional considerations of the programmer, while still providing increased robustness.
+My thesis is intended as a proof of concept and as such does not balance all variables in the code.
+It balances only variables on the stack, including function parameters, return values, literals and local variables.
+I chose the stack as it provides a clean cut with little ambiguity for the programmer, while still balancing enough to decrease variance in \hammingw{}s by a measurable amount.
+\Cref{fig:implementation} shows all candidates for balancing, as well as their relationship.
+If one candidate has their value set by another (e.g. result of binary operators being stored in variables), then this introduces a dependency for this balancing.
+These dependencies are shown as arrows in \Cref{fig:implementation}.
+Memory locations (registers, heap memory, etc.) are balanced iff all values stored in them are balanced.
+
+\begin{figure}[h]
+  \centering
+  \tikzbox{diagram-implemented.tex}
+  \caption{The balancing status of my thesis project}
+  \label{fig:implementation}
+\end{figure}
+
+With the current implementation state, loading from unbalanced memory causes unbalanced values to be stored in registers.
+This fact can be avoided however, by not using globals.
+
+\subsection{\llvm{}}
+\label{llvm}
+The \llvm{} compiler infrastructure project\cite{lattner2010llvm} contains a number of subprojects, but it is mostly known for being an extremely versatile compiler.
+It works by working on an intermediate representation (\ir{}) specifically designed to be source and target independent, while allowing for easy automatic optimization.
+As most of the work in a compiler goes into the so-called optimization passes.
+This design makes the bulk of the work apllicable to all languages.
+A language can be added to \llvm{} by writing a frontend, translating source code to \ir{}.
+The translation from \ir{} to machine code for the target architecture is then done by backends, which can also easily be added.
+\Cref{fig:llvm} sketches this architecture.
+
+\begin{figure}[h]
+  \centering
+  \begin{tikzpicture}
+    \node[draw, minimum width=1.3cm, minimum height=0.6cm] at (-2.5,1.5) (C) {C};
+    \node[draw, minimum width=1.3cm, minimum height=0.6cm] at (-2.5,0.5) (C++) {C++};
+    \node[draw, minimum width=1.3cm, minimum height=0.6cm] at (-2.5, -0.5) (Haskell) {Haskell};
+    \node[draw, minimum width=1.3cm, minimum height=0.6cm] at (-2.5, -1.5) (otherl) {...};
+    \node[draw] at (-0.75, 0) (irl) {IR};
+    
+    \node[draw, label=Optimization Passes, minimum width=4cm, minimum height=1.3cm] at (2,0) (optimization) {};
+    \node[draw, minimum size=0.5cm] at (0.6,0) {};
+    \node[draw, minimum size=0.5cm] at (1.2,0) {};
+    \node[draw, minimum size=0.5cm] at (1.8,0) {};
+    \node[draw, minimum size=0.5cm] at (2.4,0) {};
+    \node at (3.0, 0) {...};
+
+    \node[draw] at (4.75, 0) (irr) {IR};
+    \node[draw, minimum width=1.3cm, minimum height=0.6cm] at (6.5,1) (x86) {x86};
+    \node[draw, minimum width=1.3cm, minimum height=0.6cm] at (6.5,0) (arm) {ARM};
+    \node[draw, minimum width=1.3cm, minimum height=0.6cm] at (6.5,-1) (otherr) {...};
+
+    \draw[->] (C) -- (irl);
+    \draw[->] (C++) -- (irl);
+    \draw[->] (Haskell) -- (irl);
+    \draw[->] (otherl) -- (irl);
+
+    \draw[->] (irl) -- (optimization);
+    \draw[->] (optimization) -- (irr);
+
+    \draw[->] (irr) -- (x86);
+    \draw[->] (irr) -- (arm);
+    \draw[->] (irr) -- (otherr);
+  \end{tikzpicture}
+  \caption{The general architecture of the \llvm{} compiler}
+  \label{fig:llvm}
+\end{figure}
+
+As the optimization passes take \ir{} as input and provide it as output, they can easily be added.
+For this reason I implemented the transformation of code into my balanced form as an \llvm{} optimization pass.
+
+\subsection{Balancing Pass}
 The idea behind the balancing pass is very simple.
 \begin{enumerate}
 \item Change the type of all 8bit integers (\lli8) to 32bit integers (\lli32)
@@ -102,15 +173,3 @@ This does not handle manual arithmetic operations with pointers, but that is by 
 \subsection{Balancing Compares}
 In my main balancing scheme (\Cref{fig:scheme1}) the inverse occupies more significant bits than the value itself.
 This changes the direction of comparison operations, meaning $<$ becomes $>$, $>=$ becomes $<=$ etc.
-
-\subsection{Implementation Status}
-With all of these instructions balanced, all operations on local variables are fully balanced.
-To relate this to my plan in \Cref{methodology}, please see \Cref{fig:diagram-implemented}.
-%extend?
-
-\begin{figure}[h]
-  \centering
-  \tikzbox{diagram-implemented.tex}
-  \caption{Implementation status of the balancing diagram}
-  \label{fig:diagram-implemented}
-\end{figure}
