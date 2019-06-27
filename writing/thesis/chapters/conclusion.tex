@@ -2,13 +2,17 @@
 \label{conclusion}
 In my thesis I evaluated the robustness of a pure software implementation of \dual{}.
 By writing a proof of concept implementation I explored a new perspective on hardening embedded platforms against power analysis attacks.
-Preliminary evaluation shows a drastic reduction in the signal to noise ratio of the power consumption, due to a decreased variance in \hammingw{}s of intermediate values.
+Evaluation shows a drastic reduction in the signal to noise ratio of the power consumption, due to a decreased variance in \hammingw{}s of intermediate values.
 
 The security of balanced code is not perfect, as it is limited by the capabilities of ALUs.
 However, with this limitation in mind, I believe my balancing pass achieves quite good performance.
 Histograms of the \hammingw{}s show a significant shift towards 8, as would be ideal.
 This causes a relative decrease of other values, reducing the information an attacker gains from power analysis attacks.
 She thus needs a larger number of traces to reach the same confidence in her attack.
+
+While my evaluation was done using C code on the ARM platform, my balancing approach is applicable to code in \emph{any} language for \emph{any} platform.
+As it is implemented as a transformation from \ir{} to \ir{} it can be applied to anything that is compiled with \llvm{}.
+This generality is a major advantage over other current \poweranalysis{} defenses, as almost all of them are algorithm specific.
 
 A major disadvantage of the approach in my thesis is the increased number of operations taking place.
 The number of clock cycles increases by a factor between 5 and 7 for RC4 and AES, respectively.
