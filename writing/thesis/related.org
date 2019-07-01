@@ -1,0 +1,67 @@
+* Work on masking
+** Securing the AES finalists against power analysis attacks
+messerges2000securing
+
+Original masking paper.
+Provides masked variants for all required bitwise operations.
+Rijndael (current AES) uses XOR, table-lookup, fixed size shifts, and GF(2^8) multiplication
+Balanced variants for all these operations are included in the paper
+Changing between arithmetic and boolean operations requires remasking.
+
+As he found masked equivalents for all the basic operations in the AES candidates, any algorithm that does not use additional operations can be masked with these methods.
+If one can test this using static analysis, then masking can be applied in the compiler.
+
+** On Boolean and Arithmetic Masking against Differential Power Analysis
+coron2000boolean
+
+Attacks remasking in Messerges' paper.
+During remasking $x$ or $\neg{x}$ is computed.
+By performing DPA on 2 bits at the same time they can find the value for the key without higher-order DPA
+
+** DES and Differential Power Analysis, the duplication method
+goubin1999and
+
+This works by splitting the target variable $v$ into smaller "subvariables" $v_1,...,v_n$, and then computing the result on these.
+In the end the subvariables can be recombined using some function f.
+For this to work all intermediate steps must not break the identity $f(v_1,v_2,...,v_n) = v$.
+This might be hard to compute in general, however one could create an API that allows setting which (standard) operators do not break it.
+Then this could be applied in the compiler.
+
+** Towards Sound Approaches to Counteract Power-Analysis Attacks
+chari1999towards
+
+Same thing as goubin, but more formal (at least they claim so)
+Inspired by secret sharing, also splits in subvariables, and then gives some lower bound on the information an an attacker can recover.
+Their approach is generally applicable, but any concrete implementation is again algorithm-specific ("for DES, the XOR scheme is ideal").
+
+* Work on dual-rail
+** Design and analysis of dual-rail circuits for security applications
+sokolov2005design
+
+Have the gates return to so-called "spacer values" between clock cycles.
+There are two of these spacers, one with all-zeroes, and another with all-ones.
+This guarantees that every gate switches during every cycle, and thus helps to hide the power consumption.
+Has roughly three times the number of switching events for AES and 2 times the circuit area.
+
+** Dual-Rail Random Switching Logic: A Countermeasure to Reduce Side Channel Leakage
+
+* Related work on LLVM
+** Obfuscator-LLVM -- Software Protection for the Masses
+LLVM passes for obfuscation.
+
+Does also insert bogus control-flow constructs, that might shift operations in time.
+These constructs all have a constant evaluation path at runtime, so they give no increased robustness against Power-Analysis.
+
+They do instruction substitution, replacing simple operators with more complex equivalent ones.
+Maybe my pass can be used similarly (however it is deterministic).
+
+Again, apporach similar, the goal is vastly different.
+
+** DBILL: An efficient retargtable dynamic binary instrumentation framework using LLVM Backend
+lyu2014dbill
+
+Provide a cross ISA debugging tool using QEMU and LLVM
+Transforms guest code into TCG IR with QEMU, then transforms that on LLVM IR
+LLVM can then perform optimizations on that IR code.
+Uses existing IR analysis tools to turn them into dynamic binary instrumentation tools
+(Dynamic binary because the binary is "reverse-engineered" into LLVM IR)

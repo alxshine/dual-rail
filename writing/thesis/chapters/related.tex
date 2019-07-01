@@ -1,10 +1,58 @@
 \section{Related Work}
 \label{sec:related-work}
-The only paper applying defensive techniques in the compiler itself is by Junod et al.\cite{junod2015obfuscator}.
-They integrate a number of software obfuscation techniques, as well as software integrity checks into \llvm{} as optimization passes.
-Their approach is very close to my master thesis, however the goal is entirely different.
-Junod et al. work on defending programs against reverse engineering and tampering at runtime.
-Some of their passes are available online, so that can be used as a tutorial for more complex passes with more interaction with high level data structures like the syntax-tree and the control-flow-graph.
+I considered related work from three major areas:
+Software based \poweranalysis{} defenses that can in theory be applied to any algorithm, approaches to \dual{}, and security related research utilizing \llvm{}.
 
-Another paper that works very closely with both \llvm{} and \qemu{} is Lyu et al.\cite{lyu2014dbill}.
-They combine the \llvm{} optimizer with \qemu{} to extend static analysis tools utilizing the \llvm{} IR to different target architectures, enabling powerful desktop machines to run the analysis instead of small embedded devices.
+First introduced by Messerges\cite{messerges2000securing}, masking is in theory applicable to any algorithm.
+In his paper he identified the core operations in the candidates algorithms for AES.
+He then devised a way to apply a masking to the input of these operations, in such a way that no intermediate value is stored in memory without being masked.
+For example, his mask for boolean operations was applied via XOR: $x_{masked} = x \oplus r$, where $r$ is a randomly selected mask.
+Boolean operations can then be applied to $x_{masked}$, and intermediate results do not directly give an attacker information about any secrets in the algorithm.
+
+An attacker can still try to extract both $r$ and the secret key at the same time, however this exponentially increases her required effort.
+
+As for many algorithms (including Rijndael, the now chosen algorithm for AES) also require arithmetic operations, Messerges also needed a masking for these.
+Additionally, a conversion method between both masking variants is required, and this transformation can at no point store $x$ as an intermediate value.
+Messerge's approach stores either $x$ or $\neg{x}$, depending on a random value.
+
+While this provides adequate robustness against DPA attacking a single bit of the key, it is insufficient for attacks on multiple bits, as shown by Coron et. al.\cite{coron2000boolean}.
+By attacking two bits at the same time, they could find whether both bits were identical or not, and thus gradually reduce the number of possible keys.
+
+Other work has been done to avoid leaks such as this\cite{akkar2001implementation}\cite{rivain2010provably}, however all of these approaches are currently algorithm specific, with most work being targeted at AES.
+The decomposition from \cite{messerges2000securing} could be used to automate this masking process for algorithms utilizing these basic operators, and the masking could then be applied automatically during compilation.
+
+Another software approach is inspired by secret sharing.
+Goubin et. al.\cite{goubin1999and} used their so-called ``Duplication'' method to defend DES against \poweranalysis{}.
+They did this by splitting the input $v$ into multiple parts $v_1, ..., v_n$ using XOR, then performing all operations on the individual parts, and finally recombining them into the encrypted $v'$.
+This works because all operations of DES are invariant to the XOR split performed on $v$.
+
+The approach was generalized by Chari et. al.\cite{chari1999towards} using the identity $v=f(v_1,v_2,...,v_n)$.
+They state that this secret sharing method can then be applied to any algorithm, as long as no operation invalidates this identity.
+For example, if one were to use XOR for $f$ as for DES, the Galois Field multiplication in AES would result in an invalid $v'$.
+
+As such, while the general approach is applicable to all algorithms, the choice of $f$ depends on the present operations, and thus prohibits automated application of this method.
+However, given multiple candidates for $f$ and a set of operators invariant for each candidate, one could perform static analysis of a program and try to find an $f$ that can tolerate all operations.
+Some algorithms could then automatically be made more robust using secret sharing.
+\\
+\\
+\dual{} related work is mostly concerned with solving the engineering challenges mentioned in \Cref{poweranalysis}.
+Balancing the power consumption via $\neg{x}$ was first proposed by Saputra et. al.\cite{saputra2003masking}, where they loaded negations of memory values into a dummy register.
+This reduced the effect the \hammingw{} of data had on the power consumption, and thus increased the robustness.
+Sokolov et. al.\cite{sokolov2005design} combined the security benefits of this method with Dual-Rail encoding in general, which had previously been used in circuits without an explicit clock signal.
+
+In this encoding, only $(0,1)$ and $(1,0)$ are valid code words, and between every cycle the outputs are returned to a so-called \emph{spacer} with value $(0,0)$.
+The spacer value is not a valid code word and as such indicates that the current cycle is not finished.
+
+Sokolov et. al. use the fact that both valid code words in Dual-Rail encoding have the same power consumption.
+By encoding every bit in Dual-Rail, they drastically reduce the effect of data on the power consumption.
+\\
+\\
+The powerful analysis enabled by \llvm{}'s intermediate representation (\ir{}) has also sparked security research.
+One such paper is by Junod et. al.\cite{junod2015obfuscator}, which focuses on automatically obfuscating code during compilation.
+They insert bogus instructions and replace existing instructions with equivalent ones ($a+b = a - (-b)$), all in \ir{}.
+This is very similar to what my balancing pass does, albeit with a different goal.
+They also change the control flow to increase the difficulty of reverse engineering, however in a constant fashion.
+Were the changes in control flow non-constant, their pass might also increase robustness against \poweranalysis{}.
+
+Lyu et. al.\cite{lyu2014dbill} also use \llvm{} and \qemu{} to analyze binaries for different platforms.
+By using \qemu{} to translate machine code into \qemu{}'s intermediate representation, and then translating that into \llvm{}'s intermediate representation, they can utilize the plethora of analysis tools available for \llvm{}.

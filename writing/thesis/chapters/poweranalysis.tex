@@ -60,7 +60,7 @@ She can then calculate the expected power consumptions for these intermediate re
 The attacker can now calculate the correlation between the expected power consumptions for every key byte candidate and the actual power consumption.
 The candidate with the highest correlation coefficient is then the most probable value for the current key byte.
 
-\subsection{Defenses against \poweranalysis{} attacks}
+\subsubsection{Defenses against \poweranalysis{} attacks}
 \poweranalysis{} works because processed data directly influences the power consumption.
 Defenses against this class of attack usually work by either adding additional factors to the power consumption, thus increasing the computational effort required for analysis, or by reducing variances in power consumption altogether.
 This reduced variance decreases the information an attacker can gain from the same number of power traces, giving her reduced confidence in her result or requiring her to capture more traces.
