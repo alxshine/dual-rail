@@ -8,16 +8,54 @@
 - [X] Performance
 - [X] Code Size
 
-** TODO Results neu formulieren
-
+** DONE Results neu formulieren
+   CLOSED: [2019-07-02 Tue 15:05]
+Beide mit Clang toolchain compiled, unbalanced halt ohne pass
+Zusammenfassung der Eigenschaften in tbl:properties
 
 *** Robustness:
 balancing deutlich besser
 zwar nicht nur 8, aber nah drum
 Liegt an erzwungenen intermediate values in operationen
-->balancedness in tabelle ist anteil der werte mit 7,8,9
-Balancedness aber nur sehr simple form davon
+->balancedness in tabelle ist anteil der werte mit 7,8,9; anstatt nur 8
+
+Balancedness aber nur sehr simple Metrik, Histogramme mehr aussagekraeftig
+Vergleiche mit fig:rc4 und fig:aes, balanced Variante viel schmaeler, vor Allem in AES
+AES zeigt genau erhofftes Ergebnis.
+Fetter Spike um 8, sonst nicht viel.
+8er Spike liegt vermutlich an Table Lookups, 9er potentiell an Loop Countern.
+Bin aber bei 9er nicht hundertprozent sicher, wegen RC4 Histogramm.
+
+RC4 ist nicht ganz so gut.
+Spike diesmal um 7, mit breiterer Basis.
+Kann aber sein, dass das an generell niedrigerer Anzahl an Operationen liegt.
+RC4 hat prinzipiell auch hauptsaechlich increment operationen.
+Moeglicherweise liegt das an anderen Verhaeltnis zu restlichen Operationen (Modulo, etc.)
+
+Auf jeden Fall Verbesserung, weniger uniform verteilte HWs machen Angriff schwerer
+
+*** Performance:
+Leider großer Performance-Impact
+Anzahl Operationen steigt um Faktor 5.19 bei RC4, und 26.68 bei AES (ref auf tbl:properties)
+Grund können die ganzen Unbalancing Operationen der Table Lookups sein.
+
+Impact bei AES leider prohibitiv.
+RC4 wäre ok, ist aber leider nicht sicher (zitieren?)
+
+Code size wird nicht sehr viel größer, bei RC4 sogar kleiner.
+Reduktion liegt möglicherweise an sehr simplen Dead Code Removal Routine in meinem Pass.
+Aber auch bei AES ist neue Code Size sehr vertretbar.
+Liegt daran, dass die Operatoren alle als Funktionen implementiert sind, und nicht geinlinet werden.
+Hier wäre noch Speicher - Laufzeit Tradeoff möglich.
+Aller Code ist mit -O0 kompiliert, also auch kein Loop-Unrolling.
+Würde aber auch keinen Unterschied machen, weil Operatoren Funktionen sind.
+
+Performance war nicht Fokus, hier ging es um Korrektheit und Robustheit.
+
 
 ** TODO Gliederung in Conclusion einbauen
-Vielleicht findet sich dort auch mehr positives -> erst in ORG file schreiben
+Vielleicht findet sich dort auch mehr positives
 
+** TODO DIV und SREM neu formulieren
+
+** TODO XOR kann perfekt balanciert berechnet werden -> rein schreiben?

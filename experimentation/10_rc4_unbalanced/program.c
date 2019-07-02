@@ -84,10 +84,10 @@ int main() {
   rc4_init(s, (uint8_t *)key, key_len);
   generate_stream(s, keystream, message_len);
 
-   for (uint8_t i = 0; i < message_len; ++i) {
-    write_int(keystream[i], buffer);
-    print_uart0(buffer);
-  }
+   /*for (uint8_t i = 0; i < message_len; ++i) {*/
+    /*write_int(keystream[i], buffer);*/
+    /*print_uart0(buffer);*/
+  /*}*/
 
    for (uint8_t i = 0; i < message_len; ++i) {
     ciphertext[i] = message[i] ^ keystream[i];
