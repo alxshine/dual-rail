@@ -1,7 +1,7 @@
 #include "print.h"
 #include "tinyAES.h"
 
-void c_entry() {
+int main() {
   unsigned char plaintext[16];
   plaintext[0] = 'H';
   plaintext[1] = 'e';
@@ -46,4 +46,10 @@ void c_entry() {
   printn_uart0((char *)ciphertext, 16);
   AES128_ECB_decrypt(ciphertext, key, decrypted);
   printn_uart0((char *)decrypted, 16);
+
+  return 0;
+}
+
+void c_entry(){
+  main();
 }

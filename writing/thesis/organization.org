@@ -1,0 +1,23 @@
+* Stuff TODO for my thesis
+** DONE Anmeldung abgeben
+   CLOSED: [2019-07-02 Tue 10:08]
+** DONE Tabelle fuer Ergebnisse
+   CLOSED: [2019-07-02 Tue 12:52]
+- [X] Balancedness
+  Anteil an Werten mit HW 8
+- [X] Performance
+- [X] Code Size
+
+** TODO Results neu formulieren
+
+
+*** Robustness:
+balancing deutlich besser
+zwar nicht nur 8, aber nah drum
+Liegt an erzwungenen intermediate values in operationen
+->balancedness in tabelle ist anteil der werte mit 7,8,9
+Balancedness aber nur sehr simple form davon
+
+** TODO Gliederung in Conclusion einbauen
+Vielleicht findet sich dort auch mehr positives -> erst in ORG file schreiben
+
