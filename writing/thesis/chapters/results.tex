@@ -96,9 +96,12 @@ For RC4, the balanced code actually requires \emph{less} memory than the unbalan
 This might be caused by a simple dead code removal routine I added to reduce the lines of code in the \ir{} files during debugging.
 The code size for balanced AES should also be fine for most embedded platforms, as that already includes all lookup tables.
 The moderate increase in code size is caused by the balanced operators being implemented as functions, and not being inlined during compilation.
-This would allow for an additional memory-performance tradeoff.
+Adding inlining for the operators would allow for an additional memory-performance tradeoff, if desired.
+Calling the operator functions causes overhead (storing and restoring of registers, etc.), which is likely the main cause of the increased memory size.
+Another probable cause is the unbalancing instructions before array indexing.
+These are also implemented as functions, again causing overhead.
 
-As the code was not optimized (\texttt{-O0}), there was no loop unrolling.
-This would cause an additional increase in code size if the operators were inlined.
+The code was not optimized (compiled with \texttt{-O0}), so there was no loop unrolling.
+This would cause an additional increase in code size for the case of inlined operators.
 
 While the performance impact is (prohibitively) large, please note that performance was not a focus for my thesis.
