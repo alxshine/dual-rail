@@ -1,18 +1,17 @@
 \section{Related Work}
 \label{related}
 I considered related work from three major areas:
-Software based \poweranalysis{} defenses that can in theory be applied to any algorithm, approaches to \dual{}, and security related research utilizing \llvm{}.
+Software based \poweranalysis{} defenses that can in theory be applied to any algorithm, work on \dual{}, and security related research utilizing \llvm{}.
 
 First introduced by Messerges\cite{messerges2000securing}, masking is in theory applicable to any algorithm.
 In his paper he identified the core operations in the candidates algorithms for AES.
 He then devised a way to apply a masking to the input of these operations, in such a way that no intermediate value is stored in memory without being masked.
 For example, his mask for boolean operations was applied via XOR: $x_{masked} = x \oplus r$, where $r$ is a randomly selected mask.
 Boolean operations can then be applied to $x_{masked}$, and intermediate results do not directly give an attacker information about any secrets in the algorithm.
-
 An attacker can still try to extract both $r$ and the secret key at the same time, however this exponentially increases her required effort.
 
-As for many algorithms (including Rijndael, the now chosen algorithm for AES) also require arithmetic operations, Messerges also needed a masking for these.
-Additionally, a conversion method between both masking variants is required, and this transformation can at no point store $x$ as an intermediate value.
+As not only boolean operations are used, an additional masking scheme for arithmetic operations is required.
+Additionally, a conversion method between both masking variants is needed, and this transformation can at no point store $x$ as an intermediate value.
 Messerge's approach stores either $x$ or $\neg{x}$, depending on a random value.
 
 While this provides adequate robustness against DPA attacking a single bit of the key, it is insufficient for attacks on multiple bits, as shown by Coron et. al.\cite{coron2000boolean}.
@@ -37,22 +36,19 @@ Some algorithms could then automatically be made more robust using secret sharin
 \\
 \dual{} related work is mostly concerned with solving the engineering challenges mentioned in \Cref{poweranalysis}.
 Balancing the power consumption via $\neg{x}$ was first proposed by Saputra et. al.\cite{saputra2003masking}, where they loaded negations of memory values into a dummy register.
-This reduced the effect the \hammingw{} of data had on the power consumption, and thus increased the robustness.
-Sokolov et. al.\cite{sokolov2005design} combined the security benefits of this method with Dual-Rail encoding in general, which had previously been used in circuits without an explicit clock signal.
+This reduced the effect the \hammingw{} of data had on the power consumption, and thus reduced the information leakage.
+Sokolov et. al.\cite{sokolov2005design} combined the security benefits of this method with Dual-Rail encoding in general, which had previously been used in circuits without an explicit clock signal\cite{moore2002improving}.
 
-In this encoding, only $(0,1)$ and $(1,0)$ are valid code words, and between every cycle the outputs are returned to a so-called \emph{spacer} with value $(0,0)$.
-The spacer value is not a valid code word and as such indicates that the current cycle is not finished.
-
-Sokolov et. al. use the fact that both valid code words in Dual-Rail encoding have the same power consumption.
-By encoding every bit in Dual-Rail, they drastically reduce the effect of data on the power consumption.
+Sokolov et. al. use the fact that both valid code words in Dual-Rail encoding have the same \hammingw{}.
+By encoding every bit with this encoding they drastically reduce the effect of data on the power consumption.
 \\
 \\
-The powerful analysis enabled by \llvm{}'s intermediate representation (\ir{}) has also sparked security research.
+There are multiple papers that use the powerful analysis infrastructure built around \llvm{}'s intermediate representation (\ir{}) for security.
 One such paper is by Junod et. al.\cite{junod2015obfuscator}, which focuses on automatically obfuscating code during compilation.
 They insert bogus instructions and replace existing instructions with equivalent ones ($a+b = a - (-b)$), all in \ir{}.
 This is very similar to what my balancing pass does, albeit with a different goal.
 They also change the control flow to increase the difficulty of reverse engineering, however in a constant fashion.
-Were the changes in control flow non-constant, their pass might also increase robustness against \poweranalysis{}.
+If the changes were dynamic and different between multiple executions, their pass might also increase robustness against \poweranalysis{}.
 
 Lyu et. al.\cite{lyu2014dbill} also use \llvm{} and \qemu{} to analyze binaries for different platforms.
 By using \qemu{} to translate machine code into \qemu{}'s intermediate representation, and then translating that into \llvm{}'s intermediate representation, they can utilize the plethora of analysis tools available for \llvm{}.

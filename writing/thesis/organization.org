@@ -130,3 +130,4 @@ Performance war nicht Fokus, hier ging es um Korrektheit und Robustheit.
 
 ** DONE XOR kann perfekt balanciert berechnet werden -> rein schreiben?
    CLOSED: [2019-07-04 Thu 09:20]
+** TODO Explanation of power analysis is unclear
