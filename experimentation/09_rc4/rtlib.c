@@ -114,8 +114,13 @@ int balanced_sdiv(int lhs, int rhs) {
   uint32_t ret = 0x00ff0000;
 
   uint8_t negative = 0;
+  if(lhs & 0x00000080){
+    negative = !negative;
+    lhs = balanced_negative(lhs);
+  }
+  
   if(rhs & 0x00000080){
-    negative = 1;
+    negative = !negative;
     rhs = balanced_negative(rhs);
   }
 

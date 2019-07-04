@@ -72,8 +72,9 @@ For this reason the balancedness in \Cref{tbl:properties} is the ratio of \hammi
 The balancedness metric in \Cref{tbl:properties} is a very simplistic metric, however, and the histograms in \Cref{fig:rc4,fig:aes} paint a much clearer picture of the effectiveness of my balanced arithmetic.
 The balancing works especially well for AES, as shown in \Cref{fig:aes-balanced}.
 A large number of values is perfectly balanced, as signified by the large value at 8.
-This is probably due to the large number of table lookups.
-As I moved the lookup tables for my implementation of AES onto the stack, these were completely balanced.
+This is due to the large number of table lookups.
+In the beginning of my code the lookup tables are copied onto the stack, which causes them to be balanced.
+Another cause is the frequent usage of XOR operations, which are perfectly balanced in my arithmetic.
 The additional spike around 9 is likely caused by the large number of loops in AES, causing a many increment operations and therefore additions.
 However, I am not entirely certain this is the only reason, as RC4, which has a similarly high ratio of increments, does not exhibit the same behaviour.
 

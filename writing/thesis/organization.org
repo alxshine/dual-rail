@@ -53,9 +53,80 @@ Würde aber auch keinen Unterschied machen, weil Operatoren Funktionen sind.
 Performance war nicht Fokus, hier ging es um Korrektheit und Robustheit.
 
 
-** TODO Gliederung in Conclusion einbauen
-Vielleicht findet sich dort auch mehr positives
+** DONE Gliederung in Conclusion einbauen [3/3]
+   CLOSED: [2019-07-04 Thu 08:46]
+*** DONE Summary
+    CLOSED: [2019-07-04 Thu 08:46]
+    Balancing works
 
-** TODO DIV und SREM neu formulieren
+    Arithmetic is correct, tested both theoretically and by exhaustive search.
+    As all operations in LLVM IR are replaced, any 8bit C code is transformable
+    Notable that the security is increased by using less than what is available, introducing redundancy along the way
+    Some operators are perfectly balanced (e.g. XOR), but most require unbalanced intermediate values
+    This is due to limitations of current ALU
 
-** TODO XOR kann perfekt balanciert berechnet werden -> rein schreiben?
+    Not perfect, because of ALU capabilities
+    Still visible decrease in variance
+    Works for RC4, still a spike, not entirely sure why
+    Possibly overhead, as similar "artifact" for AES
+
+    Works very well for AES
+    Sboxes balanced, XOR has perfect balancing in intermediates -> very good for most current cryptographic algorithms
+    High number of HWs of 9, due to increments in loops
+    Pretty much what we wanted, shows the concept makes sense and is effective
+
+    Great bonus point is that the transformation works for *any* 8bit code, and transformation is automatic
+    Programmer only needs to keep in mind using the stack as much as possible, which does not require expert knowledge
+    Takes generally applicable defense, and removes restriction  of requiring specialized hardware
+
+*** DONE Critical Points
+    CLOSED: [2019-07-04 Thu 08:46]
+    Performance is bad
+    Overhead seems prohibitive (currently), at least for AES
+    Can be reduced by inlining operators, but that would lead to drastic increase in code size
+
+    With current ALU design, increase factor of 5 seems to be a lower bound (that's the number of operations per balanced operator)
+    Much larger increases possible (see AES)
+    This is also for 8bit architectures on a 32bit platform
+    As we reduce effective word size to a quarter, we would require large number algorithms to reach the original 32bit value range
+    Can probably be automatically done, but would introduce additional overhead (at least factor 4)
+
+    Balancing is not perfect, and a formal evaluation is currently missing (due to time constraints)
+    What we have is difference in Hamming Weights, but this foregoes any notion of timing during the computation
+    Attack on actual hardware would be required for a formal evaluation, or extension of the evaluation code to generate "virtual" power traces
+
+    Currently only stack variables are balanced
+    Extension to globals would be cool, as that would completely free the programmer from any restrictions
+
+*** DONE Future Work
+    CLOSED: [2019-07-04 Thu 08:46]
+    Balancing global values as well
+    This would *completely* free programmer of any concerns for security
+
+    Not clear if balanced operations are minimal in their composition
+    Some proof would be nice, or even better faster operation (with optimality proof)
+    This would make this less of a niche solution, and potentially give it some real use cases
+
+    Alternatively marking of values to be balanced (e.g. by special types as a Clang plugin)
+    This reduces performance impact to necessary subparts
+    E.g. programmer marks secret key with special type
+    compiler then analyzes all interacting variables and balances everything -> robust against power analysis
+
+    Large number of future works can be done for different defense strategies
+    This thesis applies general *hardware* defense in compiler automatically
+    Instead we can generalize software defenses to make them algorithm independent:
+    - Masking applied automatically
+    - Control flow randomization introduced automatically
+    - Secret sharing with multiple candidates
+      Check which candidates are invariant to occuring operations, then use one if possible
+
+    Side channel defense just one scenario of this
+    On an abstract level this is PoC that taking insecure code as input, and outputting (more) secure code is tractable
+    With the power that ir affords us we can automate security where possible, and provide high level feedback where not
+    While this doesn't remove the need for auditors (at least not from a liability standpoint), this reduces the amount of security consideration for developers
+
+** DONE DIV und SREM neu formulieren
+   CLOSED: [2019-07-04 Thu 09:04]
+
+** DONE XOR kann perfekt balanciert berechnet werden -> rein schreiben?
+   CLOSED: [2019-07-04 Thu 09:20]

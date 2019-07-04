@@ -109,6 +109,11 @@ I will skip the details of this simple transformation, and show only the result:
   \btrans{9}{0}{\neg{x \bxor y}}{0}{x \bxor y}{\trans21 (\%8)}
 \end{align*}
 
+With this construction, XOR has \emph{no imbalanced intermediate values}.
+It is the only operator that is perfectly balanced.
+Unfortunately it is not possible to transform arbitrary logic into XORs, as XOR is not a univarsal operation.
+However, it is a very common operation in cryptographic algorithms, and as such having perfectly balanced XOR provides a significant increase in robustness.
+
 \subsubsection{ADD}
 For the inverse of arithmetic operations I utilized the definition of the negation in 2s complement: $-x = \neg{x} + 1$.
 This also means that $\neg{x} = -x - 1$ and therefore:
@@ -163,9 +168,43 @@ Which gives us the following balanced multiplication:
 \end{align*}
 
 \subsubsection{DIV and REM}
-I used repeated balanced subtraction for DIV and REM operations.
-The code was written in C and can be found in the git of my thesis\cite{git}.
-%TODO: include?
+As binary division seemed unnecessarily complex for balanced values, I instead implemented it by repeated subtraction.
+Using my constructs for balanced subtraction and addition (for the result), I simply subtract the divisor until it is larger than the remaining dividend.
+For division I return the number of subtraction, and for the remainder I simply return the remaining dividend.
+
+This process becomes less trivial for negative numbers, used in \texttt{sdiv} and \texttt{srem} in \ir{}.
+In accordance with the semantics of these instructions in \ir{}, as specified in the \llvm{} language reference manual\cite{lattner2006llvm}, I catch the signs of operands beforehand and set the sign of the result accordingly.
+The code for signed division is shown in \Cref{lst:sdiv}.
+
+\begin{lstlisting}[language=C, caption=Balanced signed division, label=lst:sdiv]
+
+int balanced_sdiv(int lhs, int rhs) {
+  uint32_t ret = 0x00ff0000;
+
+  uint8_t negative = 0;
+  if(lhs & 0x00000080){
+    negative = !negative;
+    lhs = balanced_negative(lhs);
+  }
+  
+  if(rhs & 0x00000080){
+    negative = !negative;
+    rhs = balanced_negative(rhs);
+  }
+
+
+  while (lhs <= rhs) {
+    lhs = balanced_sub(lhs, rhs);
+    ret = balanced_add(ret, 0x00fe0001);
+  }
+
+  if(negative)
+    return balanced_negative(ret);
+  else
+    return ret;
+}
+
+\end{lstlisting}
 
 \subsubsection{Shifting}
 While performing logical shifts, I need to ensure that the correct bits are pushed in.

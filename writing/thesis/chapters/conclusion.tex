@@ -1,36 +1,86 @@
 \section{Conclusion}
 \label{conclusion}
-In my thesis I evaluated the robustness of a pure software implementation of \dual{}.
+In my thesis I evaluated the robustness of a compiler generated software approach to \dual{}.
 By writing a proof of concept implementation I explored a new perspective on hardening embedded platforms against power analysis attacks.
-Evaluation shows a drastic reduction in the signal to noise ratio of the power consumption, due to a decreased variance in \hammingw{}s of intermediate values.
+The hardening is done by not using the entire available wordsize, and instead storing the inverse of data in order to balance the \hammingw{}.
+Using these balanced values requires an entirely new arithmetic, which is the main contribution of this thesis.
 
-The security of balanced code is not perfect, as it is limited by the capabilities of ALUs.
-However, with this limitation in mind, I believe my balancing pass achieves quite good performance.
-Histograms of the \hammingw{}s show a significant shift towards 8, as would be ideal.
-This causes a relative decrease of other values, reducing the information an attacker gains from power analysis attacks.
-She thus needs a larger number of traces to reach the same confidence in her attack.
+The discussion of my work is split into three parts, for easier readability.
 
-While my evaluation was done using C code on the ARM platform, my balancing approach is applicable to code in \emph{any} language for \emph{any} platform.
-As it is implemented as a transformation from \ir{} to \ir{} it can be applied to anything that is compiled with \llvm{}.
-This generality is a major advantage over other current \poweranalysis{} defenses, as almost all of them are algorithm specific.
+\subsubsection{Summary of Results}
+The approach taken in my thesis works for my test code.
+Balancing the binary values leads to a visible decrease in variance of \hammingw{}s.
+This indicates an increased robustness against \poweranalysis{} attacks.
 
-A major disadvantage of the approach in my thesis is the increased number of operations taking place.
-The number of clock cycles increases by a factor between 5 and 7 for RC4 and AES, respectively.
-When taking into account the reduction in word size this factor rises up to 28.
-Future work could reduce this performance impact by removing unnecessary transformations between balancing schemes, but the design of embedded platforms and RISC architectures in general sets a lower bound for the performance impact of my approach.
-While something like Intel's SIMD extensions\cite{lomont2011introduction} could drastically reduce the performance impact of software \dual{}, this is not possible for the intended target platforms.
+The arithmetic I present in this thesis is correct.
+This was proven both theoretically, as well as by exhaustive search.
+With balanced replacements for all operators on 8bit integers in \ir{}, my arithmetic is sound and complete.
 
-As currently only stack values are balanced, balancing all types of variables is another avenue for future work.
-This would balance main memory, and thus the data bus at all times.
-The logical next step after this would be to balance the address bus as well, completely cutting an attacker of from getting any information via the power consumption.
-However, this last approach would require making major changes to the way memory is indexed, possibly changing paging controllers and (if present) cache controllers.
+Notably, robustness against \poweranalysis{} can be increased by not using every available bit.
+This reduction in word size, along with the introduction of redundancy for balancing \hammingw{}s, drastically reduces the information an attacker can recover.
+Unfortunately most binary operations cannot be executed on balanced values without imbalanced intermediates, due to the design of ALUs.
+The only operator that has no imbalanced intermediates is XOR.
+Limitations of RISC architectures and the design of current ALUs do not permit better balancing.
 
-A third possibility for future work would be attacking actual hardware running balanced code, providing some real-world evaluation.
-The difficulty in this evaluation lies in the fact that my approach requires 32bit registers, which are typically only found in more powerful embedded processors running higher clock speeds, which makes power analysis harder much harder by itself, even without additional defenses.
-\\
-\\
-With the way it currently is, my proof of work provides a way for programmers without explicit security knowledge to harden their code against power analysis attacks, without making too large adjustments to their code.
-As my compiler pass balances all code, as long as it is on the stack, even substitution boxes can be used, they simply need to be passed as function parameters.
+For RC4 the balancing works, although not entirely as expected.
+The most frequent \hammingw{} is not where it should be, possibly caused by a very high ratio of array accesses, each requiring an unbalancing beforehand.
+It is also possible that this is a general artifact of program structure, as AES shows a similar frequency for the same \hammingw{}.
 
-This reduces the number of considerations a programmer has to make, handing them off to the compiler.
-With this I hope to help taking a step towards compilers generating secure code automatically, thus allowing for more secure applications, even when neither the money nor the expertise is present for high-quality security auditing.
+For AES the balancing works very well, and the histogram looks as I hoped.
+Both its Sbox, which is copied to the stack in my code, and XOR, its most common binary operation, are perfectly balanced in my arithmetic.
+This indicates a significant increase in robustness, as shown by \Cref{fig:aes}.
+As such I believe my proof of concept shows the general approach is sensible, and it is reasonable to assume the increased robustness generalizes to similar cryptographic constructs.
+
+My approach works for \emph{any} C code written for an 8bit architecture, and the automatic transformation means programmers can benefit from the security benefits without many considerations on their side.
+As it stands, a programmer still needs to try and utilize the stack as much as possible, but this does not require expert knowledge anymore.
+As  such the knowledge required is drastically reduced when compared to directly implementing side channel defenses like masking etc.
+
+With my thesis I also show that it is possible to automatically implement a generally applicable defensive measure during compilation.
+I believe this highlights the great potential of modern compilers, opening multiple avenues for future work.
+
+\subsubsection{Critical Points}
+Unfortunately, the performance impact of my balanced arithmetic is massive.
+At least for AES, the overhead introduced by my balancing pass seems prohibitive for now.
+The overhead stems from my operators being implemented via functions, which are not inlined.
+This limits the amount by which code size increases, but drastically increases the amount of operations required for register storing and restoring.
+Enabling inlining (and enabling compiler optimizations after my pass in general) would reduce this overhead, but for my thesis I wanted a raw evaluation of my method.
+
+With current ALUs and a RISC architecture, an increase in the number of operations by 5 seems to be a lower bound, as that is the lowest number of intermediate operations in my balanced arithmetic.
+Much larger increases are possible, as shown by balanced AES.
+It is also important to note that this is for 8bit word sizes on a 32bit capable platform.
+With this reduced word size it would require algorithms for handling large numbers (along the lines of GnuMP\cite{granlund1996gnu}) to reach the full 32bit value range again.
+This would additionally reduce performance by a factor of at least 4.
+
+The balancing is also incomplete, as only stack values are currently balanced.
+Balancing global values (and thus all value types), would completely free the programmer from any limitations on their program.
+Currently there is also no formal validation of my method.
+While the histograms of \hammingw{}s suggest increased robustness, they forego any notion of time.
+In order to give a more grounded security claim one would need to either attack actual hardware running balanced code, or extend \qemu{} further to capture virtual power traces during execution.
+Attacking actual hardware is hard even without additional defenses in place as 32bit capable platforms run much higher clock rates than 8bit platforms, leading to much larger amounts of trace date for analysis
+Generating virtual power traces in \qemu{} would lead to the same problem of large traces, with the addition that extending \qemu{} is a massive amount of work.
+
+\subsubsection{Future Work}
+The most obvious future work for my thesis would be extending the balancing to global values.
+This would \emph{completely} free the programmer from any concerns about security.
+
+Alternatively, a nice feature would be the ability to mark certain variables for balancing, for example via special types.
+This marking would then be transmitted to \ir{} by a plugin for the frontend for the current language (for C this would be Clang).
+The balancing pass could then create a graph of all variables influencing the balancing target and balance all of them.
+This would reduce the performance impact, while still providing increased robustness where needed.
+
+It is currently also not clear if the balanced operations are optimal.
+Future work could find either a faster arithmetic (with possible tradeoffs for robustness), or an optimality proof of the current arithmetic.
+Reducing the performance impact could make this approach more generally applicable, and give it some real use cases.
+
+In the realm of side channel defenses there are a number of possibilities for future work.
+My thesis has applied a generally applicable \emph{hardware} defense automatically in software during compilation.
+Following a similar approach, one could utilize static analysis in the compiler to generalize software defensive measures.
+Masking could be applied automatically, with new masks (and lookup tables) being computed during compile-time, if so desired.
+Secret sharing schemes could also be chosen based on the operations happening in the program.
+By searching a predefined list of schemes, complete with their invariant operations, the compiler could offer applying such a scheme for increased robustness against power analysis.
+
+Side channel defenses are only a limited subset of the possibilities of compiler enabled security in general.
+The power that well defined intermediate representations in modern compilers (especially \ir{}) afford us can enable much more sophisticated security analysis than was previously possible.
+Using this we should be able to automatically catch and fix many trivial security issues, and provide high level feedback where no automatic fix is possible.
+
+Where code analysis plugins for IDEs now point out possible simplifications in logical predicates, they could point out the OWASP top ten in the future.
