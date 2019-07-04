@@ -1,10 +1,10 @@
 \section{Introduction}
 Unintended signal emissions are a major source of information leakage in modern processors.
 Especially cryptographic secrets are valuable targets for analyzing these so-called \sidechannel{}s.
-While the physical access required for \sidechannel{} attacks is often a hurdle, embedded devices are usually shipped to consumers, making them vulnerable to this type of attack.
+While the physical access required for \sidechannel{} attacks is often a hurdle, embedded devices are usually much more exposed, and their self-contained nature makes it easy for an attacker to measure \sidechannel{} emanations in a controlled environment.
 
-One such side-channel that is especially easy to measure is power consumption.
-Setting a binary value in registers, main memory etc. consumes power directly related to the number of bits to be set to 1.
+One such side channel that is especially easy to measure is power consumption.
+Setting a binary value in registers, main memory etc. consumes power directly related to the number of bits to be set to 1\cite{brier2004correlation}.
 By measuring the power consumption traces during execution an attacker can gain information about the \hammingw{} (number of 1s) of the processed data.
 If she knows which cryptographic operation is being performed and can control the input (both reasonable assumptions for embedded devices), she can infer the value of the cryptographic secret via statistical anlysis of the power traces.\cite{brier2004correlation}
 %% As microcontrollers rarely utilize instruction level parallelism these power traces have relatively little noise, making them especially susceptible to such an attack.
@@ -19,25 +19,31 @@ This makes it in theory impossible for an attacker to gain information via the p
 Unfortunately this strategy suffers from multiple engineering problems, such as minute differences in clock timings between the regular and inverted path\cite{baddam2008path}, or variances in the production of transistors\cite{razafindraibe2006formal}.
 It also requires a significant increase in circuit size, doubling the required size or more\cite{baddam2008path}.
 
-Even with these caveats, \dual{} still has the benefit that \emph{any} code can be modified circuitry, without any modifications, while still experiencing increased robustness.
+Even with these caveats, \dual{} still has the benefit that \emph{any} code can be run on the modified circuitry, without any alterations, while still experiencing increased robustness.
+As making absolute and formal claims in the world of \sidechannel{} attacks is difficult, difficulty for successful attack is often referred to as robustness instead of security.
 \\
 \\
-In my thesis I explore the possibilities of implementing a similar balancing in software.
+In my thesis I explore the possibilities of implementing similar balancing in software.
 It works by only using part of the available word size for actual data, leaving the rest for balancing.
 Specifically, I store 8bit values, along with their balancing counterpart, in a 32bit register.
 This then means that the data has no influence on the power consumption anymore.
 I also propose an arithmetic on these balanced values, giving a balanced replacement for all integer operations required for a modern RISC instruction set.
-With this arithmetic and the balanced values, one can then execute \emph{any} program, while benefiting from a massive increase in robustness against \poweranalysis{} attacks.
+With this arithmetic and the balanced values, one can then execute \emph{any} program, without special modifications, while benefiting from an increase in robustness against \poweranalysis{} attacks.
 
 I also provide a plugin for the \llvm{} compiler that transforms code written for 8bit word-sizes into this balanced form.
-This proof-of-concept shows that it is possible to execute code using this balanced form.
-Additionally, it also shows that even such significant changes to the way code is executed can come at no extra cost to the programmer, and the job of generating secure code can at least in part be handed off to the compiler.
+This plugin also shows that even such significant changes to the way data is represented can come at no extra cost to the programmer, and the job of generating secure code can at least in part be handed off to the compiler.
 
 Finally I provide an evaluation of my balanced form.
-By running code compiled with my plugin in the \qemu{} emulator I can examine the \hammingw{} of values during the execution, and compare them to regular unbalanced code.
-Evaluating in such a manner simulates an extremely powerful attacker that can examine the \hammingw{} of the result of every single operation.
-An increased robustness in such a scenario then indicates increased robustness for every real-world attacker.
+By running code compiled with my plugin in the \qemu{} emulator, I can examine the \hammingw{} of values during the execution, and compare them to regular unbalanced code.
+Evaluating in such a manner simulates an attacker that can observe the \hammingw{} of the result of every single operation without error.
+Increased robustness against this theoretical attacker then indicates increased robustness in real-world scenarios, where attackers do not have such precise measurements.
 \\
 \\
-The rest of this thesis is split into these tree parts.
+The rest of this thesis is organized as follows.
+\Cref{poweranalysis} explains different variants of \poweranalysis{} attacks and defenses against it.
+\Cref{related} gives an overview of related work on software approaches to \poweranalysis{} defense, approaches to \dual{}, and related security work utilizing \llvm{}.
+In \Cref{theory} I explain the design of my balancing and my balanced arithmetic, and discuss the evaluation of the balanced operations in it.
+\Cref{pass} covers the implementation details of my balancing pass, and gives a brief overview of \llvm{}.
+The procedure for evaluation is explained in \Cref{evaluation}, along with a brief introduction to \qemu{}.
+In \Cref{results} I explain my results, and \Cref{conclusion} offers a summary and discussion of my thesis.
 %TODO: description of structure
