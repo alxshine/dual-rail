@@ -1,19 +1,23 @@
 \section{Theory}
 \label{theory}
-By performing \poweranalysis{} an attacker can gain information about the \hammingw{}s during execution.
-This means that as long as their \hammingw{}s are identical, values are indistinguishable by such an attacker.
+As previously discussed, power analysis attacks are usually performed under the \hammingw{} power model.
+With this model, values with identical \hammingw{}s are indistinguishable.
 Having only perfectly balanced values then means that an attacker can gain no information via the power consumption, as all values look exactly the same.
 
-Unfortunately, the design of the ALU does not permit such a scenario.
-The goal then is to come as close to this ideal as possible, i.e. having a minimal amount of unbalanced values.
-Balancing individual values can be done perfectly, only the balanced versions of binary operators \emph{must} have imbalanced intermediate values.
-For my thesis I did not care too much about their optimality, focussing instead on their correctness.
-The derivation of my binary operators is already a proof of their correctness, and additionally I checked all possible combinations of 8bit values for incorrect results.
+As having \emph{only} balanced values is not possible with my choice of balancing (which will be justified in \Cref{values,operations}), the goal then would be to come as close to this ideal as possible, i.e. having a minimal number of unbalanced values.
+However, due to time constraints I do not try to find the optimal balancing scheme in my thesis, instead finding a balancing scheme and an arithmetic that is \emph{correct}, and balanced enough to measurably impact power consumption.
 
 \subsection{Balancing Individual Values}
+\label{values}
 In resemblence of \dual{} itself, I balance the \hammingw{} by storing the inverse in the same register as the actual value.
-While this could be done while still keeping 16bit for actual data, using only 8bit gives me more space to store temporary values.
-This gives me more freedom to balance values during binary operations.
+I store only 8bit of actual data, as code written for 8bit architectures is much more common than 16bit architectures.
+This also gives me 16bit in the same register to reduce imbalances during operations.
+
+The next step is deciding on a way to store the values.
+While bit-interleaving schemes would have been possible, and might have performed better balancing wise, I decided instead to store all data bits in a single byte in the register.
+This allows me to use operations in the ALU, instead of having to find complicated workarounds, especially for arithmetic operations like addition, subtraction, and multiplication.
+As such, the finished balancing contains the actual data byte $x$ and the balancing byte $\neg{x}$ each stored in one of the four bytes of a register.
+
 With that fixed the only remaining decision is where in the register to put $x$ and $\neg{x}$.
 I wanted to have room between $x$ and $\neg{x}$ for shifts, so this left only 2 candidates (and their inverses) for what I call the \emph{balancing schemes}.
 \Cref{fig:schemes} shows the two schemes I chose for my project.
@@ -35,7 +39,7 @@ I wanted to have room between $x$ and $\neg{x}$ for shifts, so this left only 2 
   \label{fig:schemes}
 \end{figure}
 
-I found balanced operations for both schemes, but in the end decided to use Scheme 1 as a default because it exhibits nicer behavior for shifts, especially rotations.
+I found balanced operations for both schemes, but in the end decided to use Scheme 1 as a default because it exhibits nicer behavior for shifts.
 Both are worth mentioning however, because many of my operations will result in values formatted in Scheme 2 and require explicit transformation.
 By finding standardized transformations in both directions I could reuse them in the rest of my arithmetic.
 
