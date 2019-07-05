@@ -136,3 +136,4 @@ Also discuss the Hamming weight power consumption model (that it's not entirely 
    CLOSED: [2019-07-05 Fri 10:44]
 The explanation why perfect balancing is not possible with this schemes does not make sense
 This requires a justification why this balancing is then used, or alternatively an explanation why another balancing wouldn't be better
+** TODO Axis labels in plots

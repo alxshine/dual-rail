@@ -45,17 +45,29 @@ By finding standardized transformations in both directions I could reuse them in
 
 \subsection{Balancing Binary Operations}
 \label{operations}
-The biggest problem of finding a balanced arithmetic was that $\neg{x \circ y}$ is not $\neg{x} \circ \neg{y}$ ($\circ$ here denotes any operator).
-As the ALU cannot execute two different operations on parts of the same register at the same time, there \emph{must} be imbalanced temporary values during execution.
-My goal then was to limit the number of these imbalanced values.
+Any operations applied to balanced values should also return balanced values.
+With my balancing schemes, this requires not only calculating the result, but also its inverse.
+This inverse is also the reason why there \emph{must} be imbalanced intermediate values.
 
+For many operators (denoted by $\circ$), $\neg{x \circ y}$ is not $\neg{x} \circ \neg{y}$.
+As an example, $\neg{x \land y} = \neg{x} \lor \neg{y} \neq \neg{x} \land \neg{y}$, using DeMorgan's law.
+This means that for calculating balanced binary and (AND), binary or (ORR) has to be applied at some point.
+It is usually not possible to execute different ALU operations on different parts of the register.
+As such, both AND and ORR must be executed at some point, resulting in imperfectly balanced intermediates.
+
+Again my goal is not to reduce these imbalanced intermediates to a minimum, but to reduce them enough to impact power consumption.
+As such, no claims on the optimality of my operations is made, both in terms of balancing and the number of intermediate operations.
+They are, however, correct.
+Their derivation is a formal notion of this fact, and I also exhaustively search all possible combinations of operands for incorrect values, as discussed in \Cref{correctness}.
+
+The notation for my operators is as follows.
 For every operation I give the intermediate steps, with a single line denoting an intermediate value.
 The values are in the form
 \begin{align*}
   \btrans{i}{x_1}{x_2}{x_3}{x_4}{\texttt{operation}}
 \end{align*}
 where $\%i$ denotes the ``name'' of the current intermediate, and $x_1$ through $x_4$ are the individual bytes of a register, with $x_1$ having the most significant, and $x_4$ the least significant bits.
-The \texttt{operation} denotes how the current value is obtained.
+The \texttt{operation} denotes how the current value is obtained, and is missing for input operands.
 
 
 \subsubsection{Transforming Scheme 1 to Scheme 2}
@@ -107,7 +119,7 @@ I will skip the details of this simple transformation, and show only the result:
   \btrans{3}{\neg{x}}{\neg{x}}{x}{x}{\%1 \borr (\%1 \blsl 8)}\\
   \btrans{4}{y}{\neg{y}}{\neg{y}}{y}{\%2 \borr (\%2 \bror 24)}\\
   \btrans{5}{\neg{x} \band y}{\neg{x} \band \neg{y}}{x \band \neg{y}}{x \band y}{\%3 \band \%4}\\
-  \btrans{6}{x \bxor y}{\neg{x \bxor y}}{x \bxor y}{\neg{x \bxor y}}{\%5 \band (\%5 \bror 16)}\\
+  \btrans{6}{x \bxor y}{\neg{x \bxor y}}{x \bxor y}{\neg{x \bxor y}}{\%5 \borr (\%5 \bror 16)}\\
   \btrans{7}{\neg{x \bxor y}}{x \bxor y}{\neg{x \bxor y}}{x \bxor y}{\%6 \bror 8}\\
   \btrans{8}{\neg{x \bxor y}}{0}{0}{x \bxor y}{\%7 \band \hex{ff0000ff}}\\
   \btrans{9}{0}{\neg{x \bxor y}}{0}{x \bxor y}{\trans21 (\%8)}
@@ -217,6 +229,7 @@ This is done by ORRing the target value with \hex{ff000000} or \hex{0000ff00}, a
 The shifting is performed normally and the result is then AND filtered with \hex{00ff00ff} to comply with Scheme 1 again.
 
 \subsection{Testing for Correctness}
+\label{correctness}
 While the individual steps for each binary operator are themselves a theoretical proof for their correctness, I still wanted to validate them.
 As there are only 256 possible 8bit values, I could easily brute-force every combination of them, and verify the correctness of the result.
 For this purpose I wrote python code that allows execution of intermediate steps.
@@ -254,25 +267,25 @@ I used these histograms to check if operations needed improvement, and if that w
   \label{fig:mult}
 \end{figure}
 
-While \Cref{fig:mult} shows imbalanced values in the intermediate steps, it performed faster and more robust than multiplication via repeated addition.
-\Cref{fig:mult-comparison} shows an evaluation of both variants, evaluated over the multiplications of all possible 8bit factors.
+%% While \Cref{fig:mult} shows imbalanced values in the intermediate steps, it performed faster and more robust than multiplication via repeated addition.
+%% \Cref{fig:mult-comparison} shows an evaluation of both variants, evaluated over the multiplications of all possible 8bit factors.
 
-\begin{figure}[hp]
-  \centering
-  \begin{subfigure}[b]{0.49\textwidth}
-    \input{tikz/mult-loop.tex}
-    \caption{Addition-loop multiplication}
-  \end{subfigure}
-  \begin{subfigure}[b]{0.49\textwidth}
-    \input{tikz/mult-direct.tex}
-    \caption{Direct multiplication}
-  \end{subfigure}
+%% \begin{figure}[hp]
+%%   \centering
+%%   \begin{subfigure}[b]{0.49\textwidth}
+%%     \input{tikz/mult-loop.tex}
+%%     \caption{Addition-loop multiplication}
+%%   \end{subfigure}
+%%   \begin{subfigure}[b]{0.49\textwidth}
+%%     \input{tikz/mult-direct.tex}
+%%     \caption{Direct multiplication}
+%%   \end{subfigure}
 
-  \begin{subfigure}[b]{\textwidth}
-    \input{tikz/mult-comparison.tex}
-    \caption{Scaled Hamming weight histograms for multiplication variants}
-  \end{subfigure}
-  \caption{Hamming weight histograms for direct and addition-loop multiplication}
-  \label{fig:mult-comparison}
-\end{figure}
+%%   \begin{subfigure}[b]{\textwidth}
+%%     \input{tikz/mult-comparison.tex}
+%%     \caption{Scaled Hamming weight histograms for multiplication variants}
+%%   \end{subfigure}
+%%   \caption{Hamming weight histograms for direct and addition-loop multiplication}
+%%   \label{fig:mult-comparison}
+%% \end{figure}
 
