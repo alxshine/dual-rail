@@ -32,22 +32,22 @@ A second executor thread then runs that code as it becomes available.
 
 This translation backend is called the Tiny Code Generator (TCG), which not only performs the translation but also some optimizations.
 Instrumenting \qemu{} for analysis is hard due to the fact that the TCG works through multiple layers of indirection, utilizing both helper functions and preprocessor macros, some of which are defined in different files depending on the host architecture (the specific definition file is chosen while building \qemu{}).
-As documentation is also sparse, finding a good place to put my evaluation code required a lot of time and effort.
 
-Even after understanding all the parts of \qemu{}'s way of emulating code, I was left with a problem.
+This multithreaded approach also makes examining values during execution very hard.
 The executor thread does not know what code it is executing, it only has a pointer (the simulated program counter) to the next instruction or the next basic block.
 The TCG on the other hand knows which operations are being executed, but it does not know the values of the operands.
 It also has no way of accessing these values as they might not even be computed yet.
-So short of either parsing the memory at the simulated program counter or writing a symbolic execution engine (essentially replacing \qemu{}) I did not know how to proceed.
+So short of either parsing the memory at the simulated program counter or writing a symbolic execution engine for TC (essentially replacing \qemu{}), this emulation model cannot be used for my thesis.
 
-Luckily, \qemu{} offers emulation via the TCG Interpreter (TCI).
-The TCI does exactly what I was looking for in the first place, i.e. emulating the guest processor in C.
-I then placed my instrumentation code in the operator functions of the TCI, generating a histogram of \hammingw{}s during the execution.
+Luckily, \qemu{} also offers emulation via the TC Interpreter (TCI).
+The TCI does not transform TC into host assembly, and instead simulates a guest CPU in software.
+During this simulation ALU operations are handled by special functions, and their return values are then stored in the simulated registers.
+The call sites of these functions are where my evaluation code is located, calculating the \hammingw{} of results and generating the histogram.
 
 \subsection{Test Code}
 I tested my balancing with RC4\cite{rc4} and AES\cite{daemen2013design}.
 RC4 used to be the industry standard for symmetric encryption, and has an extremely small codebase.
-AES is the current symmetric encryption standard.
+AES is current symmetric encryption standard.
 Both algorithms fit my target use case of encryption on an embedded device.
 
 \subsubsection{Building the Test Code}
@@ -91,8 +91,8 @@ The specification of the target platform is taken from the preamble of the \ir{}
 The final three steps are handled by the GNU Cross Tools.
 First the target code is assembled (line 8) and then it is linked with a prewritten memory map and a fixed startup assembly file (line 9).
 The memory map is required due to \qemu{}'s memory layout, as discussed in \Cref{memory}.
-\qemu{} starts execution with the program counter set to address \emph{0x1000} 
-Unfortunately, I cannot control the memory layout of the code during and after the compilation process, so I have no guarantee that the \emph{main} main function will land at the desired address.
+\qemu{} starts execution with the program counter set to address \emph{0x1000}.
+Unfortunately, I cannot control the memory layout of the code during and after the compilation process, so I have no guarantee that the \emph{main} function will land at the desired address.
 For this I use a memory map \emph{startup.ld} (as described in \cite{armbare}), which causes the code defined in \emph{startup.s} to be at memory address \emph{0x1000}.
 The content of \emph{startup.ld} is shown in \Cref{lst:mmap}.
 
