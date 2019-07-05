@@ -52,7 +52,7 @@ This inverse is also the reason why there \emph{must} be imbalanced intermediate
 For many operators (denoted by $\circ$), $\neg{x \circ y}$ is not $\neg{x} \circ \neg{y}$.
 As an example, $\neg{x \land y} = \neg{x} \lor \neg{y} \neq \neg{x} \land \neg{y}$, using DeMorgan's law.
 This means that for calculating balanced binary and (AND), binary or (ORR) has to be applied at some point.
-It is usually not possible to execute different ALU operations on different parts of the register.
+It is generally not possible to execute different ALU operations on different parts of the register.
 As such, both AND and ORR must be executed at some point, resulting in imperfectly balanced intermediates.
 
 Again my goal is not to reduce these imbalanced intermediates to a minimum, but to reduce them enough to impact power consumption.
