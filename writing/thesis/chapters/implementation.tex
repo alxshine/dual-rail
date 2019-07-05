@@ -22,7 +22,7 @@ Memory locations (registers, heap memory, etc.) are balanced iff all values stor
 The \llvm{} compiler infrastructure project\cite{lattner2010llvm} contains a number of subprojects, but it is mostly known for being an extremely versatile compiler.
 It works by using an intermediate representation (\ir{}) specifically designed to be source and target independent, while allowing for easy automatic optimization.
 As most of the work in a compiler goes into the so-called optimization passes.
-This design makes the bulk of the work apllicable to all languages.
+This design makes the bulk of the work applicable to all languages.
 A language can be added to \llvm{} by writing a frontend, translating source code to \ir{}.
 The translation from \ir{} to machine code for the target architecture is then done by backends, which can also easily be added.
 \Cref{fig:llvm} sketches this architecture.
@@ -64,8 +64,10 @@ The translation from \ir{} to machine code for the target architecture is then d
   \label{fig:llvm}
 \end{figure}
 
-As the optimization passes take \ir{} as input and provide it as output, they can easily be added.
-For this reason I implemented the transformation of code into my balanced form as an \llvm{} optimization pass.
+The optimization passes at the core of \llvm{} take \ir{} as input and return it as output.
+As such, optimization passes for \ir{} are immediately usable for every language and every platform that is compatible with \llvm{}.
+This means implementing my balancing pass for the \llvm{} toolchain makes it very widely usable.
+For this reason, and because of the powerful analysis enabled by \llvm{}'s well defined IR language, \llvm{} was chosen for my thesis.
 
 \subsection{Balancing Pass}
 The balancing pass stores balanced values 32bit integers instead of regular 8bit, and then uses my balanced arithmetic operators instead of the normal operators.
@@ -92,17 +94,14 @@ A special case are function parameters.
 As these cannot be changed for an existing function, the first step in my balancing pass is to clone the original functions with changed parameter and return types.
 
 \subsubsection{Cloning Functions}
-The first types used in a function are its return type and the types of its function parameters.
-As these types cannot be changed for an existing function in \llvm{} I need to clone the functions with updated types.
-
 Cloning functions is done in two parts.
 First the prototype for the new function is created.
 During this creation the pass goes through all parameter and changes their types from \lli8 to \lli32.
 The same is done for the return type.
 This gives me a skeleton for the balanced function, which is inserted into the module, making it accessible in the future.
-All new functions are given named with the old name, prepended with a \texttt{balanced\_}.
-This allows me to skip cloning already balanced functions and call the newly balanced functions.
-
+All new functions are given a unique name, specifically the old name prepended with \texttt{balanced\_}.
+This naming is important as it allows me to detect already balanced functions before cloning them.
+It is also required to adjust the target of function calls.
 
 The content of the original function is then copied using a helper in the \llvm{} API called \emph{CloneFunctionInto}.
 Without any additional parameters, the copied instructions will still reference function parameters of the original function, will result in broken code in the new function.
@@ -175,11 +174,10 @@ The semantics, especially the handling of negative values are made to be consist
 Balanced values cannot be used for array indexing directly.
 Therefore, whenever a balanced variable is used as index for an array access it is unbalanced before use.
 All array accesses use the \emph{getelementptr} instruction in \ir{}, so this is easy to catch.
-This does not handle manual arithmetic operations with pointers, but that is by design.
 
 \subsubsection{Balancing Compares}
-In both of my balancing schemes the inverse occupies more significant bits than the value itself.
-This changes the direction of comparison operations, meaning $<$ becomes $>$, $>=$ becomes $<=$ etc.
+In both of my balancing schemes the inverse occupies the more significant bits than the value itself.
+This changes the direction of comparison operations, meaning \texttt{<} becomes \texttt{>}, and \texttt{>=} becomes \texttt{<=}.
 
 \subsection{Building the Optimization Pass}
 \label{buildpass}
