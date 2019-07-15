@@ -1,48 +1,69 @@
 \section{Power Analysis}
 \label{poweranalysis}
+Power analysis utilizes the fact that different operations have different power consumptions.
+By capturing the power consumption traces (power traces in short) and examining them, an attacker can reason about the variables determining the control flow during program execution.
+If these variables are cryptographic secrets, or keys (e.g. private keys in RSA), they are leaked to the attacker in what is called a simple power analysis (SPA) attack\cite{kocher1999differential}.
+In many cases the control is not related to the key, requiring more complex attacks.
+For these cases capturing a large number of traces and performing statistical analysis can leak information about \emph{individual values}.
+The two main attacks of this type are called differential power analysis (DPA)\cite{kocher1999differential} and correlation power analysis (CPA)\cite{brier2004correlation}.
+All variants and the setup required are explained in this section.
 
-In most cases the power consumption during execution is data-dependent.
-Setting a bit to 1 requires more power than setting it to 0.
-Power consumption is thus directly linked to the \hammingw{} of processed data.
-An attacker can then measure the power consumption and make inferences on the data being processed.
+\subsection{Setup}
+Performing \poweranalysis{} requires access to the device in a controlled environment.
+The attacker needs to control the power supply for the target, and be able to alter the containing electronics.
+This is fairly easy for embedded platforms, as they are often made to be self-contained.
+Even for more complex targets like IoT devices, the processor can be removed from its circuit board and put in an attack environment\cite{ronen2017iot}.
 
-Performing \poweranalysis{} requires some setup:
-An attacker solders a resistor between the target processor and the ground of its power supply.
-She then measures the voltage difference between both ends with an oscilloscope (this voltage is directly proportional to the current flowing through the resistor).
-This gives her easy access to the power traces at a high resolution and for every clock cycle.
+The setup for a \poweranalysis{} attack is as follows:
+An attacker solders a resistor between the target processor and the ground connector of its power supply.
+She then measures the voltage difference between both ends of the resistor with an oscilloscope.
+This voltage is directly proportional to the current flowing through the resistor, and thus to the power consumption of the target.
+The voltage recordings from the oscilloscope are then transferred to a computer, and can be analyzed there.
 
-With these power traces an attacker then has the choice of multiple attack forms of varying complexity.\cite{kocher1998introduction}\cite{brier2004correlation}
-The simplest form is \emph{Simple \poweranalysis{}} (SPA), and it involves directly examining the power consumption.
-As large control blocks can be identified, a data-dependent control flow can leak information this way.
+\subsection{Simple Power Analysis}
+In the simplest form of \poweranalysis{}, SPA, power traces are usually examined visually.
+Repeating patterns of operations can often be identified, leaking information about the control flow.
+If the control flow is dependent on a key, an attacker can infer its value.
 An example target would be RSA decryption being calculated via the square-and-multiply algorithm.
-The difference between the multiply and the square operation is directly observable from a single power trace.
+The difference between the multiply and the square operation is directly observable from power traces.
 As the order of these operations is linked to the private key, identifying the control flow leaks the private key.
 \Cref{fig:spa} shows a trace for square-and-multiply in RSA decryption, including the leaked private key bits.
 
 \begin{figure}[h]
   \centering
   \includegraphics[width=\textwidth]{spa.png}
-  \caption{Simple Power Analysis on square-and-multiply RSA\cite{boehme2017netsec}}
+  \caption{Simple power analysis on square-and-multiply RSA\cite{boehme2017netsec}}
   \label{fig:spa}
 \end{figure}
 
-The control flow is often not enough to leak the entire secret, and it is very hard to gain information about the actual data from only SPA.
-For this a more complex variant of \poweranalysis{} can be used, namely \emph{Differential \poweranalysis{}} (DPA).
-DPA requires a large number of traces, with one factor for the power consumption known.
-For cryptographic operations this equates a \emph{chosen plaintext} attack scenario.
+Power traces are often not as clear as in \Cref{fig:spa}, and contain some amount of random noise.
+By averaging multiple traces this noise can be reduced, allowing for easier analysis.
 
-DPA then attacks the individual bits of the key.
-The attacker considers two cases, one for each value of the current key bit.
-First she assumes the value of the current key bit is 0.
-She then chooses a bitwise operation (e.g. XOR of the plaintext with the key in the first round of AES), and splits the power traces into two sets, based on the value of the target bit in the expected result of this operation.
-Next she calculates the mean power consumption of both sets.
-As the value of the other bits, as well as other factors for the power consumption, are randomly distributed, calculating the mean will neutralize them.
-If her assumption was correct, the difference of both means will exhibit a spike at the time of the chosen operation.
-Either way, the value of the current key bit is revealed to her.
+\subsection{Differential Power Analysis}
+The control flow is often not enough to leak the entire key, and it is very hard to gain information about the actual data from only SPA.
+For this a more complex variant of \poweranalysis{} can be used, namely \emph{Differential \poweranalysis{}} (DPA).
+DPA requires a large number of power traces, with the cryptographic algorithm being run on a known plaintext in each execution.
+It also requires that the attacker knows which cryptographic algorithm is running on the target.
+Both of these requirements are usually fulfilled in embedded devices.
+
+The attacker additionally requires a \emph{power model}, which is used to calculate the expected power consumption for a given value.
+While not entirely accurate\cite{brier2004correlation}, the \hammingw{} has proven to be a very effective power model in practice.
+
+Knowing the algorithm running on the target, the attacker can predict the result of intermediate computations, given some assumption about the key.
+In practice she usually guesses a single key bit, and then calculates the expected result of some bitwise operation, e.g. XOR.
+The other bits are not important for her attack at the moment and are thus ignored.
+After calculating the expected power consumption for all plaintexts, she splits the power traces in two subsets, based on the value of the expected result.
+Then she calculates the mean of both sets, and calculates their difference.
+If the guess for the current key bit was correct, then all traces in a single subset will have the same value for the current bit.
+This means that the difference between both means shows spikes in the places where the attacked operation happens.
+
+If the guess was wrong on the other hand, the values of the current bit are randomly distributed in both sets, and the difference will show no spikes of non-zero values.
+The values of the other bits can be ignored, as they are close enough to being random in both sets, and thus filtered out by calculating the difference.
+Other power consumption noise, coming from different parts of the processor, is randomly distributed overy every trace, and thus filtered by taking the mean.
+Both the values for other bits and other power consumption influences are note entirely random, but close enough to it that these assumptions work well in practice.
 
 \Cref{fig:dpa} shows a typical DPA result with the mean power consumptions of both sets, the difference between the two, and the difference with the Y axis magnified by a factor of 15.
 This analysis was performed on the output of the least significant bit after the first S-box substitution in AES.
-
 \begin{figure}[h]
   \centering
   \includegraphics[width=0.8\textwidth]{dpa.png}
@@ -50,18 +71,20 @@ This analysis was performed on the output of the least significant bit after the
   \label{fig:dpa}
 \end{figure}
 
-Even more higher order information about the key can be found with \emph{Correlational \poweranalysis{}} (CPA).
+\subsection{Correlation Power Analysis}
 CPA is the most complex of these attacks, but also offers the best results.
-The attacker starts by making a list of candidate values for every byte of the key.
-Attacking individual bytes at a time, instead of the whole key, still keeps the required effort feasible.
-As she knows which algorithm she is attacking, she knows which operations will take place, and can calculate expected intermediate results based on her chosen plaintexts and key candidates.
-She can then calculate the expected power consumptions for these intermediate results.
+The attacker starts by making a list of candidate values for a part of the key, usually individual bytes.
+With a power model, usually the \hammingw{} like for DPA, she can calculate the expected power consumption for combination of key guess with every plaintext.
 
-The attacker can now calculate the correlation between the expected power consumptions for every key byte candidate and the actual power consumption.
-The candidate with the highest correlation coefficient is then the most probable value for the current key byte.
+For a fixed key guess, these expected power consumptions are a function over all plaintexts.
+For a single point in time, the actual power traces are \emph{also} a function over all plaintexts, with the actual key being a fixed parameter unknown to the attacker.
+By testing how much the expected power consumptions correlate with the actual power consumptions, the attacker can find the confidence values of the guesses for the current part of the key.
+She then assumes the value with the highest correlation coefficient is correct, and continues her attack for the rest of the key.
 
-\subsubsection{Defenses against \poweranalysis{} attacks}
-\Poweranalysis{} works because processed data directly influences the power consumption.
+Of course the attacker does not know exactly which point in time she is supposed to examine.
+However, it is very unlikely that an incorrect key guess at a random point in time has a closer correlation than the correct key guess at the correct time, and so an attacker can simply use the maximum correlation coefficient.
+
+\subsection{Defenses against \poweranalysis{} attacks}
 Defenses against this class of attack usually work by either adding additional factors to the power consumption, thus increasing the computational effort required for analysis, or by reducing variances in power consumption altogether.
 This reduced variance decreases the information an attacker can gain from the same number of power traces, giving her reduced confidence in her result or requiring her to capture more traces.
 
