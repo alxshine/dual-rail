@@ -1,4 +1,4 @@
-\section{Evaluation}
+\chapter{Evaluation}
 \label{evaluation}
 To test the effectiveness of my balancing I compared balanced code with regular code.
 In order to decrease the turnaround time during development I decided to run the code in an emulator, as opposed to on actual hardware.
@@ -8,7 +8,7 @@ Instead of running a full \poweranalysis{} attack on actual hardware I added cod
 This essentially simulates a scenario where an attacker has precise enough instruments to measure the \hammingw{} of every register during every clock cycle.
 Such a scenario would equate an extremely powerful attacker, and any robustness improvements for this scenario indicate improvements in real-world scenarios with reasonable confidence.
 
-\subsection{\qemu{}}
+\section{\qemu{}}
 \qemu{} is a generic and open source machine emulator and virtualizer.\cite{bellard2005qemu}
 While it can be used as a full fledged virtualization environment and sandbox, it can also emulate different processor architectures for programs without first emulating an OS.
 This process, called \emph{bare-metal emulation}, allows me to evaluate the performance of my thesis project on a simulated ARM processor running on my computer.
@@ -16,13 +16,13 @@ This process, called \emph{bare-metal emulation}, allows me to evaluate the perf
 During the execution of emulated code, so-called guest code, it can also provide a GDB server, allowing for remote debugging of code running inside \qemu{}.
 Unfortunately this debugging has to be done in ARM assembly, as all C debugging information has been lost during the build process.
 
-\subsubsection{Memory Layout of \qemu{} Kernels}
+\subsection{Memory Layout of \qemu{} Kernels}
 \label{memory}
 Even with bare-metal emulation, \qemu{} still takes its input as a kernel.
 Due to this, it starts execution at address \hex{1000}, as everything before that address is usually reserved for interrupt handling.
 This requires some additional setup in my build process (see \Cref{buildtest}).
 
-\subsubsection{Extending \qemu{}}
+\subsection{Extending \qemu{}}
 To perform any evaluation I first needed to add code to \qemu{} that computes \hammingw{} histograms during execution.
 Doing this proved harder than expected, due to optimizations that happen during execution of guest code.
 
@@ -44,13 +44,13 @@ The TCI does not transform TC into host assembly, and instead simulates a guest 
 During this simulation ALU operations are handled by special functions, and their return values are then stored in the simulated registers.
 The call sites of these functions are where my evaluation code is located, calculating the \hammingw{} of results and generating the histogram.
 
-\subsection{Test Code}
+\section{Test Code}
 I tested my balancing with RC4\cite{rc4} and AES\cite{daemen2013design}.
 RC4 used to be the industry standard for symmetric encryption, and has an extremely small codebase.
 AES is current symmetric encryption standard.
 Both algorithms fit my target use case of encryption on an embedded device.
 
-\subsubsection{Building the Test Code}
+\subsection{Building the Test Code}
 \label{buildtest}
 Because I need to load my plugin and my balanced arithmetic functions during the optimization step, and because of the memory layout in \qemu{} kernels, the build process is a lot more involved than in normal cross compilation.
 

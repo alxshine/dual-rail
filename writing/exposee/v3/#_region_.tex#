@@ -1,0 +1,47 @@
+\message{ !name(exposee.tex)}\documentclass{article}
+\usepackage[a4paper]{geometry}
+\usepackage{cleveref}
+\usepackage{tikz}
+\usepackage{caption, subcaption}
+
+\usepackage{sansmathfonts}
+\usepackage[T1]{fontenc}
+\renewcommand*\familydefault{\sfdefault} %% Only if the base font of the document is to be sans serif
+
+\newcommand{\qemu}{QEMU}
+\newcommand{\dual}{Dual-Rail-Logic}
+\newcommand{\llvm}{LLVM}
+\newcommand{\lc}{\llvm{} Core}
+\newcommand{\exposee}{proposal}
+
+\title{%
+  Master Thesis Proposal\\
+  \large Dual rail logic in software as LLVM-IR transformation}
+\author{Alexander Schl\"ogl}
+
+\begin{document}
+
+\message{ !name(exposee.tex) !offset(63) }
+
+\end{figure}
+
+\section{\qemu{}}
+aoeu
+
+\section{Intended Methodology}
+\label{sec:methodology}
+aoeu
+
+\section{Related Work}
+\label{sec:related-work}
+aoeu
+
+\section{Possible Difficulties}
+\label{sec:difficulties}
+aoeu
+
+
+\bibliographystyle{plain}
+\bibliography{sources.bib}
+\end{document}
+\message{ !name(exposee.tex) !offset(-47) }

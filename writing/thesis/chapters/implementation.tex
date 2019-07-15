@@ -1,4 +1,4 @@
-\section{Implementation}
+\chapter{Implementation}
 \label{pass}
 The transformation of normal code into my balanced form happens automatically inside the compiler.
 This requires no additional considerations of the programmer, while still providing increased robustness.
@@ -17,7 +17,7 @@ Memory locations (registers, heap memory, etc.) are balanced iff all values stor
   \label{fig:implementation}
 \end{figure}
 
-\subsection{\llvm{}}
+\section{\llvm{}}
 \label{llvm}
 The \llvm{} compiler infrastructure project\cite{lattner2010llvm} contains a number of subprojects, but it is mostly known for being an extremely versatile compiler.
 It works by using an intermediate representation (\ir{}) specifically designed to be source and target independent, while allowing for easy automatic optimization.
@@ -69,7 +69,7 @@ As such, optimization passes for \ir{} are immediately usable for every language
 This means implementing my balancing pass for the \llvm{} toolchain makes it very widely usable.
 For this reason, and because of the powerful analysis enabled by \llvm{}'s well defined IR language, \llvm{} was chosen for my thesis.
 
-\subsection{Balancing Pass}
+\section{Balancing Pass}
 The balancing pass stores balanced values 32bit integers instead of regular 8bit, and then uses my balanced arithmetic operators instead of the normal operators.
 While this alone is fairly simple, it causes type mismatches for interactions between balanced and unbalanced memory.
 These then need to be fixed.
@@ -93,7 +93,7 @@ This is usually done by generating a new \ir{} instruction and replacing referen
 A special case are function parameters.
 As these cannot be changed for an existing function, the first step in my balancing pass is to clone the original functions with changed parameter and return types.
 
-\subsubsection{Cloning Functions}
+\subsection{Cloning Functions}
 Cloning functions is done in two parts.
 First the prototype for the new function is created.
 During this creation the pass goes through all parameter and changes their types from \lli8 to \lli32.
@@ -108,7 +108,7 @@ Without any additional parameters, the copied instructions will still reference 
 To avoid this I use a so-called \emph{Value Mapper} to replace the old parameters with the new ones everywhere they are referenced.
 This change alone would cause type mismatches and generates code that does not compile, but the other steps of my pass fix these problems.
 
-\subsubsection{Balancing Allocations}
+\subsection{Balancing Allocations}
 In order to declare and use local variables in \ir{} the memory for them first has to be allocated using the \emph{alloca} instruction.
 Even function parameters are not used directly but first copied into memory explicitly allocated for this function.
 Note that even though the naming is similar to C's \emph{malloc} call, the memory for \emph{alloca} is on the stack in this case.
@@ -117,25 +117,25 @@ The \emph{alloca} instruction takes the type to be allocated as parameter, and r
 This means that for balancing all the pass has to do is replace the \emph{alloca} for \lli8 with one for \lli32.
 Allocations for local arrays work the same way, the pass just needs to extract the dimensions from the old allocation.
 
-\subsubsection{Balancing Stores}
+\subsection{Balancing Stores}
 It can happen that the target code tries to store a balanced variable (\lli32) into an unbalanced pointer (\lli8).
 In this case the pass unbalances the variable in a temporary before storing it.
 
 While this does cause information leakage and a reduction in robustness, such a case can be avoided fairly easily.
 As only global memory is unbalanced, this does not happen when the program stores all values on the stack.
 
-\subsubsection{Balancing Loads}
+\subsection{Balancing Loads}
 Balancing loads is a mirror case of balancing stores.
 When loading from an unbalanced pointer into a balanced variable, the pass first loads into an unbalanced temporary and then balances the value before storing it in the local variable.
 
-%% \subsubsection{Balancing ZExts}
+%% \subsection{Balancing ZExts}
 %% \emph{ZExt} stands for zero extend, and it is an instruction used to promote integer types to larger bit sizes.
 %% While my pass is meant to balance code that uses \emph{only 8bit integers}, I needed to balance \emph{ZExts} for compatibilty reasons during development and have left the balancing procedure in the code.
 
 %% When zero extending from 8 to 32 bit, the pass replaces the instruction with a call to my balance function.
 %% When extending from 32 to 64 bit it unbalances the value first and then zero extends to the target type.
 
-\subsubsection{Balancing Binary Operations}
+\subsection{Balancing Binary Operations}
 I implemented the balanced operations described in \Cref{operations} in C, each as an individual function.
 In order to balance binary operations they need to be replaced by calls to these new functions.
 As all binary operations are represented by the same instruction in the \llvm{} API, the pass needs to examine the \emph{opcode} of the instruction.
@@ -170,16 +170,16 @@ int balanced_sdiv(int lhs, int rhs) {
 
 The semantics, especially the handling of negative values are made to be consistent with the semantics of \llvm{}.
 
-\subsubsection{Balancing Pointer Arithmetic}
+\subsection{Balancing Pointer Arithmetic}
 Balanced values cannot be used for array indexing directly.
 Therefore, whenever a balanced variable is used as index for an array access it is unbalanced before use.
 All array accesses use the \emph{getelementptr} instruction in \ir{}, so this is easy to catch.
 
-\subsubsection{Balancing Compares}
+\subsection{Balancing Compares}
 In both of my balancing schemes the inverse occupies the more significant bits than the value itself.
 This changes the direction of comparison operations, meaning \texttt{<} becomes \texttt{>}, and \texttt{>=} becomes \texttt{<=}.
 
-\subsection{Building the Optimization Pass}
+\section{Building the Optimization Pass}
 \label{buildpass}
 The compiler pass is built using CMake as that makes loading the required parts of \llvm{} very easy.
 \Cref{lst:cmakelists} shows the \emph{CMakeLists.txt} for my balancing pass.

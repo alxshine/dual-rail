@@ -2,8 +2,8 @@
 \renewcommand*\familydefault{\sfdefault}  %% Only if the base font of the document is to be sans serif
 \usepackage[T1]{fontenc}
 
-\setcounter{secnumdepth}{2}
-\setcounter{tocdepth}{2}
+\setcounter{secnumdepth}{1}
+\setcounter{tocdepth}{1}
 
 \usepackage[%
   %% backend=bibtex      % biber or bibtex
@@ -42,5 +42,37 @@
 \newcommand{\lli}[1]{\emph{int#1}}
 \newcommand{\hex}[1]{\texttt{0x#1}}
 
-\usepackage{hyperref}
-\usepackage{cleveref}
+%configure the list of listings spacing
+\makeatletter
+\def\l@lstlisting#1#2{\@dottedtocline{1}{1.5em}{3em}{#1}{#2}}
+\makeatother
+
+\makeatletter
+
+\newcommand\frontmatter{%
+        \cleardoublepage
+    %\@mainmatterfalse
+    \pagenumbering{roman}}
+
+\newcommand\mainmatter{%
+        \cleardoublepage
+    % \@mainmattertrue
+    \pagenumbering{arabic}}
+
+\newcommand\backmatter{%
+    \if@openright
+        \cleardoublepage
+    \else
+        \clearpage
+    \fi
+    % \@mainmatterfalse
+}
+\makeatother
+
+\newenvironment{abstractpage}
+    {\cleardoublepage\vspace*{\fill}\thispagestyle{empty}}
+    {\vfill\cleardoublepage}
+\renewenvironment{abstract}[1]
+    {\bigskip\selectlanguage{#1}%
+     \begin{center}\bfseries\abstractname\end{center}}
+    {\par\bigskip}

@@ -1,4 +1,4 @@
-\section{Power Analysis}
+\chapter{Power Analysis}
 \label{poweranalysis}
 Power analysis utilizes the fact that different operations have different power consumptions.
 By capturing the power consumption traces (power traces in short) and examining them, an attacker can reason about the variables determining the control flow during program execution.
@@ -8,7 +8,7 @@ For these cases capturing a large number of traces and performing statistical an
 The two main attacks of this type are called differential power analysis (DPA)\cite{kocher1999differential} and correlation power analysis (CPA)\cite{brier2004correlation}.
 All variants and the setup required are explained in this section.
 
-\subsection{Setup}
+\section{Setup}
 Performing \poweranalysis{} requires access to the device in a controlled environment.
 The attacker needs to control the power supply for the target, and be able to alter the containing electronics.
 This is fairly easy for embedded platforms, as they are often made to be self-contained.
@@ -20,7 +20,7 @@ She then measures the voltage difference between both ends of the resistor with 
 This voltage is directly proportional to the current flowing through the resistor, and thus to the power consumption of the target.
 The voltage recordings from the oscilloscope are then transferred to a computer, and can be analyzed there.
 
-\subsection{Simple Power Analysis}
+\section{Simple Power Analysis}
 In the simplest form of \poweranalysis{}, SPA, power traces are usually examined visually.
 Repeating patterns of operations can often be identified, leaking information about the control flow.
 If the control flow is dependent on a key, an attacker can infer its value.
@@ -39,7 +39,7 @@ As the order of these operations is linked to the private key, identifying the c
 Power traces are often not as clear as in \Cref{fig:spa}, and contain some amount of random noise.
 By averaging multiple traces this noise can be reduced, allowing for easier analysis.
 
-\subsection{Differential Power Analysis}
+\section{Differential Power Analysis}
 The control flow is often not enough to leak the entire key, and it is very hard to gain information about the actual data from only SPA.
 For this a more complex variant of \poweranalysis{} can be used, namely \emph{Differential \poweranalysis{}} (DPA).
 DPA requires a large number of power traces, with the cryptographic algorithm being run on a known plaintext in each execution.
@@ -71,7 +71,7 @@ This analysis was performed on the output of the least significant bit after the
   \label{fig:dpa}
 \end{figure}
 
-\subsection{Correlation Power Analysis}
+\section{Correlation Power Analysis}
 CPA is the most complex of these attacks, but also offers the best results.
 The attacker starts by making a list of candidate values for a part of the key, usually individual bytes.
 With a power model, usually the \hammingw{} like for DPA, she can calculate the expected power consumption for combination of key guess with every plaintext.
@@ -84,7 +84,7 @@ She then assumes the value with the highest correlation coefficient is correct, 
 Of course the attacker does not know exactly which point in time she is supposed to examine.
 However, it is very unlikely that an incorrect key guess at a random point in time has a closer correlation than the correct key guess at the correct time, and so an attacker can simply use the maximum correlation coefficient.
 
-\subsection{Defenses against \poweranalysis{} attacks}
+\section{Defenses Against Power Analysis Attacks}
 Defenses against this class of attack usually work by either adding additional factors to the power consumption, thus increasing the computational effort required for analysis, or by reducing variances in power consumption altogether.
 This reduced variance decreases the information an attacker can gain from the same number of power traces, giving her reduced confidence in her result or requiring her to capture more traces.
 

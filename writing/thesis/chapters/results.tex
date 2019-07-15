@@ -1,4 +1,4 @@
-\section{Results}
+\chapter{Results}
 \label{results}
 For the evaluation both the balanced and the unbalanced version were compiled using my Clang and GNU cross compiler toolchain.
 Both versions were compiled using the \texttt{-O0} option, to avoid the influence of any optimizations.
@@ -63,7 +63,7 @@ A more detailed discussion of the results follows.
   \label{fig:aes}
 \end{figure}
 
-\subsection{Robustness}
+\section{Robustness}
 As visible in both \Cref{fig:rc4} and \Cref{fig:aes}, the balanced version has a much narrower distribution of \hammingw{}s.
 Although my balancing does not reach the perfect outcome of identical \hammingw{}s for all operations, it shows a significant move towards it.
 Perfect balancing cannot be reached with current ALUs, as their design forces imbalances in intermediate values.
@@ -87,7 +87,7 @@ The number of values with \hammingw{} 7 is roughly the same as in AES, which sup
 
 For both AES and RC4 the histograms indicate increased robustness, and the reduced variance in histograms should reduce the amount of information retrievable by an attacker.
 
-\subsection{Performance}
+\section{Performance}
 Unfortunately the performance impact of my balancing pass is rather large.
 As shown in \Cref{tbl:properties} the number of operations increases by a factor of 5.19 for RC4, and by a factor of 26.68 for AES.
 A possible reason for this discrepancy is the larger number of array accesses in AES, which all require unbalancing.

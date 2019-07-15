@@ -1,4 +1,4 @@
-\section{Conclusion}
+\chapter{Conclusion}
 \label{conclusion}
 In my thesis I evaluated the robustness of a compiler generated software approach to \dual{}.
 By writing a proof of concept implementation I explored a new perspective on hardening embedded platforms against power analysis attacks.
@@ -7,7 +7,7 @@ Using these balanced values requires an entirely new arithmetic, which is the ma
 
 The discussion of my work is split into three parts, for easier readability.
 
-\subsubsection{Summary of Results}
+\section{Summary of Results}
 The approach taken in my thesis works for my test code.
 Balancing the binary values leads to a visible decrease in variance of \hammingw{}s.
 This indicates an increased robustness against \poweranalysis{} attacks.
@@ -41,7 +41,7 @@ While only being effective for code that utilizes at most 8bit integers, this is
 With my thesis I also show that it is possible to automatically implement a generally applicable defensive measure during compilation.
 I believe this highlights the great potential of modern compilers, opening multiple avenues for future work.
 
-\subsubsection{Limitations}
+\section{Limitations}
 Unfortunately, the performance impact of my balanced arithmetic is massive.
 At least for AES, the overhead introduced by my balancing pass seems prohibitive for now.
 The overhead stems from my operators being implemented via functions, which are not inlined.
@@ -62,7 +62,7 @@ In order to give a more grounded security claim one would need to either attack 
 Attacking actual hardware is hard even without additional defenses in place as 32bit capable platforms run much higher clock rates than 8bit platforms, leading to much larger amounts of trace data for analysis.
 Generating virtual power traces in \qemu{} would lead to the same problem of large traces, with the addition that extending \qemu{} is a massive amount of work.
 
-\subsubsection{Future Work}
+\section{Future Work}
 The most obvious future work for my thesis would be extending the balancing to global values.
 This would reduce the considerations a programmer has to keep in mind even more, with still the same increase in robustness.
 

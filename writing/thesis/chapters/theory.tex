@@ -1,4 +1,4 @@
-\section{Theory}
+\chapter{Theory}
 \label{theory}
 As previously discussed, power analysis attacks are usually performed under the \hammingw{} power model.
 With this model, values with identical \hammingw{}s are indistinguishable.
@@ -7,7 +7,7 @@ Having only perfectly balanced values then means that an attacker can gain no in
 As having \emph{only} balanced values is not possible with my choice of balancing (which will be justified in \Cref{values,operations}), the goal then would be to come as close to this ideal as possible, i.e. having a minimal number of unbalanced values.
 However, due to time constraints I do not try to find the optimal balancing scheme in my thesis, instead finding a balancing scheme and an arithmetic that is \emph{correct}, and balanced enough to measurably impact power consumption.
 
-\subsection{Balancing Individual Values}
+\section{Balancing Individual Values}
 \label{values}
 In resemblence of \dual{} itself, I balance the \hammingw{} by storing the inverse in the same register as the actual value.
 I store only 8bit of actual data, as code written for 8bit architectures is much more common than 16bit architectures.
@@ -43,7 +43,7 @@ I found balanced operations for both schemes, but in the end decided to use Sche
 Both are worth mentioning however, because many of my operations will result in values formatted in Scheme 2 and require explicit transformation.
 By finding standardized transformations in both directions I could reuse them in the rest of my arithmetic.
 
-\subsection{Balancing Binary Operations}
+\section{Balancing Binary Operations}
 \label{operations}
 Any operations applied to balanced values should also return balanced values.
 With my balancing schemes, this requires not only calculating the result, but also its inverse.
@@ -70,7 +70,7 @@ where $\%i$ denotes the ``name'' of the current intermediate, and $x_1$ through 
 The \texttt{operation} denotes how the current value is obtained, and is missing for input operands.
 
 
-\subsubsection{Transforming Scheme 1 to Scheme 2}
+\subsection{Transforming Scheme 1 to Scheme 2}
 The transformation from Scheme 1 to Scheme 2 looks as follows:
 \begin{align*}
   \binp{1}{0}{\neg{x}}{0}{x}\\
@@ -80,7 +80,7 @@ The transformation from Scheme 1 to Scheme 2 looks as follows:
 
 LSL here stands for logical shift left.
 
-\subsubsection{Transforming Scheme 2 to Scheme 1}
+\subsection{Transforming Scheme 2 to Scheme 1}
 The other direction works very similar to the first, and is shown below.
 Note that ROR stands for rotational right shift, i.e. the values shifted out on the right are shifted back in on the left.
 \begin{align*}
@@ -89,7 +89,7 @@ Note that ROR stands for rotational right shift, i.e. the values shifted out on 
   \btrans{3}{0}{\neg{x}}{0}{x}{\%2 \band \hex{00ff00ff}}
 \end{align*}
 
-\subsubsection{ORR}
+\subsection{ORR}
 Before finding a balanced variant of bitwise OR, I needed to find an expression for the inverse of the result.
 For this I utilized DeMorgan's law: $\neg{x \lor y} = \neg{x} \land \neg{y}$.
 With this equality ORR looks as follows:
@@ -103,10 +103,10 @@ With this equality ORR looks as follows:
   \btrans{7}{0}{\neg{x \borr y}}{0}{x \borr y}{\trans21(\%6)}
 \end{align*}
 
-\subsubsection{AND}
+\subsection{AND}
 As $\neg{x \land y} = \neg{x} \lor \neg{y}$, AND works almost the same as ORR, but uses different parts of the intermediate results.
 
-\subsubsection{XOR}
+\subsection{XOR}
 XOR is at its base a combination of AND and ORR: $x \oplus y = (\neg{x} \land y) \lor (x \land \neg{y})$.
 It is better to create a balanced XOR from scratch, instead of compositioning it from ORR and AND, because both ORR and AND have the same imbalanced intermediate values.
 
@@ -130,7 +130,7 @@ It is the only operator that is perfectly balanced.
 Unfortunately it is not possible to transform arbitrary logic into XORs, as XOR is not a univarsal operation.
 However, it is a very common operation in cryptographic algorithms, and as such having perfectly balanced XOR provides a significant increase in robustness.
 
-\subsubsection{ADD}
+\subsection{ADD}
 For the inverse of arithmetic operations I utilized the definition of the negation in 2s complement: $-x = \neg{x} + 1$.
 This also means that $\neg{x} = -x - 1$ and therefore:
 \begin{equation*}
@@ -147,7 +147,7 @@ Using associativity of addition the balanced variant of ADD looks like the follo
 \end{align*}
 Both $c$ and $c'$ denote possible carry values that need to be filtered.
 
-\subsubsection{SUB}
+\subsection{SUB}
 For subtraction I again use the definition of 2s complement, giving me the following for the inverse result:
 \begin{equation*}
   \neg{x-y} = - (x-y) - 1 = y - x - 1 = y + (-x -1) = y + \neg{x} = \neg{x} + y
@@ -166,7 +166,7 @@ resulting in a quick and convenient balanced subtraction:
   \btrans{6}{0}{\neg{x-y}}{0}{x-y}{\%5 \band \hex{00ff00ff}}
 \end{align*}
 
-\subsubsection{MUL}
+\subsection{MUL}
 The inverse result of multiplication can be calculated as follows:
 \begin{equation*}
   \neg{x \cdot y} = -(x \cdot y) - 1 = (-x) \cdot y - 1 = (\neg{x} + 1) \cdot y = \neg{x} \cdot y + y - 1
@@ -183,7 +183,7 @@ Which gives us the following balanced multiplication:
   \btrans{7}{0}{\neg{x \cdot y}}{0}{x \cdot y}{\%6 \band \hex{00ff00ff}}
 \end{align*}
 
-\subsubsection{DIV and REM}
+\subsection{DIV and REM}
 As binary division seemed unnecessarily complex for balanced values, I instead implemented it by repeated subtraction.
 Using my constructs for balanced subtraction and addition (for the result), I simply subtract the divisor until it is larger than the remaining dividend.
 For division I return the number of subtraction, and for the remainder I simply return the remaining dividend.
@@ -222,13 +222,13 @@ int balanced_sdiv(int lhs, int rhs) {
 
 \end{lstlisting}
 
-\subsubsection{Shifting}
+\subsection{Shifting}
 While performing logical shifts, I need to ensure that the correct bits are pushed in.
 When 0s are shifted in for $x$ I have to shift in 1s for $\neg{x}$, and vice versa.
 This is done by ORRing the target value with \hex{ff000000} or \hex{0000ff00}, as needed.
 The shifting is performed normally and the result is then AND filtered with \hex{00ff00ff} to comply with Scheme 1 again.
 
-\subsection{Testing for Correctness}
+\section{Testing for Correctness}
 \label{correctness}
 While the individual steps for each binary operator are themselves a theoretical proof for their correctness, I still wanted to validate them.
 As there are only 256 possible 8bit values, I could easily brute-force every combination of them, and verify the correctness of the result.
@@ -254,7 +254,7 @@ The \emph{Unary-} and \emph{BinaryOperation} classes take the indices of the lay
 Executing the \emph{MultiStepOperation} will then execute all lambdas in order and store the intermediate results in \emph{numpy} arrays.
 Correctness is then tested by checking if all final results are equal to the output of a reference operation ($x \cdot y$ in this case).
 
-\subsection{Evaluating the Balancedness}
+\section{Evaluating the Balancedness}
 \label{balance-eval}
 The balancedness of my operations is evaluated using the same python code.
 As all intermediate results are stored during evaluation I can easily calculate the distribution of their \hammingw s, as shown in \Cref{fig:mult}.
@@ -263,7 +263,7 @@ I used these histograms to check if operations needed improvement, and if that w
 \begin{figure}[hp]
   \centering
   \includegraphics[width=\textwidth]{multiplication.png}
-  \caption{Histogram of \hammingw s of direct balanced multiplication}
+  \caption{Histogram of \hammingw{}s of balanced multiplication}
   \label{fig:mult}
 \end{figure}
 

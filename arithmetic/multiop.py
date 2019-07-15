@@ -86,7 +86,9 @@ class MultiStepOperation:
         plt.figure()
         plt.suptitle(title)
         for opIndex in range(len(self.ops)):
-            plt.subplot(len(self.ops), 1, opIndex+1)
+            ax = plt.subplot(len(self.ops), 1, opIndex+1)
+            ax.set_xlabel('Hamming Weight')
+            ax.set_ylabel('Occurences')
             resultIndex = opIndex + 2
             w = vHW(self.results[resultIndex])
             plt.hist(w, bins=range(2*wordsize+2), label=f"Step {opIndex+1}")
@@ -94,6 +96,7 @@ class MultiStepOperation:
             plt.legend()
 
         plt.show()
+        # plt.savefig('hist.png', dpi=300)
 
     def testCorrectness(self, equivalentUnbalancedFunction):
         uResults = vUS1(self.results[-1])

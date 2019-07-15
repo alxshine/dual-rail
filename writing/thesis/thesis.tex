@@ -1,20 +1,26 @@
-\documentclass[a4paper]{article}
+\documentclass[]{report}
 
-\title{Toward Balancing Arbitrary Code}
+\title{\Huge DRAFT\\\LARGE Defending against power analysis\\by balancing binary values:\\\Large a compiler based approach}
+\author{Alexander Schl\"ogl BSc}
 
 \usepackage[table]{xcolor}    % loads also »colortbl«
+\usepackage[a4paper]{geometry}
 
 \input{config/tikz.tex}
 \input{config/listings.tex}
 \input{config/math.tex}
-\input{config/misc.tex}
+\input{config/tex.tex}
+
+\usepackage{hyperref}
+\usepackage{cleveref}
 
 \addbibresource{sources.bib}
 
 \begin{document}
 \maketitle
 
-\pagenumbering{roman}
+%% \pagenumbering{roman}
+\frontmatter
 
 \tableofcontents
 \newpage
@@ -27,8 +33,9 @@
 \addcontentsline{toc}{section}{List of Listings}
 \lstlistoflistings
 
-\newpage
-\pagenumbering{arabic}
+\mainmatter
+%% \newpage
+%% \pagenumbering{arabic}
 
 \input{chapters/introduction.tex}
 \input{chapters/poweranalysis.tex}
