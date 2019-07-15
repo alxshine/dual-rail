@@ -14,7 +14,21 @@
 \begin{document}
 \maketitle
 
+\pagenumbering{roman}
+
 \tableofcontents
+\newpage
+\phantomsection \label{listoffigures}
+\addcontentsline{toc}{section}{List of Figures}
+\listoffigures
+
+\newpage
+\phantomsection \label{listoflistings}
+\addcontentsline{toc}{section}{List of Listings}
+\lstlistoflistings
+
+\newpage
+\pagenumbering{arabic}
 
 \input{chapters/introduction.tex}
 \input{chapters/poweranalysis.tex}

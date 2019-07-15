@@ -1,0 +1,9 @@
+\boolfalse {citerequest}\boolfalse {citetracker}\boolfalse {pagetracker}\boolfalse {backtracker}\relax 
+\contentsline {figure}{\numberline {1}{\ignorespaces Simple power analysis on square-and-multiply RSA\cite {boehme2017netsec}\relax }}{3}{figure.caption.6}% 
+\contentsline {figure}{\numberline {2}{\ignorespaces Difference in means during DPA\cite {kocher2011introduction}\relax }}{4}{figure.caption.7}% 
+\contentsline {figure}{\numberline {3}{\ignorespaces Balancing Schemes\relax }}{8}{figure.caption.8}% 
+\contentsline {figure}{\numberline {4}{\ignorespaces Histogram of Hamming weights of direct balanced multiplication\relax }}{14}{figure.caption.19}% 
+\contentsline {figure}{\numberline {5}{\ignorespaces The balancing status of my thesis project\relax }}{15}{figure.caption.20}% 
+\contentsline {figure}{\numberline {6}{\ignorespaces The general architecture of the LLVM{} compiler\relax }}{16}{figure.caption.21}% 
+\contentsline {figure}{\numberline {7}{\ignorespaces Hamming weight histograms for balanced and unbalanced RC4\relax }}{23}{figure.caption.33}% 
+\contentsline {figure}{\numberline {8}{\ignorespaces Hamming weight histograms for balanced and unbalanced AES\relax }}{24}{figure.caption.34}% 
