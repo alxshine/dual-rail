@@ -4,9 +4,12 @@
     bar width=0.00725\textwidth,
     enlargelimits=0.05,
     xtick={0,8,16,24,32},
-    width=\textwidth
+    width=\textwidth,
+    xlabel={\hammingw{}},
+    ylabel={Fraction of Occurences}
 ]
 \addplot[pantone289,fill=pantone289!40] table [x=i, y=unbalanced-scaled, col sep=comma] {data/aes.csv};
 \addplot[pantone144,fill=pantone144!40] table [x=i, y=balanced-scaled, col sep=comma] {data/aes.csv};
+\legend{Unbalanced,Balanced}
 \end{axis}
 \end{tikzpicture}

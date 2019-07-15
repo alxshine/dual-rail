@@ -4,7 +4,9 @@
     bar width=0.015\textwidth,
     enlargelimits=0.05,
     xtick={0,8,16,24,32},
-    width=\textwidth
+    width=\textwidth,
+    xlabel={\hammingw{}},
+    ylabel={Occurences},
 ]
 \addplot[pantone289,fill=pantone289!40] table [x=i, y=balanced-total, col sep=comma] {data/rc4.csv};
 \end{axis}
