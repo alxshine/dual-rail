@@ -1,0 +1,31 @@
+\begin{abstractpage}
+  \begin{abstract}{english}
+    Power consumption can leak information about processed data.
+    If the data in question is the secret key for a cryptographic algorithm, this can have dire consequences for security.
+    By supplying a large number of known inputs to the algorithm, e.g. plaintexts for an encryption, and performing statistical analysis on the power consumptions during execution, an attacker can infer the value of this key.
+
+    Many use cases for embedded devices, like SmartCards and NFC keys, perform cryptographic operations on any input sent to them, which makes supplying chosen plaintexts very easy.
+    Their self contained nature also makes it easy for an attacker to measure their power consumption in a controlled environment, and a lack of parallelism results in a high signal-to-noise ratio of the power consumption.
+    With this in mind, embedded devices are easy and potentially valuable targets for power analysis attacks.
+
+    In order to have some amount of security under these conditions, various countermeasures against power analysis have been explored.
+    Defenses either try to add additional factors to the power consumption, thus increasing the amount of computational effort required for a successful attack, or reduce the influence of data on the power consumption altogether.
+    Some defenses only require changes to the software, but are algorithm specific and need to be explicitly implemented, greatly increasing the knowledge a developer requires.
+    Others are applicable to any algorithm in general, but require significant changes to the hardware.
+    One such hardware defense, called \dual{}, works by \emph{balancing} every bit with its inverse.
+    This keeps power consumption constant under the assumption that it is directly proportional to the number of 1 bits in a value (the \hammingw{}), which is a widely used model for power analysis attacks.
+
+    In my thesis I explore a balancing scheme, similar to \dual{}, done in software.
+    This should provide increased robustness against power analysis attacks for \emph{any} code, while still being able to run on ``off the self'' hardware without specialized circuitry.
+    The balancing is done by storing 8bit values together with their inverse, and storing both in the same 32bit register.
+    I also provide an arithmetic for performing all operations required for a modern RISC architecture on these balanced values, compositioning the new variants from existing operations.
+
+    By providing a plugin for the \llvm{} compiler, I also provide an automatic transformation from any code written for 8bit architectures into my balanced form, without requiring additional work from the developer.
+    As such my defense requires neither specialized hardware, nor developers with expert security knowledge.
+    The versatility of the \llvm{} compiler also makes my transformation applicable to many different source languages and target platforms, additionally increasing the generality of this approach.
+
+    Evaluation of my arithmetic shows a reduction in the variance of \hammingw{}s during execution, which should reduce the information an attacker can gain by analyzing the power consumption.
+    The balancing is not perfect, as compositioning my balanced arithmetic from existing ALU operations forces imbalanced intermediate values.
+    Even with these forced imbalances the reduction in \hammingw{} variance is significant, suggesting increased robustness against real-world attackers, without additional hardware or implementation cost.
+  \end{abstract}
+\end{abstractpage}

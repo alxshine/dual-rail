@@ -33,7 +33,7 @@ A second executor thread then runs that code as it becomes available.
 This translation backend is called the Tiny Code Generator (TCG), which not only performs the translation but also some optimizations.
 Instrumenting \qemu{} for analysis is hard due to the fact that the TCG works through multiple layers of indirection, utilizing both helper functions and preprocessor macros, some of which are defined in different files depending on the host architecture (the specific definition file is chosen while building \qemu{}).
 
-This multithreaded approach also makes examining values during execution very hard.
+This multi threaded approach also makes examining values during execution very hard.
 The executor thread does not know what code it is executing, it only has a pointer (the simulated program counter) to the next instruction or the next basic block.
 The TCG on the other hand knows which operations are being executed, but it does not know the values of the operands.
 It also has no way of accessing these values as they might not even be computed yet.

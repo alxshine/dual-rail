@@ -76,7 +76,7 @@ This is due to the large number of table lookups.
 In the beginning of my code the lookup tables are copied onto the stack, which causes them to be balanced.
 Another cause is the frequent usage of XOR operations, which are perfectly balanced in my arithmetic.
 The additional spike around 9 is likely caused by the large number of loops in AES, causing a many increment operations and therefore additions.
-However, I am not entirely certain this is the only reason, as RC4, which has a similarly high ratio of increments, does not exhibit the same behaviour.
+However, I am not entirely certain this is the only reason, as RC4, which has a similarly high ratio of increments, does not exhibit the same behavior.
 
 For RC4 the balancing does not work as well.
 The largest spike in \hammingw{}s is at 7 here, and the variance is higher.

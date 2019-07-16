@@ -2,7 +2,7 @@
 \label{conclusion}
 In my thesis I evaluated the robustness of a compiler generated software approach to \dual{}.
 By writing a proof of concept implementation I explored a new perspective on hardening embedded platforms against power analysis attacks.
-The hardening is done by not using the entire available wordsize, and instead storing the inverse of data in order to balance the \hammingw{}.
+The hardening is done by not using the entire available word size, and instead storing the inverse of data in order to balance the \hammingw{}.
 Using these balanced values requires an entirely new arithmetic, which is the main contribution of this thesis.
 
 The discussion of my work is split into three parts, for easier readability.
@@ -85,5 +85,4 @@ By searching a predefined list of schemes, complete with their invariant operati
 Side channel defenses are only a limited subset of the possibilities of compiler enabled security in general.
 The power that well defined intermediate representations in modern compilers (especially \ir{}) afford us can enable much more sophisticated security analysis than was previously possible.
 Using this we should be able to automatically catch and fix many trivial security issues, and provide high level feedback where no automatic fix is possible.
-
-Where code analysis plugins for IDEs now point out possible simplifications in logical predicates, they could point out the OWASP top ten in the future.
+Where code analysis plugins for IDEs now point out possible simplifications in logical predicates, they could point out potential security risks in the future.

@@ -9,7 +9,7 @@ However, due to time constraints I do not try to find the optimal balancing sche
 
 \section{Balancing Individual Values}
 \label{values}
-In resemblence of \dual{} itself, I balance the \hammingw{} by storing the inverse in the same register as the actual value.
+In resemblance of \dual{} itself, I balance the \hammingw{} by storing the inverse in the same register as the actual value.
 I store only 8bit of actual data, as code written for 8bit architectures is much more common than 16bit architectures.
 This also gives me 16bit in the same register to reduce imbalances during operations.
 
@@ -127,7 +127,7 @@ I will skip the details of this simple transformation, and show only the result:
 
 With this construction, XOR has \emph{no imbalanced intermediate values}.
 It is the only operator that is perfectly balanced.
-Unfortunately it is not possible to transform arbitrary logic into XORs, as XOR is not a univarsal operation.
+Unfortunately it is not possible to transform arbitrary logic into XORs, as XOR is not a universal operation.
 However, it is a very common operation in cryptographic algorithms, and as such having perfectly balanced XOR provides a significant increase in robustness.
 
 \subsection{ADD}
@@ -234,7 +234,7 @@ While the individual steps for each binary operator are themselves a theoretical
 As there are only 256 possible 8bit values, I could easily brute-force every combination of them, and verify the correctness of the result.
 For this purpose I wrote python code that allows execution of intermediate steps.
 By specifying the individual steps with lambdas, and then constructing the entire balanced operation from unary and binary operations, I can execute the operation step by step.
-The intermediate results are then stored in numpy arrays, allowing me to check if the results are correct, and for which values the results are incorrect, as well as where any errors happen.
+The intermediate results are then stored in \emph{numpy} arrays, allowing me to check if the results are correct, and for which values the results are incorrect, as well as where any errors happen.
 As an example, \Cref{lst:multiop} shows the intermediate steps for multiplication.
 
 \begin{lstlisting}[language=python, caption=Step-by-step execution of balanced multiplication, label=lst:multiop]
