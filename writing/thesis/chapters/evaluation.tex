@@ -57,7 +57,7 @@ Because I need to load my plugin and my balanced arithmetic functions during the
 As discussed in \Cref{llvm} the \llvm{} compilation process can be split into multiple steps.
 I use this feature multiple times in the build process of my test code.
 The output of the build process for the RC4 code is shown in \Cref{lst:makefile-output}.
-
+\newpage
 \begin{lstlisting}[caption=Output of the Makefile, label=lst:makefile-output]
 arm-none-eabi-as -ggdb  startup.s -o startup.o
 clang -target arm-v7m-eabi -mcpu=arm926ej-s -O0 rtlib.c -S -emit-llvm -o rtlib.ll
@@ -95,7 +95,7 @@ The memory map is required due to \qemu{}'s memory layout, as discussed in \Cref
 Unfortunately, I cannot control the memory layout of the code during and after the compilation process, so I have no guarantee that the \emph{main} function will land at the desired address.
 For this I use a memory map \emph{startup.ld} (as described in \cite{armbare}), which causes the code defined in \emph{startup.s} to be at memory address \emph{0x1000}.
 The content of \emph{startup.ld} is shown in \Cref{lst:mmap}.
-
+\newpage
 \begin{lstlisting}[caption=Memory map in \emph{startup.ld}, label=lst:mmap]
 ENTRY(_Reset)
 SECTIONS
