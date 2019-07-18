@@ -1,35 +1,43 @@
 \chapter{Introduction}
-Unintended signal emissions are a major source of information leakage in modern processors.
-Especially cryptographic secrets are valuable targets for analyzing these so-called \sidechannel{}s.
-While the physical access required for \sidechannel{} attacks is often a hurdle, embedded devices are usually much more exposed, and their self-contained nature makes it easy for an attacker to measure \sidechannel{} emanations in a controlled environment.
+Unintended signal emissions are a major source of information leakage in modern processors~\cite{coron2000statistics}.
+If information about cryptographic secrets is leaked in such a way, this can have a massive security impact.
+One of these so-called side channels that is especially easy to measure is power consumption.
+Due to the way transistors work, switching a bit from 1 to 0 (and vice versa) requires some amount of power~\cite{kocher1998introduction}.
+This means that by observing the power consumption an attacker can infer the number of switched bits at a given time, and thus gain information about processed data.
+When attacking the power consumption side channel, this connection between data and power consumption is often reduced to the \hammingw{} model, which assumes the power consumption is proportional to the number of 1s in processed data~\cite{brier2004correlation}.
+By measuring the power consumption traces during execution an attacker can gain information about the \hammingw{} of processed data.
+If an attacker knows which cryptographic operation is being performed and can control the input (both reasonable assumptions for embedded devices), she can infer the value of the cryptographic secret via statistical anlysis of the power traces~\cite{brier2004correlation}.
 
-One such side channel that is especially easy to measure is power consumption.
-Setting a binary value in registers, main memory etc. consumes power directly related to the number of bits to be set to 1\cite{brier2004correlation}.
-By measuring the power consumption traces during execution an attacker can gain information about the \hammingw{} (number of 1s) of processed data.
-If she knows which cryptographic operation is being performed and can control the input (both reasonable assumptions for embedded devices), she can infer the value of the cryptographic secret via statistical anlysis of the power traces.\cite{brier2004correlation}
-As microcontrollers rarely utilize instruction level parallelism these power traces have relatively little noise, making them especially susceptible to such an attack.
+Restricted physical access often prohibits capturing power traces, and even when measurements are possible the high degree of parallelism in modern hardware adds a lot of random noise to the power consumption.
+However, this is not the case for embedded devices.
+Many of their use cases (SmartCards, etc.) make restricting physical access impossible and even \emph{require} handing them over to users.
+An attacker can thus fully control all inputs, measure all outputs, and especially control and monitor the power supply.
+The processors used in embedded devices are also often very simple, to keep production costs minimal.
+A low clock-rate, no parallelism, and a lack of caching mean that captured power traces contain very little noise.
+This makes embedded devices relatively easy and often valuable targets for power analysis attacks.
 
-Performing cryptographic operations is \emph{exactly} the use case of many embedded devices (e.g. SmartCards, verifying OTA updates, etc.), and as such defenses against \poweranalysis{} have been amply explored.
-However, the most commonly used defenses are either algorithm specific, like masking, or require significant changes to the hardware, like \dual{}\cite{sokolov2005design}.
-\dual{} is especially notable because it is algorithm independent.
+In order to protect the cryptographic secrets on embedded devices, defenses against \poweranalysis{} have been amply explored.
+However, the most commonly used defenses are either algorithm-specific, like masking, or require significant changes to the hardware, like \dual{}\cite{sokolov2005design}.
+\Dual{} is especially notable because it is algorithm independent.
 By computing the inverse along with the actual value, \dual{} \emph{balances} the number of 1s in intermediate values, and thus keeps the power consumption constant.
 This makes it in theory impossible for an attacker to gain information via the power consumption.
 
-Unfortunately this strategy suffers from multiple engineering problems, such as minute differences in clock timings between the regular and inverted path\cite{baddam2008path}, or variances in the production of transistors\cite{razafindraibe2006formal}.
+Unfortunately this strategy suffers from multiple engineering problems, such as tiny differences in clock timings between the regular and inverted path\cite{baddam2008path}, or variances in the production of transistors\cite{razafindraibe2006formal}.
 It also requires a significant increase in circuit size, doubling the required size or more\cite{baddam2008path}.
-
+While this increase alone would probably be tolerable, implementing \dual{} requires \emph{specialized} hardware, which explodes the cost compared to off-the-shelf hardware.
 Even with these caveats, \dual{} still has the benefit that \emph{any} code can be run on the modified circuitry, without any alterations, while still experiencing increased security against \poweranalysis{}.
-As making absolute and formal claims in the domain of \sidechannel{} attacks is difficult, an increase in attack difficulty is usually called robustness against an attack, and will be referred to as such for the rest of this thesis.
+
+For the rest of my thesis I adopt the terminology in works on \dual{}, which refer to the difficulty for an attacker as robustness, instead of as security~\cite{soares2008evaluating,razafindraibe2006formal}.
 \\
 \\
 In my thesis I explore the possibilities of implementing similar balancing in software.
 It works by only using part of the available word size for actual data, leaving the rest for balancing.
-Specifically, I store 8bit values, along with their balancing counterpart, in a 32bit register, causing their \hammingw{} to be constant.
-I also propose an arithmetic on these balanced values, giving a replacement for all integer operations required for a modern RISC instruction set.
-With this arithmetic and the balanced values, one can then execute \emph{any} program, without special modifications, while benefiting from an increase in robustness against \poweranalysis{} attacks.
+Specifically, I store 8bit values, along with their inverse, in a 32bit register, causing their \hammingw{} to be constant.
+I propose an arithmetic on these balanced values, giving a replacement for all integer operations required for a modern RISC instruction set.
+With this arithmetic and the balanced values, one can then execute \emph{any} program, without special modifications, while theoretically benefiting from an increase in robustness against \poweranalysis{} attacks.
 
-I also provide a plugin for the \llvm{} compiler that transforms code written for 8bit architectures into this balanced form.
-This plugin also shows that even such significant changes to the way data is represented can come at no extra cost to the programmer, and the job of generating secure code can at least in part be handed off to the compiler.
+I design and implement a plugin for the \llvm{} compiler that transforms code written for 8bit architectures into this balanced form.
+
 
 Finally I provide an evaluation of my balanced form.
 By running code compiled with my plugin in the \qemu{} emulator, I can examine the \hammingw{} of values during the execution, and compare them to regular unbalanced code.
