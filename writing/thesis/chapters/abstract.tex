@@ -2,16 +2,19 @@
   \begin{abstract}{english}
     Power consumption can leak information about processed data.
     If the data in question is the secret key for a cryptographic algorithm, this can have dire consequences for security.
-    By supplying a large number of known inputs to the algorithm, e.g. plaintexts for an encryption, and performing statistical analysis on the power consumptions during execution, an attacker can infer the value of this key.
+    By supplying a large number of known inputs to the algorithm, e.g. plaintexts for an encryption, and analyzing the power consumption, an attacker can infer the value of this secret key.
 
-    Many use cases for embedded devices, like SmartCards and NFC keys, perform cryptographic operations on any input sent to them, which makes supplying chosen plaintexts very easy.
-    Their self contained nature also makes it easy for an attacker to measure their power consumption in a controlled environment, and a lack of parallelism results in a high signal-to-noise ratio of the power consumption.
+    Many use cases for embedded devices, like SmartCards and NFC keys, perform cryptographic operations on any input sent to them.
+    This makes supplying these plaintexts very easy.
+    Their self contained nature also makes it easy for an attacker to measure their power consumption in a controlled environment, and a lack of parallelism reduces the difficulty of their analysis.
     With this in mind, embedded devices are easy and potentially valuable targets for power analysis attacks.
 
-    In order to have some amount of security under these conditions, various countermeasures against power analysis have been explored.
-    Defenses either try to add additional factors to the power consumption, thus increasing the amount of computational effort required for a successful attack, or reduce the influence of data on the power consumption altogether.
-    Some defenses only require changes to the software, but are algorithm specific and need to be explicitly implemented, greatly increasing the knowledge a developer requires.
-    Others are applicable to any algorithm in general, but require significant changes to the hardware.
+    In order to have some amount of security for stored keys, various countermeasures against power analysis have been explored.
+    Defenses either try to add additional factors to the power consumption, increasing the amount of computational effort required for a successful attack, or reduce the influence of data on the power consumption altogether.
+    Some defenses only require changes to the software, but are algorithm specific and need to be explicitly implemented.
+    This requires developers with significant amounts of security knowledge, which is often not the case.
+
+    Other defenses are applicable to any algorithm in general, but require significant changes to the hardware.
     One such hardware defense, called \dual{}, works by \emph{balancing} every bit with its inverse.
     This keeps power consumption constant under the assumption that it is directly proportional to the number of 1 bits in a value (the \hammingw{}), which is a widely used model for power analysis attacks.
 
