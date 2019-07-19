@@ -1,0 +1,5 @@
+spawn qemu-system-arm -M versatilepb -m 128K -cpu arm1176 -nographic -kernel program.bin
+
+expect "done"
+
+interact "program finished"
