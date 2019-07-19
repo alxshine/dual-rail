@@ -130,11 +130,17 @@ Performance war nicht Fokus, hier ging es um Korrektheit und Robustheit.
 
 ** DONE XOR kann perfekt balanciert berechnet werden -> rein schreiben?
    CLOSED: [2019-07-04 Thu 09:20]
-** TODO Explanation of power analysis is unclear
+** DONE Explanation of power analysis is unclear
+   CLOSED: [2019-07-19 Fri 12:12]
 Also discuss the Hamming weight power consumption model (that it's not entirely accurate, but enough)
 ** DONE Rewrite beginning of theory
    CLOSED: [2019-07-05 Fri 10:44]
 The explanation why perfect balancing is not possible with this schemes does not make sense
 This requires a justification why this balancing is then used, or alternatively an explanation why another balancing wouldn't be better
-** TODO Axis labels in plots
-** TODO Build toolchain as graph for test code
+** DONE Axis labels in plots
+   CLOSED: [2019-07-19 Fri 12:12]
+** TODO Explain why evaluation is so simple
+** TODO Give some security evaluation
+Evaluate key expansion and encryption for both RC4 and AES
+See if I can find a CPA target
+** TODO Add results to introduction

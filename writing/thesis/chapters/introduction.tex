@@ -37,18 +37,23 @@ I propose an arithmetic on these balanced values, giving a replacement for all i
 With this arithmetic and the balanced values, one can then execute \emph{any} program, without special modifications, while theoretically benefiting from an increase in robustness against \poweranalysis{} attacks.
 
 I design and implement a plugin for the \llvm{} compiler that transforms code written for 8bit architectures into this balanced form.
+With this plugin the additional work required from a developer to benefit from this robustness increase is kept to a minimum, as balancing variables and using my balanced arithmetic operators is done automatically.
+If the original program uses at most 8bit values, it does not require any changes at all.
+Due to the modular nature of \llvm{}, my transformation can be applied to many different source languages and target platforms.
+The plugin itself is also highly modular, and testing different balanced operators can be done without touching the plugin.
 
-
-Finally I provide an evaluation of my balanced form.
-By running code compiled with my plugin in the \qemu{} emulator, I can examine the \hammingw{} of values during the execution, and compare them to regular unbalanced code.
-Evaluating in such a manner simulates an attacker that can observe the \hammingw{} of the result of every single operation without error.
-Increased robustness against this theoretical attacker then suggests increased robustness in real-world scenarios, where attackers do not have such precise measurements.
+Finally, I evaluate my proposed system consisting of the arithmetic, the balancing plugin and the build process used for this toolchain.
+In order to do this, I instrument the \qemu{} emulator.
+I extend it by calculating the \hammingw{} of every emulated machine instruction, and building a histogram during execution.
+This loses any temporal information, but is necessitated by the complexity and many layers of indirection in \qemu{}'s build process.
+The captured histograms do not guarantee increased robustness, however they give some indication of the effectiveness of the general approach, and of my concrete implementation.
 \\
 \\
 The rest of this thesis is organized as follows.
 \Cref{poweranalysis} explains different variants of \poweranalysis{} attacks and defenses against it.
 \Cref{related} gives an overview of related work on software approaches to \poweranalysis{} defense, approaches to \dual{}, and related security work utilizing \llvm{}.
 In \Cref{theory} I explain the design of my balancing and my balanced arithmetic, and discuss the evaluation of the balanced operations in it.
-\Cref{pass} covers the implementation details of my balancing pass, and gives a brief overview of \llvm{}.
-The procedure for evaluation is explained in \Cref{evaluation}, along with a brief introduction to \qemu{}.
-In \Cref{results} I explain my results, and \Cref{conclusion} offers a summary and discussion of my thesis.
+\Cref{pass} covers the implementation details of my balancing pass.
+The procedure for evaluation is explained in \Cref{evaluation}.
+Both \Cref{pass} and \Cref{evaluation} give a brief introduction to their required tools, respectively \llvm{} and \qemu{}.
+In \Cref{results} I present my results, and \Cref{conclusion} offers a summary and discussion of my thesis.
