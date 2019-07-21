@@ -4,29 +4,32 @@ CLANGOPTS = -target arm-none-eabi -mcpu=arm926ej-s -O0
 PLUGINS=$(wildcard ../../passes/build/*.so)
 PASSES=-insert
 
-C0=$$(( $$RANDOM % 256))
-C1=$$(( $$RANDOM % 256))
-C2=$$(( $$RANDOM % 256))
-C3=$$(( $$RANDOM % 256))
-C4=$$(( $$RANDOM % 256))
-C5=$$(( $$RANDOM % 256))
-C6=$$(( $$RANDOM % 256))
-C7=$$(( $$RANDOM % 256))
-C8=$$(( $$RANDOM % 256))
-C9=$$(( $$RANDOM % 256))
-C10=$$(( $$RANDOM % 256))
-C11=$$(( $$RANDOM % 256))
-C12=$$(( $$RANDOM % 256))
-C13=$$(( $$RANDOM % 256))
-C14=$$(( $$RANDOM % 256))
-C15=$$(( $$RANDOM % 256))
+C0=$(shell echo $$(($$RANDOM %256)))
+C1=$(shell echo $$(($$RANDOM %256)))
+C2=$(shell echo $$(($$RANDOM %256)))
+C3=$(shell echo $$(($$RANDOM %256)))
+C4=$(shell echo $$(($$RANDOM %256)))
+C5=$(shell echo $$(($$RANDOM %256)))
+C6=$(shell echo $$(($$RANDOM %256)))
+C7=$(shell echo $$(($$RANDOM %256)))
+C8=$(shell echo $$(($$RANDOM %256)))
+C9=$(shell echo $$(($$RANDOM %256)))
+C10=$(shell echo $$(($$RANDOM %256)))
+C11=$(shell echo $$(($$RANDOM %256)))
+C12=$(shell echo $$(($$RANDOM %256)))
+C13=$(shell echo $$(($$RANDOM %256)))
+C14=$(shell echo $$(($$RANDOM %256)))
+C15=$(shell echo $$(($$RANDOM %256)))
 DEFINES=-DC0=${C0} -DC1=${C1} -DC2=${C2} -DC3=${C3} -DC4=${C4} -DC5=${C5} -DC6=${C6} -DC7=${C7} -DC8=${C8} -DC9=${C9} -DC10=${C10} -DC11=${C11} -DC12=${C12} -DC13=${C13} -DC14=${C14} -DC15=${C15}
 
-all: balanced unbalanced_target
+all: balanced unbalanced_target dump_plaintext
 
 balanced: balanced.elf
 
 unbalanced_target: unbalanced.elf
+
+dump_plaintext:
+	echo ${C0},${C1},${C2},${C3},${C4},${C5},${C6},${C7},${C8},${C9},${C10},${C11},${C12},${C13},${C14},${C15} >> plaintexts.txt
 
 optimized.S: tinyAES.ll rtlib.ll program.ll
 	llvm-link tinyAES.ll rtlib.ll program.ll -S -o linked.ll
