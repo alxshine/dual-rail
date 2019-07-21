@@ -22,15 +22,27 @@ C14=$$(( $$RANDOM % 256))
 C15=$$(( $$RANDOM % 256))
 DEFINES=-DC0=${C0} -DC1=${C1} -DC2=${C2} -DC3=${C3} -DC4=${C4} -DC5=${C5} -DC6=${C6} -DC7=${C7} -DC8=${C8} -DC9=${C9} -DC10=${C10} -DC11=${C11} -DC12=${C12} -DC13=${C13} -DC14=${C14} -DC15=${C15}
 
-all: program.bin
+all: balanced unbalanced_target
+
+balanced: balanced.elf
+
+unbalanced_target: unbalanced.elf
 
 optimized.S: tinyAES.ll rtlib.ll program.ll
 	llvm-link tinyAES.ll rtlib.ll program.ll -S -o linked.ll
 	opt -load="$(PLUGINS)" $(PASSES) linked.ll -S -o optimized.ll
 	llc optimized.ll -o optimized.S
 
+unbalanced.S: tinyAES.ll program.ll
+	llvm-link tinyAES.ll program.ll -S -o u_linked.ll
+	opt u_linked.ll -S -o u_optimized.ll
+	llc u_optimized.ll -o unbalanced.S
+
 optimized.o: optimized.S
 	$(CROSS_COMPILE)-as -ggdb $(CPU) optimized.S -o optimized.o
+
+unbalanced.o: unbalanced.S
+	$(CROSS_COMPILE)-as -ggdb $(CPU) unbalanced.S -o unbalanced.o
 
 %.ll: %.c
 	clang $(CLANGOPTS) $< -S -emit-llvm ${DEFINES} -o $@
@@ -38,14 +50,14 @@ optimized.o: optimized.S
 startup.o: startup.s
 	$(CROSS_COMPILE)-as -ggdb $(CPU) startup.s -o startup.o
 
-program.bin: program.elf
-	$(CROSS_COMPILE)-objcopy -O binary $< $@
+u_startup.o: u_startup.s
+	$(CROSS_COMPILE)-as -ggdb $(CPU) u_startup.s -o u_startup.o
 
-program.elf: startup.o startup.ld optimized.o
-	$(CROSS_COMPILE)-ld -T startup.ld startup.o optimized.o -o program.elf
+unbalanced.elf: u_startup.o u_startup.ld unbalanced.o
+	$(CROSS_COMPILE)-ld -T u_startup.ld u_startup.o unbalanced.o -o unbalanced.elf
 
-run: program.bin
-	~/Projects/qemu-eval/arm-softmmu/qemu-system-arm -M versatilepb -m 128M -nographic -kernel program.bin
+balanced.elf: startup.o startup.ld optimized.o
+	$(CROSS_COMPILE)-ld -T startup.ld startup.o optimized.o -o balanced.elf
 
 .PHONY: clean
 clean:
