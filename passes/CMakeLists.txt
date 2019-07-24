@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 3.13)
+project(balancing-pass)
 
 find_package(LLVM REQUIRED CONFIG)
 add_definitions(${LLVM_DEFINITIONS})

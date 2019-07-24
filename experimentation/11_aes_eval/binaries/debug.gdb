@@ -1,4 +1,3 @@
-cat debug.gdb 
 set logging on
 set log file trace_debug.csv
 
