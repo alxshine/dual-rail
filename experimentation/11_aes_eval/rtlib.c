@@ -171,10 +171,11 @@ uint32_t balanced_lshr(uint32_t lhs, uint32_t rhs){
 }
 
 uint32_t balanced_ashr(uint32_t lhs, uint32_t rhs) {
-  if(lhs & 0x0080)
-    lhs |= 0xff000000;
-  else
-    lhs |= 0x0000ff00;
-  uint32_t ret = lhs >> rhs;
-  return ret & 0x00ff00ff;
+  /* if(lhs & 0x0080) */
+  /*   lhs |= 0xff000000; */
+  /* else */
+  /*   lhs |= 0x0000ff00; */
+  /* uint32_t ret = lhs >> rhs; */
+  /* return ret & 0x00ff00ff; */
+  return balanced_lshr(lhs, rhs);
 }
