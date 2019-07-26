@@ -33,13 +33,13 @@ dump_plaintext:
 
 optimized.S: tinyAES.ll rtlib.ll program.ll
 	llvm-link tinyAES.ll rtlib.ll program.ll -S -o linked.ll
-	opt -load="$(PLUGINS)" $(PASSES) linked.ll -S -o optimized.ll
-	llc optimized.ll -o optimized.S
+	opt -load="$(PLUGINS)" $(PASSES) -debug-pass=Arguments linked.ll -S -o optimized.ll
+	llc -O0 optimized.ll -o optimized.S
 
 unbalanced.S: tinyAES.ll program.ll
 	llvm-link tinyAES.ll program.ll -S -o u_linked.ll
 	opt u_linked.ll -S -o u_optimized.ll
-	llc u_optimized.ll -o unbalanced.S
+	llc -O0 u_optimized.ll -o unbalanced.S
 
 optimized.o: optimized.S
 	$(CROSS_COMPILE)-as -ggdb $(CPU) optimized.S -o optimized.o
