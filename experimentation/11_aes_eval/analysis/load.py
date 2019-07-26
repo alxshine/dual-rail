@@ -31,9 +31,11 @@ pc_file = open('pc.log')
 for row in csv.reader(pc_file):
     pc_trace.append(int(row[0]))
 pt = np.array(pc_trace)
+indices = np.arange(pt.shape[0])
 
 upc_trace = []
 upc_file = open('upc.log')
 for row in csv.reader(upc_file):
     upc_trace.append(int(row[0]))
 upt = np.array(upc_trace)
+uindices = np.arange(upt.shape[0])

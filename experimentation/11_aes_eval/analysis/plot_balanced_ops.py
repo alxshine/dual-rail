@@ -1,28 +1,5 @@
-# coding: utf-8
-import numpy as np
-import matplotlib.pyplot as plt
-import csv
-
 from boundaries import *
-
-def hamming_weight(v):
-    ret = 0
-    for i in range(32):
-        ret += v&1
-        v >>= 1
-    return ret
-hw = np.vectorize(hamming_weight)
-
-t1 = np.load('reworked_001.npy')
-t2 = np.load('reworked_002.npy')
-
-pc_trace = []
-pc_file = open('pc.log')
-for row in csv.reader(pc_file):
-    pc_trace.append(int(row[0]))
-pt = np.array(pc_trace)
-indices = np.arange(pt.shape[0])[pt<=balanced_ashr[1]]
-pt = pt[indices]
+from load import *
 
 plt.scatter(indices, pt, s=0.3)
 plt.axhspan(balanced_1_2[0],balanced_1_2[1], label='balanced_1_2', color='C2', alpha=0.2)
