@@ -347,21 +347,25 @@ struct InsertPass : public ModulePass {
           dyn_cast<ConstantInt>(op->getOperand(i)); // TODO: next step
 
       if (constant) {
-        Value *balanced_constant;
-        if (constant->getType() == builder.getInt8Ty())
-          balanced_constant =
-              builder.CreateCall(arithmetic.balance, {constant});
-        else if (constant->getType() == builder.getInt32Ty())
-          balanced_constant =
-              builder.CreateCall(arithmetic.balance_wide, {constant});
-        else {
-          errs() << "Could not balance constant of type ";
-          constant->getType()->print(errs());
-          errs() << "\n";
-        }
+        // Value *balanced_constant;
+        // if (constant->getType() == builder.getInt8Ty())
+        //   balanced_constant =
+        //       builder.CreateCall(arithmetic.balance, {constant});
+        // else if (constant->getType() == builder.getInt32Ty())
+        //   balanced_constant =
+        //       builder.CreateCall(arithmetic.balance_wide, {constant});
+        // else {
+        //   errs() << "Could not balance constant of type ";
+        //   constant->getType()->print(errs());
+        //   errs() << "\n";
+        // }
+	unsigned char v = constant->getLimitedValue();
+	unsigned int balanced_v = balanceValue(v);
+	auto *balanced_const = builder.getInt32(balanced_v);
 
-        operands[i] = balanced_constant;
-        balanced_values.insert(balanced_constant);
+
+        operands[i] = balanced_const;
+        balanced_values.insert(balanced_const);
       }
     }
 
