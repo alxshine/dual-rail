@@ -2,7 +2,7 @@
 import numpy as np
 import csv
 
-for i in range(3,4):
+for i in range(1,3):
     print('working on {:03}'.format(i))
     f = open('filtered_{:03}.csv'.format(i))
     trace = []
@@ -20,7 +20,7 @@ for i in range(3,4):
     np_trace = np.array(trace)
     np.save('reworked_{:03}.npy'.format(i), np_trace)
 
-"""    uf = open('u_filtered_{:03}.csv'.format(i))
+    uf = open('u_filtered_{:03}.csv'.format(i))
     trace = []
     last_row = None
     for r in csv.reader(uf):
@@ -35,4 +35,3 @@ for i in range(3,4):
 
     np_trace = np.array(trace)
     np.save('u_reworked_{:03}.npy'.format(i), np_trace)
-    """
