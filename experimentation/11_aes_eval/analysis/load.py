@@ -1,6 +1,7 @@
 # coding: utf-8
 import numpy as np
 import matplotlib.pyplot as plt
+import csv
 
 def hamming_weight(v):
     ret = 0
@@ -12,18 +13,32 @@ hw = np.vectorize(hamming_weight)
 
 t1 = np.load('reworked_001.npy')
 t2 = np.load('reworked_002.npy')
-ut1 = np.load('u_reworked_001.npy')
-ut2 = np.load('u_reworked_002.npy')
-dm = t1 != t2
-s1 = t1[dm]
-s2 = t2[dm]
-hw1 = hw(s1)
-hw2 = hw(s2)
-diff = hw1-hw2
+#ut1 = np.load('u_reworked_001.npy')
+#ut2 = np.load('u_reworked_002.npy')
+#dm = t1 != t2
+#hw1 = hw(t1)
+#hw2 = hw(t2)
+#diff = hw1-hw2
+#hist,_ = np.histogram(diff, range(33))
+#hist = hist.astype(float)
+#hist /= hist.sum()
 
-udm = ut1 != ut2
-us1 = ut1[udm]
-us2 = ut2[udm]
-uhw1 = hw(us1)
-uhw2 = hw(us2)
-udiff = uhw1 -uhw2
+#udm = ut1 != ut2
+#uhw1 = hw(ut1)
+#uhw2 = hw(ut2)
+#udiff = uhw1 -uhw2
+#uhist,_ = np.histogram(udiff, range(33))
+#uhist = uhist.astype(float)
+#uhist /= uhist.sum()
+
+pc_trace = []
+pc_file = open('pc.log')
+for row in csv.reader(pc_file):
+    pc_trace.append(int(row[0]))
+pt = np.array(pc_trace)
+
+#upc_trace = []
+#upc_file = open('upc.log')
+#for row in csv.reader(upc_file):
+#    upc_trace.append(int(row[0]))
+#upt = np.array(upc_trace)
