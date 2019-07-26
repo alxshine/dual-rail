@@ -540,6 +540,15 @@ struct InsertPass : public ModulePass {
     to_remove.push_back(call);
   }
 
+  void balanceTrunc(TruncInst *trunc, Function *F, IRBuilder<> builder, arithmetic_ret arithmetic, vector<Instruction *> &to_remove, unordered_set<Value *> &balanced_values){
+    errs() << "Found trunc in: " << F->getName() << "\n";
+    auto *operand = trunc->getOperand(0);
+    if(balanced_values.count(operand)){
+      trunc->replaceAllUsesWith(operand);
+      to_remove.push_back(trunc);
+    }
+  }
+
   void balanceFunction(Function *F, arithmetic_ret arithmetic,
                        unordered_set<Value *> &balanced_values) {
     // errs() << "Balancing function " << F->getName() << "\n";
@@ -547,6 +556,11 @@ struct InsertPass : public ModulePass {
 
     for (inst_iterator I = inst_begin(F), E = inst_end(F); I != E; ++I) {
       IRBuilder<> builder{&*I};
+
+      if(F->getName() == "balanced_xtime"){
+	I->print(errs());
+	errs() << "\n";
+      }
       
       // alloca i32 instead of i8
       if (auto alloca = dyn_cast<AllocaInst>(&*I)) {
@@ -589,7 +603,7 @@ struct InsertPass : public ModulePass {
         balanceCmp(cmp, builder, arithmetic, to_remove, balanced_values);
         continue;
       }
-
+      
       // add cast before return if necessary
       if (auto ret = dyn_cast<ReturnInst>(&*I)) {
         balanceReturn(ret, F, builder, arithmetic, to_remove, balanced_values);
@@ -600,6 +614,11 @@ struct InsertPass : public ModulePass {
       if (auto call = dyn_cast<CallInst>(&*I)) {
         balanceCall(call, F, builder, arithmetic, to_remove, balanced_values);
         continue;
+      }
+
+      if(auto trunc = dyn_cast<TruncInst>(&*I)) {
+	balanceTrunc(trunc, F, builder, arithmetic, to_remove, balanced_values);
+	continue;
       }
     }
 
