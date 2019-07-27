@@ -12,7 +12,7 @@ plt.axhspan(balanced_MixColumns[0],balanced_MixColumns[1],label='MixColumns',col
 plt.axhspan(balanced_xtime[0],balanced_xtime[1],label='xtime', color='C9', alpha=0.2)
 
 plt.legend()
-plt.xlabel('Instruction Index')
-plt.ylabel('Program Counter')
+plt.xlabel('Trace point')
+plt.ylabel('Line in assembly file')
 
 plt.show()
