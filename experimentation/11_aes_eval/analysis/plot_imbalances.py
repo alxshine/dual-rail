@@ -30,7 +30,6 @@ plt.scatter(indices, pt, s=0.3)
 plt.scatter(indices[np.isin(pt,lsr)], pt[np.isin(pt,lsr)], s=1, label='Right shifts (LSR)', color='r')
 plt.axhspan(balanced_2_1[0],balanced_2_1[1], label='balanced_2_1', color='C3', alpha=0.2)
 plt.axhspan(balanced_lshr[0],balanced_lshr[1],label='balanced_lshr',color='C14',alpha=0.2,hatch='//')
-plt.axhspan(balanced_BlockCopy[0],balanced_BlockCopy[1], label='BlockCopy', color='C2', alpha=0.2)
 
 plt.legend()
 plt.xlabel('Time')
@@ -61,6 +60,7 @@ plt.savefig('imbalances-2.png')
 remaining_filter = np.logical_or(np.logical_and(np.isin(pt, ldr, invert=True), np.isin(pt,mov, invert=True)), pt==119)
 pt = pt[remaining_filter]
 indices = indices[remaining_filter]
+print(pt.shape[0])
 
 #plt.figure()
 #
