@@ -77,6 +77,9 @@ I am unsure of the reason for imbalanced values in \texttt{balanced\_lshr}, and 
 The remaining imbalances are in my entry function, and are the initial setting of the plaintext.
 These are not related to the key and thus no security risk.
 
+After filtering imbalances not in my operators, and those created by move and load instructions, the number of remaining imbalanced operations is 1450, which is less than the number of imbalanced intermediates in the unbalanced code.
+However, for the unbalanced code I did not do this filtering due to time constraints, so making a hard robustness claim here is difficult.
+
 \begin{sidewaysfigure}[ht]
   \centering
   \includegraphics[width=\textwidth]{aes-parts.png}
