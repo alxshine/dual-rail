@@ -683,5 +683,5 @@ static RegisterStandardPasses
     RegisterMyPass(PassManagerBuilder::EP_EarlyAsPossible,
                    registerInsertPass);
 
-static RegisterPass<InsertPass> X("insert", "Operator function insert pass",
+static RegisterPass<InsertPass> X("balance", "Balancing pass",
                                     false, false);
