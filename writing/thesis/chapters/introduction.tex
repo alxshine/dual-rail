@@ -6,7 +6,7 @@ Due to the way transistors work, switching a bit from 1 to 0 (and vice versa) re
 This means that by observing the power consumption an attacker can infer the number of switched bits at a given time, and thus gain information about processed data.
 When attacking the power consumption side channel, this connection between data and power consumption is often reduced to the \hammingw{} model, which assumes the power consumption is proportional to the number of 1s in processed data~\cite{brier2004correlation}.
 By measuring the power consumption traces during execution an attacker can gain information about the \hammingw{} of processed data.
-If an attacker knows which cryptographic operation is being performed and can control the input (both reasonable assumptions for embedded devices), she can infer the value of the cryptographic secret via statistical anlysis of the power traces~\cite{brier2004correlation}.
+If an attacker knows which cryptographic operation is being performed and can control the input (both reasonable assumptions for embedded devices), she can infer the value of the cryptographic secret via statistical analysis of the power traces~\cite{brier2004correlation}.
 
 Restricted physical access often prohibits capturing power traces, and even when measurements are possible the high degree of parallelism in modern hardware adds a lot of random noise to the power consumption.
 However, this is not the case for embedded devices.
@@ -32,13 +32,13 @@ For the rest of my thesis I adopt the terminology in works on \dual{}, which ref
 \\
 In my thesis I explore the possibilities of implementing similar balancing in software.
 It works by only using part of the available word size for actual data, leaving the rest for balancing.
-Specifically, I store 8bit values, along with their inverse, in a 32bit register, causing their \hammingw{} to be constant.
+Specifically, I store 8 bit values, along with their inverse, in a 32 bit register, causing their \hammingw{} to be constant.
 I propose an arithmetic on these balanced values, giving a replacement for all integer operations required for a modern RISC instruction set.
 With this arithmetic and the balanced values, one can then execute \emph{any} program, without special modifications, while theoretically benefiting from an increase in robustness against \poweranalysis{} attacks.
 
-I design and implement a plugin for the \llvm{} compiler that transforms code written for 8bit architectures into this balanced form.
+I design and implement a plugin for the \llvm{} compiler that transforms code written for 8 bit architectures into this balanced form.
 With this plugin the additional work required from a developer to benefit from this robustness increase is kept to a minimum, as balancing variables and using my balanced arithmetic operators is done automatically.
-If the original program uses at most 8bit values, it does not require any changes at all.
+If the original program uses at most 8 bit values, it does not require any changes at all.
 Due to the modular nature of \llvm{}, my transformation can be applied to many different source languages and target platforms.
 The plugin itself is also highly modular, and testing different balanced operators can be done without touching the plugin.
 

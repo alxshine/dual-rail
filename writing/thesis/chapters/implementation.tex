@@ -19,7 +19,7 @@ Memory locations (registers, heap memory, etc.) are balanced iff all values stor
 
 \section{\llvm{}}
 \label{llvm}
-The \llvm{} compiler infrastructure project\cite{lattner2010llvm} contains a number of subprojects, but it is mostly known for being an extremely versatile compiler.
+The \llvm{} compiler infrastructure project\cite{lattner2010llvm} contains a number of sub-projects, but it is mostly known for being an extremely versatile compiler.
 It works by using an intermediate representation (\ir{}) specifically designed to be source and target independent, while allowing for easy automatic optimization.
 As most of the work in a compiler goes into the so-called optimization passes.
 This design makes the bulk of the work applicable to all languages.
@@ -70,14 +70,14 @@ This means implementing my balancing pass for the \llvm{} toolchain makes it ver
 For this reason, and because of the powerful analysis enabled by \llvm{}'s well defined IR language, \llvm{} was chosen for my thesis.
 
 \section{Balancing Pass}
-The balancing pass stores balanced values 32bit integers instead of regular 8bit, and then uses my balanced arithmetic operators instead of the normal operators.
+The balancing pass stores balanced values 32 bit integers instead of regular 8 bit, and then uses my balanced arithmetic operators instead of the normal operators.
 While this alone is fairly simple, it causes type mismatches for interactions between balanced and unbalanced memory.
 These then need to be fixed.
 
 Changing the arithmetic also has some implications on comparison operators.
 All transformations in the order they are applied are as follows:
 \begin{enumerate}
-\item Change the type of all 8bit integers (\lli8) to 32bit integers (\lli32)
+\item Change the type of all 8 bit integers (\lli8) to 32 bit integers (\lli32)
 \item Balance constant initializers
 \item Balance results of load operations if necessary
 \item Unbalance values before store if necessary
@@ -130,7 +130,7 @@ When loading from an unbalanced pointer into a balanced variable, the pass first
 
 %% \subsection{Balancing ZExts}
 %% \emph{ZExt} stands for zero extend, and it is an instruction used to promote integer types to larger bit sizes.
-%% While my pass is meant to balance code that uses \emph{only 8bit integers}, I needed to balance \emph{ZExts} for compatibilty reasons during development and have left the balancing procedure in the code.
+%% While my pass is meant to balance code that uses \emph{only 8 bit integers}, I needed to balance \emph{ZExts} for compatibilty reasons during development and have left the balancing procedure in the code.
 
 %% When zero extending from 8 to 32 bit, the pass replaces the instruction with a call to my balance function.
 %% When extending from 32 to 64 bit it unbalances the value first and then zero extends to the target type.

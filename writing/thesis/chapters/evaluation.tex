@@ -8,7 +8,7 @@ These power traces simulate an attacker that can measure the \hammingw{} of ever
 
 Unfortunately, performing the evaluation inside \qemu{} has the disadvantage that it does not accurately simulate the hardware capabilities of ARM, like inline computation of addresses and shifting of operands, and thus adds additional imbalances to the power traces.
 For this reason I moved the evaluation to gdb, which allows me to evaluate results of every ARM assembly instruction, instead of every instruction in the intermediate representation of \qemu{}.
-Even though I used gdb in the end, I included my work on \qemu{} in this section, as it gives some interesting insights into its internal workings and justifies why it is unsuitable for my evalution.
+Even though I used gdb in the end, I included my work on \qemu{} in this section, as it gives some interesting insights into its internal workings and justifies why it is unsuitable for my evaluation.
 
 \section{\qemu{}}
 \qemu{} is a generic and open source machine emulator and virtualizer.\cite{bellard2005qemu}
@@ -73,7 +73,7 @@ I did make some changes to the code, moving as many variables to the stack as po
 During development, I also used RC4~\cite{rc4}, SHA-3~\cite{bertoni2013keccak} and various small programs to test correctness of my pass, but none of them as extensively as AES.
 AES's small key sizes (128 to 256 bits), and efficient software implementations make it suitable for embedded applications, which is why I chose it as my main test program.
 
-Using gdb for the evaluation has the disadvantage that execution takes longer than on \qemu{} alone, due to the constant handoff between gdb and the emulated CPU.
+Using gdb for the evaluation has the disadvantage that execution takes longer than on \qemu{} alone, due to the constant hand-off between gdb and the emulated CPU.
 On my laptop running AES encryption through \qemu{} with my gdb script took around 30 minutes, generating 2 million trace points in the process.
 In order to both reduce the evaluation time, and provide less cluttered plots in \Cref{results}, I decided to focus solely on the encryption, which only takes around one sixth of the total execution time for the implementation I used.
 
@@ -131,7 +131,7 @@ Note that the \texttt{-O0} flag is issued, which should in theory disable all op
 The specification of the target platform is taken from the preamble of the \ir{} file, as specified in the frontend call.
 
 The final three steps are handled by the GNU Cross Tools.
-First the target code is assembled (lines 13 and 14) and then it is linked with a prewritten memory map and a fixed startup assembly file (lines 15 and 16).
+First the target code is assembled (lines 13 and 14) and then it is linked with a pre-written memory map and a fixed startup assembly file (lines 15 and 16).
 The memory map is required due to \qemu{}'s memory layout, as discussed in \Cref{memory}.
 \qemu{} starts execution with the program counter set to address \emph{0x1000}.
 Unfortunately, I cannot control the memory layout of the code during and after the compilation process, so I have no guarantee that the \emph{main} function will land at the desired address.

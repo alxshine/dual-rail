@@ -20,10 +20,10 @@
 
     In my thesis I explore a balancing scheme, similar to \dual{}, done in software.
     This should provide increased robustness against power analysis attacks for \emph{any} code, while still being able to run on ``off the self'' hardware without specialized circuitry.
-    The balancing is done by storing 8bit values together with their inverse, and storing both in the same 32bit register.
+    The balancing is done by storing 8 bit values together with their inverse, and storing both in the same 32 bit register.
     I also provide an arithmetic for performing all operations required for a modern RISC architecture on these balanced values, compositioning the new variants from existing operations.
 
-    By providing a plugin for the \llvm{} compiler, I also provide an automatic transformation from any code written for 8bit architectures into my balanced form, without requiring additional work from the developer.
+    By providing a plugin for the \llvm{} compiler, I also provide an automatic transformation from any code written for 8 bit architectures into my balanced form, without requiring additional work from the developer.
     As such my defense requires neither specialized hardware, nor developers with expert security knowledge.
     The versatility of the \llvm{} compiler also makes my transformation applicable to many different source languages and target platforms, additionally increasing the generality of this approach.
 

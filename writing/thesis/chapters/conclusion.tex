@@ -29,7 +29,7 @@ In practice, however, the difficulty of an attack is still increased, as the onl
 Attacking the S-box lookup has the advantage that it ``shuffles'' the values and therefore their \hammingw{}s, making statistical analysis of the \hammingw{}s easier.
 This is not possible for code balanced with my pass, as then the result of the lookup is already balanced.
 
-Many imbalances that currently remain are due to behaviour of the \llvm{} ARM backend.
+Many imbalances that currently remain are due to behavior of the \llvm{} ARM backend.
 It frequently uses a pattern of right shifts and byte stores, which completely destroy my balancing.
 Fixing this could require making changes to the backend, but that also exceeds the scope of my thesis.
 After filtering these, and after filtering imbalances due to load and move instructions (which only propagate imbalances and do not cause them), the number of imbalanced instruction results is 1450, out of a total of 339168 instructions.
@@ -40,11 +40,11 @@ My approach has been tested on C code written for an 8 bit architecture, but the
 The performance impact of my balanced arithmetic is very large, increasing the number of instructions by a factor of 14.888.
 This increase is in part due to a higher complexity of binary operations, and in part due to the current way they are implemented.
 To keep the code size small the operations are currently implemented as functions, which requires additional overhead of saving and restoring registers before and after each operator.
-Inlining all or a part of these operators offers a tradeoff between code size and instruction count, possibly reducing the performance impact of my balancing.
+Inlining all or a part of these operators offers a trade-off between code size and instruction count, possibly reducing the performance impact of my balancing.
 With current ALUs and a RISC architecture, an increase in the number of operations by 5 seems to be a lower bound, as that is the lowest number of intermediate operations in my balanced arithmetic.
 
-It is also important to note that this is for 8bit word sizes on a 32bit capable platform.
-With this reduced word size it would require algorithms for handling large numbers (along the lines of GnuMP\cite{granlund1996gnu}) to reach the full 32bit value range again.
+It is also important to note that this is for 8 bit word sizes on a 32 bit capable platform.
+With this reduced word size it would require algorithms for handling large numbers (along the lines of GnuMP\cite{granlund1996gnu}) to reach the full 32 bit value range again.
 Using such a large number arithmetic on top of my balanced arithmetic would additionally increase the number of instructions by at least 4 (to reach 32 bit words again), with the real performance impact probably being much higher due to additional introduced overhead.
 
 The balancing is currently also incomplete, as only stack values are balanced.
@@ -69,7 +69,7 @@ While this would make the balancing only applicable to a single source language,
 Such a method would require ensuring the compiler does not destroy the balancing during optimization, which makes the evaluation of such a project potentially very complex.
 
 It is currently also not clear if the balanced operations are optimal.
-Future work could find either a faster arithmetic (with possible tradeoffs for robustness), or an optimality proof of the current arithmetic.
+Future work could find either a faster arithmetic (with possible trade-offs for robustness), or an optimality proof of the current arithmetic.
 Reducing the performance impact could make this approach more generally applicable, and give it some real use cases.
 
 In the realm of side channel defenses there are a number of possibilities for future work.
