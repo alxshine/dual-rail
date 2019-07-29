@@ -26,6 +26,7 @@ plt.xlabel('Time')
 plt.ylabel('Line in assembly file')
 plt.show()
 
+lsr = lsr[lsr>=balanced_ashr[1]]
 indices = indices[np.isin(pt,lsr,invert=True)]
 pt = pt[np.isin(pt,lsr,invert=True)]
 ldr = np.loadtxt('ldr.csv').flatten()
@@ -52,9 +53,11 @@ plt.figure()
 
 plt.scatter(indices, pt, s=0.3,label='Remaining imbalances')
 
-plt.axhspan(balanced_and[0], balanced_and[1], label='balanced_and', color='C1', alpha=0.2)
-plt.axhspan(balanced_mul[0], balanced_mul[1], label='balanced_mul', color='C2', alpha=0.2)
-plt.axhspan(balanced_c_entry[0], balanced_c_entry[1], label='balanced_c_entry', color='C3', alpha=0.2)
+plt.axhspan(balanced_2_1[0], balanced_2_1[1], label='balanced_2_1', color='C1', alpha=0.2)
+plt.axhspan(balanced_and[0], balanced_and[1], label='balanced_and', color='C2', alpha=0.2)
+plt.axhspan(balanced_mul[0], balanced_mul[1], label='balanced_mul', color='C3', alpha=0.2)
+plt.axhspan(balanced_lshr[0], balanced_lshr[1], label='balanced_lshr', color='C4', alpha=0.2)
+plt.axhspan(balanced_c_entry[0], balanced_c_entry[1], label='balanced_c_entry', color='C5', alpha=0.2)
 
 plt.legend()
 plt.xlabel('Trace point')
