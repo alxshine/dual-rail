@@ -1,12 +1,11 @@
-\chapter{Evaluation}
+\chapter{Evaluation Methodology}
 \label{evaluation}
 To test the effectiveness of my balancing I compared balanced code with regular code.
 In order to decrease the turnaround time during development I decided to run the code in an emulator, as opposed to on actual hardware.
 This also reduces the amount of effort for evaluation.
 
-Instead of running a full \poweranalysis{} attack on actual hardware I added code to the \qemu{} emulator that generates histograms of \hammingw{}s during execution.
-This essentially simulates a scenario where an attacker has precise enough instruments to measure the \hammingw{} of every register during every clock cycle.
-Such a scenario would equate an extremely powerful attacker, and any robustness improvements for this scenario indicate improvements in real-world scenarios with reasonable confidence.
+Instead of trying to perform a full \poweranalysis{} attack on actual hardware, I added code to the \qemu{} emulator that generates simulated power traces during execution, as well as a log of executed instructions, similar to output of the \emph{gdb} debugger.
+These power traces simulate an attacker that can measure the \hammingw{} of every single instruction result without noise.
 
 \section{\qemu{}}
 \qemu{} is a generic and open source machine emulator and virtualizer.\cite{bellard2005qemu}
@@ -42,60 +41,92 @@ So short of either parsing the memory at the simulated program counter or writin
 Luckily, \qemu{} also offers emulation via the TC Interpreter (TCI).
 The TCI does not transform TC into host assembly, and instead simulates a guest CPU in software.
 During this simulation ALU operations are handled by special functions, and their return values are then stored in the simulated registers.
-The call sites of these functions are where my evaluation code is located, calculating the \hammingw{} of results and generating the histogram.
+The call sites of these functions are where my evaluation code is located, calculating the \hammingw{} of results and logging instructions.
+
+\section{Evaluation with GDB}
+Unfortunately, even TCI does not fully simulate the guest CPU.
+Instead it simulates an general CPU that executes TCG intermediate code.
+For my evaluation this means that address calculations, which happen inline on ARM platforms, happen explicitly and add additional unbalanced results to my power traces.
+Because of this I decided to do the evaluation in gdb.
+
+I wrote a small script that automatically steps through every assembly instruction and afterwards prints the values in all general purpose registers, utilizing the logging feature of gdb to write a transcript of instructions and register states.
+The register states are then filtered out of the transcript with some regex matching.
+Finally, I wrote a small python script that detects which register value has changed after the instruction, if any, and generates a trace from that.
+This allows me even more detailed evaluation than just the power traces alone.
+From the transcript I also extracted the current line of the source assembly file.
+With both the value and the location in the assembly file I can examine exactly when and where imbalanced values are stored in registers, as shown in \Cref{evaluation}.
 
 \section{Test Code}
-I tested my balancing with RC4\cite{rc4} and AES\cite{daemen2013design}.
-RC4 used to be the industry standard for symmetric encryption, and has an extremely small codebase.
-AES is current symmetric encryption standard.
-Both algorithms fit my target use case of encryption on an embedded device.
+The main test program for my balancing pass was an implementation of AES~\cite{daemen2013design} for embedded devices.
+This implementation~\cite{tinyaes} is tested against the test vectors for AES as specified by NIST~\cite{dworkin2001recommendation}.
+I did make some changes to the code, moving as many variables to the stack as possible, in order to maximize the balancing my pass can perform.
+During development, I also used RC4~\cite{rc4}, SHA-3~\cite{bertoni2013keccak} and various small programs to test correctness of my pass, but none of them as extensively as AES.
+AES's small key sizes (128 to 256 bits), and efficient software implementations make it suitable for embedded applications, which is why I chose it as my main test program.
+
+Using gdb for the evaluation has the disadvantage that execution takes longer than on \qemu{} alone, due to the constant handoff between gdb and the emulated CPU.
+On my laptop running AES encryption through \qemu{} with my gdb script took around 30 minutes, generating 2 million trace points in the process.
+In order to both reduce the evaluation time, and provide less cluttered plots in \Cref{results}, I decided to focus solely on the encryption, which only takes around one sixth of the total execution time for the implementation I used.
+
+\subsection{Generating different plaintexts}
+In order to evaluate \hammingw{} differences between executions, these executions must use different plaintexts.
+I did not want to try and get I/O working during execution, so I compiled different executables with different plaintexts.
+The plaintexts bytes in the program are taken as \texttt{\#define}s, which are filled with random numbers in the Makefile, using the shell builtin \texttt{\$RANDOM} and the modulo operator.
+Generating multiple binaries with different plaintexts was then accomplished by simply executing make multiple times.
 
 \subsection{Building the Test Code}
 \label{buildtest}
 Because I need to load my plugin and my balanced arithmetic functions during the optimization step, and because of the memory layout in \qemu{} kernels, the build process is a lot more involved than in normal cross compilation.
-
 As discussed in \Cref{llvm} the \llvm{} compilation process can be split into multiple steps.
 I use this feature multiple times in the build process of my test code.
-The output of the build process for the RC4 code is shown in \Cref{lst:makefile-output}.
+The output of the build process for the AES code is shown in \Cref{lst:makefile-output}.
+
 \newpage
 \begin{lstlisting}[caption=Output of the Makefile, label=lst:makefile-output]
 arm-none-eabi-as -ggdb  startup.s -o startup.o
-clang -target arm-v7m-eabi -mcpu=arm926ej-s -O0 rtlib.c -S -emit-llvm -o rtlib.ll
-clang -target arm-v7m-eabi -mcpu=arm926ej-s -O0 program.c -S -emit-llvm -o program.ll
-llvm-link rtlib.ll program.ll -S -o linked.ll
-opt -load="../../passes/build/libPasses.so" -insert linked.ll -S -o optimized.ll
-Balancing module: linked.ll
-llc optimized.ll -o optimized.S
+clang -target arm-none-eabi -mcpu=arm926ej-s -O0 tinyAES.c -S -emit-llvm -DC0=127 -DC1=90 -DC2=197 -DC3=51 -DC4=205 -DC5=78 -DC6=146 -DC7=15 -DC8=146 -DC9=22 -DC10=40 -DC11=156 -DC12=42 -DC13=219 -DC14=211 -DC15=147 -o tinyAES.ll
+clang -target arm-none-eabi -mcpu=arm926ej-s -O0 rtlib.c -S -emit-llvm -DC0=144 -DC1=118 -DC2=160 -DC3=148 -DC4=68 -DC5=140 -DC6=15 -DC7=107 -DC8=60 -DC9=91 -DC10=15 -DC11=52 -DC12=231 -DC13=252 -DC14=96 -DC15=219 -o rtlib.ll
+clang -target arm-none-eabi -mcpu=arm926ej-s -O0 program.c -S -emit-llvm -DC0=165 -DC1=14 -DC2=20 -DC3=128 -DC4=46 -DC5=7 -DC6=35 -DC7=189 -DC8=242 -DC9=253 -DC10=57 -DC11=19 -DC12=180 -DC13=205 -DC14=74 -DC15=103 -o program.ll
+arm-none-eabi-as -ggdb  u_startup.s -o u_startup.o
+echo 110,252,242,185,151,32,218,85,233,179,98,188,96,77,30,67 >> plaintexts.txt
+llvm-link tinyAES.ll rtlib.ll program.ll -S -o linked.ll
+llvm-link tinyAES.ll program.ll -S -o u_linked.ll
+opt u_linked.ll -S -o u_optimized.ll
+opt -load="../../passes/build/libPasses.so" -balance linked.ll -S -o optimized.ll
+llc -O0 u_optimized.ll -o unbalanced.S
+llc -O0 optimized.ll -o optimized.S
+arm-none-eabi-as -ggdb  unbalanced.S -o unbalanced.o
 arm-none-eabi-as -ggdb  optimized.S -o optimized.o
-arm-none-eabi-ld -T startup.ld startup.o optimized.o -o program.elf
-arm-none-eabi-objcopy -O binary program.elf program.bin
+arm-none-eabi-ld -T u_startup.ld u_startup.o unbalanced.o -o unbalanced.elf
+arm-none-eabi-ld -T startup.ld startup.o optimized.o -o balanced.elf
 \end{lstlisting}
 
-Lines 2 and 3 show the translation of the C code into LLVM code, using the Clang\cite{lattner2008llvm} C frontend for \llvm{}.
-\emph{Program.c} is the file containing the RC4 code and \emph{rtlib.c} contains the balanced binary operations.
+Lines 2, 3, and 4 show the translation of the C code into LLVM code, using the Clang\cite{lattner2008llvm} C frontend for \llvm{}.
+\emph{Program.c} is the file containing the main function, \emph{rtlib.c} contains the balanced binary operations, and \emph{tinyAES.c} contains the AES implementation.
 The \emph{-S} flag specifies output to be in human readable \ir{} instead of bytecode, which allows for easier debugging.
 The specified \emph{-target} platform and CPU (\emph{-mcpu}) are written into the preamble of the \ir{}, and carried on through the entire toolchain until the compilation into target code on line 7.
+Also visible are the \texttt{\#defines} used for the plaintext.
 
-Then both \llvm{} files are merged using \emph{llvm-link}, which is simply a concatenation of both files and some reordering.
-This merger puts the functions declared in \emph{rtlib.c} in the same module as the target code, and makes them accessible to the compilation pass running on that module.
+The \ir{} files are merged in lines 7 and 8 using \emph{llvm-link}.
+This merger puts the functions from all files in the same module as the target code, and makes them accessible to the compilation pass running on that module.
+This step is run twice, generating two different \emph{.ll} files.
+Only one \emph{.ll} file is going to be balanced with my optimizer pass, allowing comparison of balanced and unbalanced code on the same plaintexts.
 
-Line 5 runs the \llvm{} optimizer on the module, loading my balancing pass, which is contained in \emph{libPasses.so}.
-The pass is run by issuing the flag assigned to it (\emph{-insert} in this case).
+In line 9 the \llvm{} optimizer is run without my pass on the unbalanced code, and in line 10 the optimizer is run with my pass.
+The optimization pass is contained in \emph{libPasses.so}, and called via \emph{-balance}.
 As discussed in \Cref{llvm} both the input and output of the optimizer are \ir{}.
 Again the \emph{-S} flag is used for human readable output.
-Line 6 shows output of the actual compiler pass.
 
-In line 7 the \ir{} code is compiled into target code, in this case ARM assembly.
+In lines 11 and 12 the \ir{} code is compiled into target code, in this case ARM assembly.
 The specification of the target platform is taken from the preamble of the \ir{} file, as specified in the frontend call.
 
 The final three steps are handled by the GNU Cross Tools.
-First the target code is assembled (line 8) and then it is linked with a prewritten memory map and a fixed startup assembly file (line 9).
+First the target code is assembled (lines 13 and 14) and then it is linked with a prewritten memory map and a fixed startup assembly file (lines 15 and 16).
 The memory map is required due to \qemu{}'s memory layout, as discussed in \Cref{memory}.
 \qemu{} starts execution with the program counter set to address \emph{0x1000}.
 Unfortunately, I cannot control the memory layout of the code during and after the compilation process, so I have no guarantee that the \emph{main} function will land at the desired address.
 For this I use a memory map \emph{startup.ld} (as described in \cite{armbare}), which causes the code defined in \emph{startup.s} to be at memory address \emph{0x1000}.
 The content of \emph{startup.ld} is shown in \Cref{lst:mmap}.
-\newpage
+
 \begin{lstlisting}[caption=Memory map in \emph{startup.ld}, label=lst:mmap]
 ENTRY(_Reset)
 SECTIONS
@@ -120,3 +151,8 @@ _Reset:
  BL balanced_c_entry
  B .
 \end{lstlisting}
+
+My pass creates new names for the balanced functions it generates.
+These new names are simply the old ones, with a \texttt{balanced\_} prefix added to them.
+Due to this the balanced and unbalanced code require different startup assembly files, \emph{startup.s} and \emph{u\_startup.s} respectively.
+The startup files are assembled in line 1 for the balanced version, and in line 5 for the unbalanced version.
