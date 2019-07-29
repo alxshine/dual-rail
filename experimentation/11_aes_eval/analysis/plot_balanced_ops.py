@@ -22,6 +22,7 @@ plt.axhspan(balanced_ashr[0],balanced_ashr[1],label='balanced_ashr',color='C15',
 
 plt.legend()
 plt.xlabel('Trace point')
-plt.ylabel('Line in assembly file')
+plt.ylabel('Location in program')
 
-plt.show()
+plt.tight_layout()
+plt.savefig('balanced-ops.png')

@@ -1,108 +1,132 @@
 \chapter{Results}
 \label{results}
-For the evaluation both the balanced and the unbalanced version were compiled using my Clang and GNU cross compiler toolchain.
-Both versions were compiled using the \texttt{-O0} option, to avoid the influence of any optimizations.
-\Cref{tbl:properties} shows a summary of the properties of both versions.
-\Cref{fig:rc4,fig:aes} contain histograms of \hammingw{}s during execution of the balanced and unbalanced code.
-A more detailed discussion of the results follows.
-  
+For my evaluation I compared two executions with different plaintexts, examining the power traces and instruction logs of both executions.
+A general overview of the results for balanced and unbalanced AES encryption is given in \Cref{tbl:properties}.
+The number of executed instructions increases by a factor of 15 for the balanced code.
+This is due to the intermediate steps in balanced operators, as well as the unbalancing required for array accesses, as balanced values cannot be used as indices directly.
+For the unbalanced code, 90.3\% of instruction results have the same \hammingw{} for both executions.
+For my balanced code, this number increases to 98.6\%.
+Unfortunately, due to the increase in overall instructions this still causes an increase in the number of imbalanced values, theoretically increasing the attack surface.
+
+The increase in instructions also causes a significant performance impact, which should be equivalent to the relative increase in the number of instructions.
+On the other hand, the code size does not increase too much, as all my operators are implemented as functions which are currently not inlined.
+This behaviour could be changed in the future, allowing for a configurable tradeoff between code size and function call overhead.
+
 \begin{table}[h]
-  \begin{tabular}{|l|l|l|l|l|}
+  \centering
+  \begin{tabular}{|l|l|l|}
     \hline
-    & \multicolumn{2}{c|}{RC4}  & \multicolumn{2}{c|}{AES} \\
-    \cline{2-5}
-    & unbalanced & balanced & unbalanced & balanced \\
-    \cline{2-5}
-    Balancedness      & 0.236 & 0.455 & 0.362  & 0.584 \\
-    No. of Operations & 77349 & 401287 & 83549 & 2396186 \\
-    Relative Increase & 1 & 5.19 & 1 & 26.68 \\
-    Code Size            & 3.5 KB & 3.1 KB & 5.8 KB & 14 KB \\
+    & \multicolumn{2}{c|}{AES} \\
+    \cline{2-3}
+    & unbalanced & balanced \\
+    \cline{2-3}
+    No. of instructions & 22 876 & 339 168 \\
+    Relative increase & 1 & 14.888 \\
+    Balanced operations & 20 571 & 334 521 \\
+    Unbalanced operations & 2211 & 4647 \\
+    Balancedness      & 0.903 & 0.986 \\
+    Code size         & 76 KB & 78 KB \\
     \hline
   \end{tabular}
   \caption{Properties of balanced and unbalanced test code}
   \label{tbl:properties}
 \end{table}
 
-\begin{figure}[hp]
-  \centering
-  \begin{subfigure}[b]{0.49\textwidth}
-    \input{tikz/rc4-unbalanced.tex}
-    \caption{Unbalanced RC4}
-  \end{subfigure}
-  \begin{subfigure}[b]{0.49\textwidth}
-    \input{tikz/rc4-balanced.tex}
-    \caption{Balanced RC4}
-  \end{subfigure}
-
-  \begin{subfigure}[b]{\textwidth}
-    \input{tikz/rc4-comparison.tex}
-    \caption{Scaled Hamming weight histograms for RC4}
-  \end{subfigure}
-  \caption{Hamming weight histograms for balanced and unbalanced RC4}
-  \label{fig:rc4}
-\end{figure}
-
-\begin{figure}[hp]
-  \centering
-  \begin{subfigure}[b]{0.49\textwidth}
-    \input{tikz/aes-unbalanced.tex}
-    \caption{Unbalanced AES}
-  \end{subfigure}
-  \begin{subfigure}[b]{0.49\textwidth}
-    \input{tikz/aes-balanced.tex}
-    \caption{Balanced AES}
-    \label{fig:aes-balanced}
-  \end{subfigure}
-
-  \begin{subfigure}[b]{\textwidth}
-    \input{tikz/aes-comparison.tex}
-    \caption{Scaled Hamming weight histograms for AES}
-    \label{fig:aes-comp}
-  \end{subfigure}
-  \caption{Hamming weight histograms for balanced and unbalanced AES}
-  \label{fig:aes}
-\end{figure}
-
 \section{Robustness}
-As visible in both \Cref{fig:rc4} and \Cref{fig:aes}, the balanced version has a much narrower distribution of \hammingw{}s.
-Although my balancing does not reach the perfect outcome of identical \hammingw{}s for all operations, it shows a significant move towards it.
-Perfect balancing cannot be reached with current ALUs, as their design forces imbalances in intermediate values.
-For this reason the balancedness in \Cref{tbl:properties} is the ratio of \hammingw{}s in the range between 7 and 9, and not only the ratio of \hammingw{}s of 8.
+With the detailed analysis enabled by instrumenting gdb, I located the exact instructions in my program where imbalanced values originate.
+In this section I will try to explain their cause, and discuss possible future mitigations.
 
-The balancedness metric in \Cref{tbl:properties} is a very simplistic metric, however, and the histograms in \Cref{fig:rc4,fig:aes} paint a much clearer picture of the effectiveness of my balanced arithmetic.
-The balancing works especially well for AES, as shown in \Cref{fig:aes-balanced}.
-A large number of values is perfectly balanced, as signified by the large value at 8.
-This is due to the large number of table lookups.
-In the beginning of my code the lookup tables are copied onto the stack, which causes them to be balanced.
-Another cause is the frequent usage of XOR operations, which are perfectly balanced in my arithmetic.
-The additional spike around 9 is likely caused by the large number of loops in AES, causing a many increment operations and therefore additions.
-However, I am not entirely certain this is the only reason, as RC4, which has a similarly high ratio of increments, does not exhibit the same behavior.
+\Cref{fig:aes} shows a scatter plot of the locations of executed instructions over time.
+The x-coordinate to the current point in the trace, and the y-coordinate corresponds to the line in the assembly file where the currently executed instruction is located.
+I highlighted the different functions that comprise AES, as well as the region my balanced operators occupy in the source file.
+The purpose of most of these functions should be obvious by their name, the only exception being \texttt{xtime}.
+It is used to perform multiplication in $\mathbb{GF}_{28}$ more efficiently.
+The block of instructions not in any highlighted around line 700 is code I added to copy the S-box to the stack.
+A more detailed view of the regions belonging to my balanced operators is shown in \Cref{fig:ops}.
 
-For RC4 the balancing does not work as well.
-The largest spike in \hammingw{}s is at 7 here, and the variance is higher.
-This value is only an intermediate \hammingw{} for balanced subtraction, which does not occur in RC4.
-Due to this I assume this is caused by array accesses, which require the value to be unbalanced before it can be used as index.
-Another possibility is that this is some artifact not directly linked to my arithmetic.
-The number of values with \hammingw{} 7 is roughly the same as in AES, which supports this theory.
+In \Cref{fig:imbalances0} I show the same execution plot, this time highlighting the points where the difference in \hammingw{} between both executions is non-zero.
+The key expansion has no differences for both executions, as it is independent of the plaintext and thus the same for both executions.
+This is also true for copying the S-box to the stack.
+Imbalances in my operators are expected, but not as many as occur.
+Additionally, imbalances in the \texttt{ShiftRows} and \texttt{MixColumns} operations should not exist, as all these functions do is move entire 32 bit words.
+There also should be no imbalanced values in the \texttt{AddRoundKey} and \texttt{xtime} functions, because while they do require imbalanced operations, the results of all these operations are perfectly balanced.
 
-For both AES and RC4 the histograms indicate increased robustness, and the reduced variance in histograms should reduce the amount of information retrievable by an attacker.
+The reason for this lies in the code the ARM backend generates.
+\Cref{fig:imbalances1} shows a plot of the points with different \hammingw{}s, with right shift instructions highlighted.
+The only place these should happen in my code is in \texttt{balanced\_lshr}, my balanced right shift operator.
+They also happen in \texttt{balanced\_2\_1}, but in ARM this could instead be a ROR instruction, which would avoid the imbalanced intermediate entirely, but \llvm{} does not seem to generate rotates correctly for my code.
+The rest of the shifts is caused by a pattern generated by the backend for store operations.
+Instead of storing the entire word, it is right shifted by multiples of 8, and the least significant byte of the result is stored with an offset instead.
+This pattern might be required due to misaligned memory locations on the stack, and unfortunately I did not have the time to examine why this happens.
+As this shift and store pattern is also experienced by others~\cite{simon2018you}, ``fixing'' this might require making changes to the \llvm{} ARM backend, which would greatly exceed the scope of my thesis.
+
+When these shifts are filtered, the points in \Cref{fig:imbalances2} remain.
+In this figure I highlighted move and load instructions, as these are not the root cause of imbalanced values, but only symptoms of them.
+Also removing these leaves me with \Cref{fig:imbalances3}, where the functions containing the cause of these imbalances are highlighted.
+Imbalances in \texttt{balanced\_2\_1} could be avoided if the rotate instruction was generated correctly.
+Currently the backend generates a right shift, and an ORR with an inline left shift.
+Both of these operations could be inlined into a single ROR, but this does not happen.
+
+The imbalances in the \texttt{unbalanced\_int} function cannot be avoided without making changes to the way memory is accessed.
+As the index used in the \texttt{SubBytes} function in AES is directly linked to the key (especially in the first round), this theoretically leaks the full key to an attacker.
+However, for a real world attacker with noisy measurements this still increases the attack difficulty, as she can no longer attack the result of the S-box lookup, whose permutation makes performing CPA a bit easier in practice.
+
+Imbalances in \texttt{balanced\_and} are due to DeMorgan's law, but it might be possible that a different balancing scheme or a different implementation of this operator can avoid these imbalances.
+The same is true for \texttt{balanced\_mul}.
+I am unsure of the reason for imbalanced values in \texttt{balanced\_lshr}, and did not have the time to dive into why exactly these imbalances happen.
+The remaining imbalances are in my entry function, and are the initial setting of the plaintext.
+These are not related to the key and thus no security risk.
+
+\begin{sidewaysfigure}[ht]
+  \centering
+  \includegraphics[width=\textwidth]{aes-parts.png}
+  \caption{Program regions of AES functions}
+  \label{fig:aes}
+\end{sidewaysfigure}
+
+\begin{sidewaysfigure}[h]
+  \centering
+  \includegraphics[width=\textwidth]{balanced-ops.png}
+  \caption{Program regions of balanced operators}
+  \label{fig:ops}
+\end{sidewaysfigure}
+
+\begin{sidewaysfigure}[h]
+  \centering
+  \includegraphics[width=\textwidth]{imbalances-0.png}
+  \caption{\hammingw{} differences in power trace}
+  \label{fig:imbalances0}
+\end{sidewaysfigure}
+
+\begin{sidewaysfigure}[h]
+  \centering
+  \includegraphics[width=\textwidth]{imbalances-1.png}
+  \caption{\hammingw{} differences due to right shifts}
+  \label{fig:imbalances1}
+\end{sidewaysfigure}
+
+\begin{sidewaysfigure}[h]
+  \centering
+  \includegraphics[width=\textwidth]{imbalances-2.png}
+  \caption{\hammingw{} differences due to load and move instructions}
+  \label{fig:imbalances2}
+\end{sidewaysfigure}
+
+\begin{sidewaysfigure}[h]
+  \centering
+  \includegraphics[width=\textwidth]{imbalances-3.png}
+  \caption{Sources of imbalanced intermediates}
+  \label{fig:imbalances3}
+\end{sidewaysfigure}
 
 \section{Performance}
-Unfortunately the performance impact of my balancing pass is rather large.
-As shown in \Cref{tbl:properties} the number of operations increases by a factor of 5.19 for RC4, and by a factor of 26.68 for AES.
-A possible reason for this discrepancy is the larger number of array accesses in AES, which all require unbalancing.
+The current balancing pass increases the number of instructions by a factor of 14.888.
+This increase is caused by the more complicated balanced operators and overhead for additional function calls.
+These additional calls are because currently my operators are implemented as functions, in order to minimize the increase in code size.
+More inlining would be possible, which would reduce the number of instructions, but increase the code size.
 
-Code size does not increase as drastically.
-For RC4, the balanced code actually requires \emph{less} memory than the unbalanced version.
-This might be caused by a simple dead code removal routine I added to reduce the lines of code in the \ir{} files during debugging.
-The code size for balanced AES should also be fine for most embedded platforms, as that already includes all lookup tables.
-The moderate increase in code size is caused by the balanced operators being implemented as functions, and not being inlined during compilation.
-Adding inlining for the operators would allow for an additional memory-performance tradeoff, if desired.
-Calling the operator functions causes overhead (storing and restoring of registers, etc.), which is likely the main cause of the increased memory size.
-Another probable cause is the unbalancing instructions before array indexing.
-These are also implemented as functions, again causing overhead.
-
-The code was not optimized (compiled with \texttt{-O0}), so there was no loop unrolling.
-This would cause an additional increase in code size for the case of inlined operators.
-
-While the performance impact is (prohibitively) large, please note that performance was not a focus for my thesis.
+Additionally, there might be faster variants of implementing the balanced operators.
+One could even consider accepting some more information leakage to reduce the number of intermediate operations required.
+Taking hardware specifics, such as the ARM barrel shifter into account could also help reduce the performance impact.
+Hardware specific optimizations would however reduce the generality of my balancing pass.
+The focus of this thesis was to test wether such a balancing pass was \emph{possible}, so performance optimizations are left for future work.

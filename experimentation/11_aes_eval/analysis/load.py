@@ -39,3 +39,8 @@ for row in csv.reader(upc_file):
     upc_trace.append(int(row[0]))
 upt = np.array(upc_trace)
 uindices = np.arange(upt.shape[0])
+
+w = 11.7
+h = 8.3
+s = 1
+plt.rcParams['figure.figsize'] = [s*w, s*h]
