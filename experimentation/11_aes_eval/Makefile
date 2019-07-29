@@ -2,24 +2,24 @@ CROSS_COMPILE ?= arm-none-eabi
 CLANGOPTS = -target arm-none-eabi -mcpu=arm926ej-s -O0
 
 PLUGINS=$(wildcard ../../passes/build/*.so)
-PASSES=-insert
+PASSES=-balance
 
-C0=$(shell echo $$(($$RANDOM % 128 + 128)))
-C1=$(shell echo $$(($$RANDOM % 128 + 128)))
-C2=$(shell echo $$(($$RANDOM % 128 + 128)))
-C3=$(shell echo $$(($$RANDOM % 128 + 128)))
-C4=$(shell echo $$(($$RANDOM % 128 + 128)))
-C5=$(shell echo $$(($$RANDOM % 128 + 128)))
-C6=$(shell echo $$(($$RANDOM % 128 + 128)))
-C7=$(shell echo $$(($$RANDOM % 128 + 128)))
-C8=$(shell echo $$(($$RANDOM % 128 + 128)))
-C9=$(shell echo $$(($$RANDOM % 128 + 128)))
-C10=$(shell echo $$(($$RANDOM % 128 + 128)))
-C11=$(shell echo $$(($$RANDOM % 128 + 128)))
-C12=$(shell echo $$(($$RANDOM % 128 + 128)))
-C13=$(shell echo $$(($$RANDOM % 128 + 128)))
-C14=$(shell echo $$(($$RANDOM % 128 + 128)))
-C15=$(shell echo $$(($$RANDOM % 128 + 128)))
+C0=$(shell echo $$(($$RANDOM % 256)))
+C1=$(shell echo $$(($$RANDOM % 256)))
+C2=$(shell echo $$(($$RANDOM % 256)))
+C3=$(shell echo $$(($$RANDOM % 256)))
+C4=$(shell echo $$(($$RANDOM % 256)))
+C5=$(shell echo $$(($$RANDOM % 256)))
+C6=$(shell echo $$(($$RANDOM % 256)))
+C7=$(shell echo $$(($$RANDOM % 256)))
+C8=$(shell echo $$(($$RANDOM % 256)))
+C9=$(shell echo $$(($$RANDOM % 256)))
+C10=$(shell echo $$(($$RANDOM % 256)))
+C11=$(shell echo $$(($$RANDOM % 256)))
+C12=$(shell echo $$(($$RANDOM % 256)))
+C13=$(shell echo $$(($$RANDOM % 256)))
+C14=$(shell echo $$(($$RANDOM % 256)))
+C15=$(shell echo $$(($$RANDOM % 256)))
 DEFINES=-DC0=${C0} -DC1=${C1} -DC2=${C2} -DC3=${C3} -DC4=${C4} -DC5=${C5} -DC6=${C6} -DC7=${C7} -DC8=${C8} -DC9=${C9} -DC10=${C10} -DC11=${C11} -DC12=${C12} -DC13=${C13} -DC14=${C14} -DC15=${C15}
 
 all: balanced unbalanced_target dump_plaintext
@@ -33,7 +33,7 @@ dump_plaintext:
 
 optimized.S: tinyAES.ll rtlib.ll program.ll
 	llvm-link tinyAES.ll rtlib.ll program.ll -S -o linked.ll
-	opt -load="$(PLUGINS)" $(PASSES) -debug-pass=Arguments linked.ll -S -o optimized.ll
+	opt -load="$(PLUGINS)" $(PASSES) linked.ll -S -o optimized.ll
 	llc -O0 optimized.ll -o optimized.S
 
 unbalanced.S: tinyAES.ll program.ll
