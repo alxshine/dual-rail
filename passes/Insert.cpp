@@ -545,7 +545,6 @@ struct InsertPass : public ModulePass {
   }
 
   void balanceTrunc(TruncInst *trunc, Function *F, IRBuilder<> builder, arithmetic_ret arithmetic, vector<Instruction *> &to_remove, unordered_set<Value *> &balanced_values){
-    errs() << "Found trunc in: " << F->getName() << "\n";
     auto *operand = trunc->getOperand(0);
     if(balanced_values.count(operand)){
       trunc->replaceAllUsesWith(operand);
@@ -560,11 +559,6 @@ struct InsertPass : public ModulePass {
 
     for (inst_iterator I = inst_begin(F), E = inst_end(F); I != E; ++I) {
       IRBuilder<> builder{&*I};
-
-      if(F->getName() == "balanced_xtime"){
-	I->print(errs());
-	errs() << "\n";
-      }
       
       // alloca i32 instead of i8
       if (auto alloca = dyn_cast<AllocaInst>(&*I)) {
