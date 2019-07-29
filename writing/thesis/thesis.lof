@@ -15,10 +15,10 @@
 \contentsline {figure}{\numberline {5.2}{\ignorespaces The general architecture of the LLVM{} compiler\relax }}{18}{figure.caption.23}% 
 \addvspace {10\p@ }
 \addvspace {10\p@ }
-\contentsline {figure}{\numberline {7.1}{\ignorespaces Program regions of AES functions\relax }}{30}{figure.caption.36}% 
-\contentsline {figure}{\numberline {7.2}{\ignorespaces Program regions of balanced operators\relax }}{31}{figure.caption.37}% 
-\contentsline {figure}{\numberline {7.3}{\ignorespaces Hamming weight{} differences in power trace\relax }}{32}{figure.caption.38}% 
-\contentsline {figure}{\numberline {7.4}{\ignorespaces Hamming weight{} differences due to right shifts\relax }}{33}{figure.caption.39}% 
-\contentsline {figure}{\numberline {7.5}{\ignorespaces Hamming weight{} differences due to load and move instructions\relax }}{34}{figure.caption.40}% 
-\contentsline {figure}{\numberline {7.6}{\ignorespaces Sources of imbalanced intermediates\relax }}{35}{figure.caption.41}% 
+\contentsline {figure}{\numberline {7.1}{\ignorespaces Program regions of AES functions\relax }}{29}{figure.caption.36}% 
+\contentsline {figure}{\numberline {7.2}{\ignorespaces Program regions of balanced operators\relax }}{30}{figure.caption.37}% 
+\contentsline {figure}{\numberline {7.3}{\ignorespaces Hamming weight{} differences in power trace\relax }}{31}{figure.caption.38}% 
+\contentsline {figure}{\numberline {7.4}{\ignorespaces Hamming weight{} differences due to right shifts\relax }}{32}{figure.caption.39}% 
+\contentsline {figure}{\numberline {7.5}{\ignorespaces Hamming weight{} differences due to load and move instructions\relax }}{33}{figure.caption.40}% 
+\contentsline {figure}{\numberline {7.6}{\ignorespaces Sources of imbalanced intermediates\relax }}{34}{figure.caption.41}% 
 \addvspace {10\p@ }

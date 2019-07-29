@@ -1,13 +1,11 @@
 \chapter{Conclusion}
 \label{conclusion}
-In my thesis I propose and evaluate a compiler generated approach to balancing values to increase robustness against power analysis, similar to \dual{}, in software.
-The increased robustness is achieved by not using the entire available word size, and instead storing the inverse of data in order to balance the \hammingw{}.
+In my thesis I propose and evaluate a compiler generated approach to balancing values for increased robustness against power analysis, similar to \dual{}, in software.
+The robustness increase is achieved by not using the entire available word size, and instead storing the inverse of data in order to balance the \hammingw{}.
 Using such balanced values requires an entirely new arithmetic, which is the first contribution of this thesis.
 I then provide a compiler pass for \llvm{} that automatically transforms C code using at most 8 bit integers into my balanced arithmetic.
-The arithmetic is then evaluated by instrumenting gdb on a CPU emulated using \qemu{}.
+The resulting code is then evaluated by instrumenting gdb on a CPU emulated using \qemu{}.
 Gdb output is examined to find imbalances in the final code, and a discussion of reasons and possible mitigations for these imbalances is offered.
-
-The discussion of my work is split into three parts, for easier readability.
 
 \section{Summary of Results}
 The arithmetic created for my balancing scheme is correct for all possible 8 bit operands.
@@ -19,7 +17,7 @@ As it is impossible in current ALUs to execute different instructions on parts o
 
 While I cannot make hard claims on the reduced information leakage of my individual operators, the distribution of \hammingw{}s of intermediate values (\Cref{fig:mult}) suggests reduced leakage compared to regular operators.
 The number of imbalanced values also increases much less than the total number of instructions.
-Unfortunately, due to an increase in instructions in general, the number of imbalanced values also increases compared to the unbalanced code.
+Unfortunately, due an increase in instructions in general, the number of imbalanced values is still larger than in unbalanced code.
 However, the imbalanced values increase by a factor of 2, while the instructions in general increase by a number of 15 for AES encryption.
 This means that the signal-to-noise-ratio for an attacker is reduced from 9.7\% to 1.4\%.
 
@@ -35,6 +33,11 @@ Fixing this could require making changes to the backend, but that also exceeds t
 After filtering these, and after filtering imbalances due to load and move instructions (which only propagate imbalances and do not cause them), the number of imbalanced instruction results is 1450, out of a total of 339168 instructions.
 
 My approach has been tested on C code written for an 8 bit architecture, but the general nature of \llvm{} should make it applicable to any source language whose frontend generates 8 bit integers.
+As it is possible to convert \emph{any} code into code using only 8 bit integers, my general approach is applicable to \emph{any} code written in an \llvm{} compatible language.
+
+I also created an extension to \qemu{}, generating simulated power traces and execution logs during emulation.
+While these logs are not suitable for my ARM specific evaluation, they can provide insights into the execution of more general architectures.
+My evaluation method using gdb, correlating changed values to the instructions causing them, can also prove beneficial, especially for tracking down information leakage via side-channels.
 
 \section{Limitations}
 The performance impact of my balanced arithmetic is very large, increasing the number of instructions by a factor of 14.888.
