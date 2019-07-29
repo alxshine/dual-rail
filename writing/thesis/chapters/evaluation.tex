@@ -2,10 +2,13 @@
 \label{evaluation}
 To test the effectiveness of my balancing I compared balanced code with regular code.
 In order to decrease the turnaround time during development I decided to run the code in an emulator, as opposed to on actual hardware.
-This also reduces the amount of effort for evaluation.
-
-Instead of trying to perform a full \poweranalysis{} attack on actual hardware, I added code to the \qemu{} emulator that generates simulated power traces during execution, as well as a log of executed instructions, similar to output of the \emph{gdb} debugger.
+This also increases the detail at which I can examine the results.
+Instead of trying to perform a full \poweranalysis{} attack on actual hardware, I tried to add code to the \qemu{} emulator that generates simulated power traces during execution, as well as a log of executed instructions, similar to output of the \emph{gdb} debugger.
 These power traces simulate an attacker that can measure the \hammingw{} of every single instruction result without noise.
+
+Unfortunately, performing the evaluation inside \qemu{} has the disadvantage that it does not accurately simulate the hardware capabilities of ARM, like inline computation of addresses and shifting of operands, and thus adds additional imbalances to the power traces.
+For this reason I moved the evaluation to gdb, which allows me to evaluate results of every ARM assembly instruction, instead of every instruction in the intermediate representation of \qemu{}.
+Even though I used gdb in the end, I included my work on \qemu{} in this section, as it gives some interesting insights into its internal workings and justifies why it is unsuitable for my evalution.
 
 \section{\qemu{}}
 \qemu{} is a generic and open source machine emulator and virtualizer.\cite{bellard2005qemu}
@@ -117,6 +120,7 @@ As discussed in \Cref{llvm} both the input and output of the optimizer are \ir{}
 Again the \emph{-S} flag is used for human readable output.
 
 In lines 11 and 12 the \ir{} code is compiled into target code, in this case ARM assembly.
+Note that the \texttt{-O0} flag is issued, which should in theory disable all optimizations in the compiler backend.
 The specification of the target platform is taken from the preamble of the \ir{} file, as specified in the frontend call.
 
 The final three steps are handled by the GNU Cross Tools.
