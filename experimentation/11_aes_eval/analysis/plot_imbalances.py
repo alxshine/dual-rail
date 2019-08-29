@@ -16,7 +16,7 @@ plt.legend()
 plt.xlabel('Time')
 plt.ylabel('Location in program')
 plt.tight_layout()
-plt.savefig('imbalances-0.png')
+#plt.savefig('imbalances-0.png')
 
 lsr = np.loadtxt('lsr.csv').flatten()
 lsr = np.unique(lsr)
@@ -35,7 +35,8 @@ plt.legend()
 plt.xlabel('Time')
 plt.ylabel('Location in program')
 plt.tight_layout()
-plt.savefig('imbalances-1.png')
+#plt.savefig('imbalances-1.png')
+plt.show()
 
 lsr = lsr[lsr>=balanced_ashr[1]]
 indices = indices[np.isin(pt,lsr,invert=True)]
