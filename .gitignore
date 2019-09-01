@@ -18,3 +18,5 @@ trace-*
 *.run.xml
 *.blg
 *.bbl
+*.nav
+*.snm

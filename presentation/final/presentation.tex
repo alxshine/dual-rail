@@ -65,6 +65,9 @@
 %% or fallback is '1'.
 %% ------------------------------------------------------------------
 
+\usepackage{graphicx}
+\graphicspath{ {fig/}}
+
 \begin{document}
 
 %% ALTERNATIVE TITLEPAGE
@@ -109,7 +112,8 @@
   \begin{itemize}
   \item Power analysis
   \item Approach
-  \item Selected Details
+  \item Arithmetic
+  \item Compiler Pass
   \item Results
   \item Future Work
   \end{itemize}
@@ -117,90 +121,225 @@
 \end{frame}
 
 \subsection{Power Analysis}
+\begin{frame}
+  \frametitle{Platform}
+  
+\end{frame}
 
 \begin{frame}
+  \frametitle{Power analysis}
 
 \end{frame}
+
 \begin{frame}
+  \frametitle{Power analysis cont.}
 
 \end{frame}
-\begin{frame}
 
+\begin{frame}
+  \frametitle{Power analysis cont.}
 \end{frame}
 \begin{frame}
-
-\end{frame}
-\begin{frame}
+  \frametitle{Power analysis cont.}
 
 \end{frame}
 
 \subsection{Approach}
 \begin{frame}
-
+  \frametitle{Approach}
 \end{frame}
 \begin{frame}
+  \frametitle{Approach cont.}
 
 \end{frame}
 
-\subsection{Selected Details}
+\subsection{Arithmetic}
 \begin{frame}
-
+  \frametitle{Arithmetic}
 \end{frame}
-\begin{frame}
 
+\begin{frame}
+  \frametitle{Arithmetic cont.}
+
+  \begin{columns}[T] % align columns
+    \begin{column}{.05\textwidth}
+    \end{column}
+    \hfill
+    \begin{column}{.38\textwidth}
+      Find replacements for:
+      \begin{itemize}
+      \item \texttt{ORR}
+      \item \texttt{AND}
+      \item \texttt{XOR}
+      \item \texttt{ADD}
+      \item \texttt{SUB}
+      \item \texttt{MUL}
+      \item \texttt{SHIFTS}
+      \item \texttt{DIV}
+      \item \texttt{REM}
+      \end{itemize}
+    \end{column}%
+    \hfill%
+    \begin{column}{.48\textwidth}
+      \includegraphics[width=\textwidth, height=0.7\textheight,draft]{placeholder}
+    \end{column}%
+  \end{columns}
 \end{frame}
-\begin{frame}
 
+\begin{frame}
+  \frametitle{Verifying the arithmetic}
+
+  
 \end{frame}
 
 \subsection{Compiler Pass}
 \begin{frame}
+  \frametitle{Compiler pass}
 
 \end{frame}
 \begin{frame}
+  \frametitle{Compiler pass cont.}
 
+  \begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+      IR code before
+      \includegraphics[width=\textwidth, height=\textheight, draft]{placeholder}
+    \end{column}
+    \hfill
+    \begin{column}{0.48\textwidth}
+      IR code after
+      \includegraphics[width=\textwidth, height=\textheight, draft]{placeholder}
+    \end{column}
+  \end{columns}
 \end{frame}
 \begin{frame}
+  \frametitle{Binary operators}
 
-\end{frame}
-\begin{frame}
-
+  \begin{columns}[T]
+    \begin{column}{.48\textwidth}
+      \begin{itemize}
+      \item[] written as C functions
+      \item[] linked into same module
+      \item[] llvm operators changed to calls
+      \end{itemize}
+      \vfill
+      \begin{block}{Tradeoff}
+        \begin{itemize}
+        \item[+] simplicity
+        \item[+] modularity
+        \item[+] small binaries
+        \item[-] (currently) on inlining
+        \item[-] overhead
+        \end{itemize}
+      \end{block}
+    \end{column}
+    \hfill
+    \begin{column}{.48\textwidth}
+      rtlib.c
+      \includegraphics[width=\textwidth,draft]{placeholder.png}
+      llvm-link
+      \includegraphics[width=\textwidth,draft]{placeholder.png}
+      Balance.cpp
+      \includegraphics[width=\textwidth,draft]{placeholder.png}
+    \end{column}
+  \end{columns}
 \end{frame}
 
 \subsection{Evaluation}
 \begin{frame}
+  \frametitle{Evaluation}
 
+  How to generate ``virtual'' power traces?
+  
+  \begin{alertblock}{Qemu alone}
+    \begin{itemize}
+    \item[+] fast
+    \item[-] wrong resolution
+    \end{itemize}
+  \end{alertblock}
+
+  \begin{block}{Qemu + gdb}
+    \begin{itemize}
+    \item[+] correct resolution
+    \item[+] includes program location information
+    \item[-] \textbf{very} slow
+    \end{itemize}
+    Execute instruction by instruction, dump registers every time
+  \end{block}
 \end{frame}
+
+\begin{frame}
+  \frametitle{Results}
+  \center
+  \vfill
+  \begin{tabular}{|l|l|l|}
+    \hline
+    & \multicolumn{2}{c|}{AES} \\
+    \cline{2-3}
+    & unbalanced & balanced \\
+    \cline{2-3}
+    No. of instructions & 22 876 & 339 168 \\
+    Relative increase & 1 & 14.888 \\
+    Balanced operations & 20 571 & 334 521 \\
+    Unbalanced operations & 2211 & 4647 \\
+    Balancedness      & 0.903 & 0.986 \\
+    Code size         & 76 KB & 78 KB \\
+    \hline
+  \end{tabular}
+  \vfill
+\end{frame}
+
 \subsection{Results}
 \begin{frame}
+  \frametitle{Results cont.}
+
+\end{frame}
+
+\begin{frame}
+  \frametitle{Results cont.}
+  \frametitle{}
 
 \end{frame}
 \begin{frame}
+  \frametitle{Results cont.}
+  \frametitle{}
 
 \end{frame}
 \begin{frame}
+  \frametitle{Results cont.}
 
 \end{frame}
 \begin{frame}
+  \frametitle{Results cont.}
 
 \end{frame}
 \begin{frame}
-
-\end{frame}
-\begin{frame}
-
-\end{frame}
-\begin{frame}
+  \frametitle{Results cont.}
 
 \end{frame}
 
 \subsection{Future Work}
 \begin{frame}
-
+  \frametitle{Future work}
+  Same idea with different methods:
+  \begin{itemize}
+  \item Test on actual hardware
+  \item Balance globals
+  \item Mark balancing targets
+  \item Move balancing to type system
+  \end{itemize}
+  \vspace{0.5cm}
+  Different ideas with same method:
+  \begin{itemize}
+  \item Other power analysis defenses
+  \item Control flow randomization
+  \item Move more security tools to LLVM
+  \end{itemize}
 \end{frame}
 
 \subsection{Conclusion}
 \begin{frame}
+  \frametitle{Conclusion}
 
 \end{frame}
 
