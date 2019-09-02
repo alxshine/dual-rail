@@ -11,4 +11,4 @@ m = MultiStepOperation([
 m.execute()
 incorrect_results = m.testCorrectness(lambda x, y: x | y)
 print(f"Number of incorrect results: {len(incorrect_results.keys())}")
-m.visualize("ORR")
+m.visualize("")

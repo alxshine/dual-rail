@@ -40,6 +40,11 @@
 %% the commands \pkg, \email, \file, \dataset 
 %% ------------------------------------------------------------------
 
+\usepackage{tikz}
+\usepackage{adjustbox}
+\usepackage{bm}
+\usepackage{amsmath}
+\usepackage{listings}
 
 %% information for the title page ('short title' is the pdf-title that is shown in viewer's titlebar)
 \title[Balancing binary values]{Defending against power analysis\\ by balancing binary values}
@@ -54,7 +59,6 @@
 %\URL{}
 %\subtitle{}
 
-\footertext{{\LaTeX} beamer theme}
 \date{2019-09-11}
 
 \headerimage{2}
@@ -67,6 +71,30 @@
 
 \usepackage{graphicx}
 \graphicspath{ {fig/}}
+
+\newcommand\blfootnote[1]{%
+  \begingroup
+  \renewcommand\thefootnote{}\footnote{#1}%
+  \addtocounter{footnote}{-1}%
+  \endgroup
+}
+\hyphenation{consumption}
+
+\newcommand{\hex}[1]{\texttt{0x#1}}
+
+\renewcommand{\neg}[1]{\ensuremath{\overline{#1}}}
+\newcommand{\bsep}{\; \| \; }
+\newcommand{\borr}{\mathbin{\texttt{ORR}}}
+\newcommand{\band}{\mathbin{\texttt{AND}}}
+\newcommand{\bxor}{\mathbin{\texttt{XOR}}}
+\newcommand{\bror}{\mathbin{\texttt{ROR}}}
+\newcommand{\blsl}{\mathbin{\texttt{LSL}}}
+\newcommand{\trans}[2]{\ensuremath{\texttt{transform\_#1\_#2}}}
+
+\newcommand{\binp}[5]{\ensuremath{\%#1 &= #2 &&\bsep #3 &&\bsep #4 &&\bsep #5 &&}}
+\newcommand{\btrans}[6]{\ensuremath{\%#1 &= #2 &&\bsep #3 &&\bsep #4 &&\bsep #5 && \;|\ #6}}
+
+
 
 \begin{document}
 
@@ -120,10 +148,30 @@
 
 \end{frame}
 
-\subsection{Power Analysis}
 \begin{frame}
   \frametitle{Platform}
-  
+  \center
+  \vfill
+  \begin{tikzpicture}
+    \node (in) at (-4, 0) {input};
+    \node (pcb) at (0,0) {\includegraphics[width=3cm]{pcb.jpg}};
+    \node(trace) at (0,-3) {
+      \begin{adjustbox}{width=3cm}
+      \begin{tikzpicture}
+        \input{tikz/trace1.tikz}
+      \end{tikzpicture}
+      \end{adjustbox}
+    };
+    \node (out) at (4, 0) {output};
+
+    \draw[->] (in) -- (pcb);
+    \draw[->] (pcb) -- (out);
+
+    \draw (-1.5,-1) -- (-1.5,-3.7);
+    \draw (1.5,-1) -- (1.5,-3.7);
+  \end{tikzpicture}
+  \vfill
+  \blfootnote{https://www.tinytronics.nl/shop/en/communication/wemos-d1-mini-v3-esp8266-ch340}
 \end{frame}
 
 \begin{frame}
@@ -147,28 +195,107 @@
 \subsection{Approach}
 \begin{frame}
   \frametitle{Approach}
+  \begin{center}
+  \vfill
+  \begin{tikzpicture}
+    \node[draw] (secret) at (-4.5,0) {secret};
+    \node[draw,text width=2.2cm, align=center] (intermediate) at (0,0) {intermediate result};
+    \node[draw,text width=2.2cm, align=center] (consumption) at (4.5,0) {power consumption};
+
+    \draw[->] (consumption) -- (intermediate);
+    \draw[->] (intermediate) -- (secret);
+
+    \draw[red, line width=0.3mm] (2.45,0.15) -- (2.15,-0.15);
+    \draw[red, line width=0.3mm] (2.15,0.15) -- (2.45,-0.15);
+
+    \draw[red, line width=0.3mm, ->] (2.3,-1.5) -- (2.3, -0.5);
+
+    \node[red] at (2.3,-2) {weaken this link};
+  \end{tikzpicture}
+  \end{center}
+  \begin{block}{Working assumption}
+    Power consumption is proportional to Hamming weight
+  \end{block}
+  \vfill
 \end{frame}
+
 \begin{frame}
   \frametitle{Approach cont.}
-
+  \begin{center}
+    constant Hamming weight $\rightarrow$ constant power consumption\\
+  \end{center}
+  \vspace{0.5cm}
+  char:\\
+  \begin{center}
+    \begin{tikzpicture}
+      
+      \foreach \i in {0,8,...,32}{
+        \draw (8-\i/4,0.2) -- (8-\i/4,-0.2);
+        \node at (8-\i/4,-0.5) {\tiny \i};
+      }
+      \node at (7, 0) {\Large\texttt{x}};         
+      \node at (5, 0) {\Large\texttt{0}};
+      \node at (3, 0) {\Large\texttt{0}};
+      \node at (1, 0) {\Large\texttt{0}};
+    \end{tikzpicture}
+  \end{center}
+  \vspace{0.1cm}
+  balanced char:
+  \begin{center}
+    \begin{tikzpicture}
+      \foreach \i in {0,8,...,32}{
+        \draw (8-\i/4,0.2) -- (8-\i/4,-0.2);
+        \node at (8-\i/4,-0.5) {\tiny \i};
+      }
+      \node at (7, 0) {\Large\texttt{x}};         
+      \node at (5, 0) {\Large\texttt{0}};
+      \node[red] at (3, 0) {\Large\neg{\texttt{x}}};
+      \node at (1, 0) {\Large\texttt{0}};
+    \end{tikzpicture}
+  \end{center}
 \end{frame}
 
 \subsection{Arithmetic}
 \begin{frame}
   \frametitle{Arithmetic}
+  Regular operators will not work:
+  \begin{center}
+    \begin{tikzpicture}
+      \foreach \y in {2,0,-2}{
+        \foreach \i in {0,8,...,32}{
+          \draw (8-\i/4,\y+0.2) -- (8-\i/4,\y-0.2);
+          \node at (8-\i/4,\y-0.5) {\tiny \i};
+        }
+        \node at (5, \y) {\Large\texttt{0}};
+        \node at (1, \y) {\Large\texttt{0}};
+      }
+      \node at (7, 2) {\Large\texttt{x}};
+      \node at (3, 2) {\Large\neg{\texttt{x}}};
+
+      \node at (4,.8) {\Large{$\bm{\lor}$}};
+
+      \node at (7, 0) {\Large\texttt{y}};
+      \node at (3, 0) {\Large\neg{\texttt{y}}};
+
+      \node at (4,-1.2) {\Large{$\bm{=}$}};
+
+      \node at (7, -2) {\Large$\texttt{x} \bm{\lor} \texttt{y}$};
+      \node at (3, -2) {\Large$\neg{\texttt{x}} \bm{\lor} \neg{\texttt{y}}$};
+
+      \node[red] at (3, -2.6) {\Large$\bm{\neq}$};
+      \node at (3, -3.2) {\Large$\neg{\texttt{x} \bm{\lor} \texttt{y}}$};
+  \end{tikzpicture}
+  \end{center}
 \end{frame}
 
 \begin{frame}
   \frametitle{Arithmetic cont.}
 
   \begin{columns}[T] % align columns
-    \begin{column}{.05\textwidth}
-    \end{column}
-    \hfill
-    \begin{column}{.38\textwidth}
+    \begin{column}{.28\textwidth}
       Find replacements for:
       \begin{itemize}
-      \item \texttt{ORR}
+      \item \textcolor<2>{red}{\texttt{ORR}} \only<2>{\quad\tikz[baseline=0.5ex]{\draw[->,red,line width=0.3mm] (0,0.2) -- (2,0.2);}}
       \item \texttt{AND}
       \item \texttt{XOR}
       \item \texttt{ADD}
@@ -180,38 +307,196 @@
       \end{itemize}
     \end{column}%
     \hfill%
-    \begin{column}{.48\textwidth}
-      \includegraphics[width=\textwidth, height=0.7\textheight,draft]{placeholder}
-    \end{column}%
+    \only<2>{\vrule}
+    \hfill
+    \begin{column}{.6\textwidth}
+      \only<2>{
+      \begin{align*}
+        \binp{1}{0}{\neg{x}}{0}{x}\\
+        \binp{2}{0}{\neg{y}}{0}{y}\\
+        \binp{3}{0}{\neg{x} \borr \neg{y}}{0}{x \borr y}\\
+        \binp{4}{0}{\neg{x} \band \neg{y}}{0}{x \band y}\\
+        \binp{5}{\neg{x} \band \neg{y}}{\neg{x} \borr \neg{y}}{x \band y}{x \borr y}\\
+        \binp{6}{\neg{x \borr y}}{0}{0}{x \borr y}\\
+        \binp{7}{\hex{FF}}{\neg{x \borr y}}{0}{x \borr y}\\
+        \binp{8}{0}{\neg{x \borr y}}{0}{x \borr y}
+      \end{align*}
+      }
+    \end{column}
   \end{columns}
 \end{frame}
 
-\begin{frame}
+\begin{frame}[fragile]
   \frametitle{Verifying the arithmetic}
-
-  
+  Perform exhaustive search of the input space:
+  \begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+      \begin{lstlisting}[language=python,basicstyle=\small]
+m = MultiStepOperation([
+  BinaryOperation(0, 1,
+      lambda x, y: x | y),
+  BinaryOperation(0, 1,
+      lambda x, y: x & y),
+  BinaryOperation(2, 3,
+      lambda x, y: x | (y << wordsize)),
+  UnaryOperation(4,
+      lambda x: x & scheme2_filter),
+  Convert_2_1(5)
+])
+      \end{lstlisting}
+    \end{column}
+    \hfill
+    \onslide<2>{
+    \begin{column}{0.48\textwidth}
+      \centering
+      \includegraphics[width=\textwidth]{orr.png}
+    \end{column}
+    }
+  \end{columns}
 \end{frame}
 
 \subsection{Compiler Pass}
 \begin{frame}
-  \frametitle{Compiler pass}
+  \frametitle{Applying the changes}
+  Possibilities for automatic balancing:
+  \begin{itemize}
+  \item Transform source
+  \item During compilation
+  \end{itemize}
 
+  \vfill
+  \onslide<2->{
+  LLVM:
+  \begin{figure}
+  \centering
+  \begin{tikzpicture}
+    \node[draw, minimum width=1.3cm, minimum height=0.6cm] at (-2.5,1.5) (C) {C};
+    \node[draw, minimum width=1.3cm, minimum height=0.6cm] at (-2.5,0.5) (C++) {C++};
+    \node[draw, minimum width=1.3cm, minimum height=0.6cm] at (-2.5, -0.5) (Haskell) {Haskell};
+    \node[draw, minimum width=1.3cm, minimum height=0.6cm] at (-2.5, -1.5) (otherl) {...};
+    \node[draw] at (-0.75, 0) (irl) {IR};
+    
+    \node[draw, label=Optimizer Passes, minimum width=4cm, minimum height=1.3cm] at (2,0) (optimization) {};
+    \node[draw, minimum size=0.5cm] at (0.6,0) {};
+    \node[draw, minimum size=0.5cm] at (1.2,0) {};
+    \node[draw, minimum size=0.5cm] at (1.8,0) {};
+    \node[draw, minimum size=0.5cm] at (2.4,0) {};
+    \node at (3.0, 0) {...};
+
+    \node[draw] at (4.75, 0) (irr) {IR};
+    \node[draw, minimum width=1.3cm, minimum height=0.6cm] at (6.5,1) (x86) {x86};
+    \node[draw, minimum width=1.3cm, minimum height=0.6cm] at (6.5,0) (arm) {ARM};
+    \node[draw, minimum width=1.3cm, minimum height=0.6cm] at (6.5,-1) (otherr) {...};
+
+    \draw[->] (C) -- (irl);
+    \draw[->] (C++) -- (irl);
+    \draw[->] (Haskell) -- (irl);
+    \draw[->] (otherl) -- (irl);
+
+    \draw[->] (irl) -- (optimization);
+    \draw[->] (optimization) -- (irr);
+
+    \draw[->] (irr) -- (x86);
+    \draw[->] (irr) -- (arm);
+    \draw[->] (irr) -- (otherr);
+
+    \onslide<3>{
+    \node[draw, minimum height=0.6cm] (balance) at (3,-2) {Balance.cpp};
+    \draw[->, red, line width=0.3mm, shorten <= 5pt] (balance) -- (3,-0.2);
+    }
+  \end{tikzpicture}
+  \end{figure}
+  }
 \end{frame}
-\begin{frame}
-  \frametitle{Compiler pass cont.}
+
+\begin{frame}[fragile]
+  \frametitle{Optimizer Pass}
 
   \begin{columns}[T]
-    \begin{column}{0.48\textwidth}
-      IR code before
-      \includegraphics[width=\textwidth, height=\textheight, draft]{placeholder}
+    \begin{column}{0.3\textwidth}
+      Transforms:
+      \begin{itemize}
+      \item function arguments
+      \item allocations
+      \item stores
+      \item loads \quad \onslide<2>{\tikz[baseline=-0.5ex]{\draw[->, red, line width=0.3mm](0,0) -- (2,0);}}
+      \item casts
+      \item binary operators
+      \item getElementPtr
+      \item compares
+      \item returns
+      \item function calls
+      \end{itemize}
     \end{column}
     \hfill
-    \begin{column}{0.48\textwidth}
-      IR code after
-      \includegraphics[width=\textwidth, height=\textheight, draft]{placeholder}
+    \pause
+    \vrule
+    \hfill
+    \begin{column}{0.6\textwidth}
+      \begin{lstlisting}[language=C++,basicstyle=\small]
+void balanceLoad(LoadInst *load,
+    IRBuilder<> builder,
+    vector<Instruction *> &to_remove,
+    unordered_set<Value *> &balanced_values) {
+  if (balanced_values
+      .count(load->getPointerOperand())) {
+    auto *new_load = builder
+        .CreateLoad(load->getPointerOperand());
+    load->replaceAllUsesWith(new_load);
+    balanced_values.insert(new_load);
+    to_remove.push_back(load);
+    return;
+  }
+}
+      \end{lstlisting}
     \end{column}
   \end{columns}
 \end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Optimizer Pass cont.}
+
+  \begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+      \begin{lstlisting}[language=LLVM, basicstyle=\small]
+%2 = alloca i8, align 1
+store i8 %0, i8* %2, align 1
+%3 = load i8, i8* %2, align 1
+%4 = zext i8 %3 to i32
+%5 = shl i32 %4, 1
+%6 = load i8, i8* %2, align 1
+%7 = zext i8 %6 to i32
+%8 = ashr i32 %7, 7
+%9 = and i32 %8, 1
+%10 = mul nsw i32 %9, 27
+%11 = xor i32 %5, %10
+%12 = trunc i32 %11 to i8
+ret i8 %12
+      \end{lstlisting}
+    \end{column}
+    \hfill
+    \begin{column}{0.48\textwidth}
+      \begin{lstlisting}[language=LLVM, basicstyle=\small]
+%2 = alloca i32
+store i32 %0, i32* %2, align 1
+%3 = load i32, i32* %2
+%4 = call i32
+  @balanced_shl(i32 %3, i32 0xfe0001)
+%5 = load i32, i32* %2
+%6 = call i32
+  @balanced_ashr(i32 %5, i32 0xf80007)
+%7 = call i32
+  @balanced_and(i32 %6, i32 0xfe0001)
+%8 = call i32
+  @balanced_mul(i32 %7, i32 0xe4001b)
+%9 = call i32
+  @balanced_xor(i32 %4, i32 %8)
+ret i32 %9
+      \end{lstlisting}
+    \end{column}
+  \end{columns}
+\end{frame}
+
 \begin{frame}
   \frametitle{Binary operators}
 
@@ -268,6 +553,8 @@
   \end{block}
 \end{frame}
 
+\subsection{Results}
+
 \begin{frame}
   \frametitle{Results}
   \center
@@ -289,33 +576,62 @@
   \vfill
 \end{frame}
 
-\subsection{Results}
 \begin{frame}
-  \frametitle{Results cont.}
-
+  \begin{figure}
+    \centering
+    \includegraphics[height=\textheight]{aes-parts.png}
+  \end{figure}
 \end{frame}
 
 \begin{frame}
-  \frametitle{Results cont.}
-  \frametitle{}
+  \begin{figure}
+    \centering
+    \includegraphics[height=\textheight]{imbalances-0.png}
+  \end{figure}
+\end{frame}
+
+\begin{frame}
+  \begin{figure}
+    \centering
+    \includegraphics[height=\textheight]{imbalances-1.png}
+  \end{figure}
 
 \end{frame}
 \begin{frame}
-  \frametitle{Results cont.}
-  \frametitle{}
+  \begin{figure}
+    \centering
+    \includegraphics[height=\textheight]{imbalances-2.png}
+  \end{figure}
 
 \end{frame}
 \begin{frame}
-  \frametitle{Results cont.}
-
+  \begin{figure}
+    \centering
+    \includegraphics[height=\textheight]{imbalances-3.png}
+  \end{figure}
 \end{frame}
 \begin{frame}
   \frametitle{Results cont.}
-
-\end{frame}
-\begin{frame}
-  \frametitle{Results cont.}
-
+  \vfill
+  \begin{center}
+  \begin{tabular}{|l|l|l|}
+    \hline
+    & \multicolumn{2}{c|}{AES} \\
+    \cline{2-3}
+    & unbalanced & balanced \\
+    \cline{2-3}
+    No. of instructions & 22 876 & 339 168 \\
+    Relative increase & 1 & 14.888 \\
+    Balanced operations & 20 571 & 337 852 \\
+    Unbalanced operations & 2211 & 1316 \\
+    Balancedness      & 0.903 & 0.996 \\
+    Code size         & 76 KB & 78 KB \\
+    \hline
+  \end{tabular}
+  \end{center}
+  \vspace{1ex}
+  Note: no filtering applied to unbalanced variant
+  \vfill
 \end{frame}
 
 \subsection{Future Work}
