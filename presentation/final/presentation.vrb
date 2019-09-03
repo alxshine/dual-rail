@@ -1,7 +1,6 @@
 \frametitle{Optimizer Pass cont.}
-
   \begin{columns}[T]
-    \begin{column}{0.48\textwidth}
+    \begin{column}{0.4\textwidth}
       \begin{lstlisting}[language=LLVM, basicstyle=\small]
 %2 = alloca i8, align 1
 store i8 %0, i8* %2, align 1
@@ -18,6 +17,8 @@ store i8 %0, i8* %2, align 1
 ret i8 %12
       \end{lstlisting}
     \end{column}
+    %% \hfill
+    \vrule
     \hfill
     \begin{column}{0.48\textwidth}
       \begin{lstlisting}[language=LLVM, basicstyle=\small]

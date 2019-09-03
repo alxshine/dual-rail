@@ -64,7 +64,6 @@ pt = pt[remaining_filter]
 indices = indices[remaining_filter]
 
 plt.figure()
-plt.title('target')
 
 plt.scatter(indices, pt, s=1,label='Remaining imbalances')
 
