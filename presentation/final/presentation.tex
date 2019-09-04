@@ -781,6 +781,7 @@ ret i32 %9
   \begin{itemize}
   \item Test on actual hardware
   \item Balance globals
+  \item Improve operators
   \item Mark balancing targets
   \item Move balancing to type system
   \end{itemize}
@@ -796,7 +797,18 @@ ret i32 %9
 \subsection{Conclusion}
 \begin{frame}
   \frametitle{Conclusion}
-
+  \begin{itemize}
+  \item Increased robustness without program modifications
+  \item Requires more powerful, but standard hardware
+  \item Security and performance likely mutually exclusive
+  \item Backend cannot entirely be ignored
+  \item Qemu is not a processor emulator
+  \end{itemize}
+  \vfill
+  \begin{block}{LLVM IR}
+    LLVM's intermediate representation offers many avenues for future work,\\
+    not only for optimizition, but also for security.
+  \end{block}
 \end{frame}
 
 \end{document}
