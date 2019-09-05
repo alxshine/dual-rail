@@ -1,0 +1,172 @@
+
+\begin{frame}
+  \frametitle{Platform}
+  \center
+  \vfill
+  \begin{tikzpicture}
+    \node (in) at (-4, 0) {input};
+    \node (pcb) at (0,0) {\includegraphics[width=3cm]{pcb.jpg}};
+    \node(trace) at (0,-3) {
+      \begin{adjustbox}{width=3cm}
+      \begin{tikzpicture}
+        \input{tikz/trace1.tikz}
+      \end{tikzpicture}
+      \end{adjustbox}
+    };
+    \node (out) at (4, 0) {output};
+
+    \draw[->] (in) -- (pcb);
+    \draw[->] (pcb) -- (out);
+
+    \node[text width=3cm, color=uibkorange] (alg) at (4,-3) {some known algorithm};
+
+    \draw (-1.5,-1) -- (-1.5,-3.7);
+    \draw (1.5,-1) -- (1.5,-3.7);
+    \draw[->, uibkorange, thick] (alg) -- (trace);
+  \end{tikzpicture}
+  \vfill
+  \blfootnote{https://www.tinytronics.nl/shop/en/communication/wemos-d1-mini-v3-esp8266-ch340}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Power analysis}
+  \vfill
+  Power trace:
+  \begin{figure}
+    \begin{tikzpicture}[scale=1.3]
+      \input{tikz/trace1.tikz}
+      \draw[->] (0,-.5) -- (0,1.2) node[midway, above,rotate=90] {\small{power}};
+      \draw[->] (0,-.5) -- (10,-.5) node[midway, below] {\small{time}};
+    \end{tikzpicture}
+  \end{figure}
+
+  \begin{block}{Traces as functions}
+    Power traces are functions over time, with constant input
+  \end{block}
+  \vfill
+\end{frame}
+
+\begin{frame}[label=traces]
+  \frametitle{Power analysis cont.}
+  \begin{figure}
+    \begin{tikzpicture}
+      \draw<2->[draw=uibkorange, fill=uibkorangel] (3.05,1) rectangle (3.15,-4.8);
+      \node<2-> at (3.1, -5.1) {\textcolor{uibkorange}{Function over input, at constant time}};
+      \begin{scope}
+        \node at (-1.2, .4) {$\textup{Input}_1$};
+        \input{tikz/trace1.tikz}
+        \draw[->] (0,-.5) -- (0,1.2) node[midway, above,rotate=90] {\small{power}};
+        \draw[->] (0,-.5) -- (10,-.5) node[midway, below] {\small{time}};
+      \end{scope}
+
+      \begin{scope}[yshift=-2cm]
+        \node at (-1.2, .4) {$\textup{Input}_2$};
+        \input{tikz/trace2.tikz}
+        \draw[->] (0,-.5) -- (0,1.2) node[midway, above,rotate=90] {\small{power}};
+        \draw[->] (0,-.5) -- (10,-.5) node[midway, below] {\small{time}};
+      \end{scope}
+      
+      \begin{scope}[yshift=-4cm]
+        \node at (-1.2, .4) {$\textup{Input}_3$};
+        \input{tikz/trace3.tikz}
+        \draw[->] (0,-.5) -- (0,1.2) node[midway, above,rotate=90] {\small{power}};
+        \draw[->] (0,-.5) -- (10,-.5) node[midway, below] {\small{time}};
+      \end{scope}
+    \end{tikzpicture}
+  \end{figure}
+  \hfill
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Power analysis cont.}
+  \begin{columns}[T]
+    \begin{column}{0.35\textwidth}
+      \begin{block}{Secret}
+        Power consumption depends on input\\
+        \textbf{and secret}
+      \end{block}
+      \vfill
+      \begin{lstlisting}[language=C,basicstyle=\small]
+for(i=0;i<4;++i)
+  for(j = 0; j < 4; ++j)
+    state[i][j] =
+            input[i][j] ^
+            `\tikzmarkin{secret}`secret[i][j];`\tikzmarkend{secret}`
+      \end{lstlisting}
+    \end{column}
+    %% \hfill
+    \begin{column}{0.6\textwidth}
+      Calculate ``hypothetical'' power consumption:
+      \begin{figure}
+        \begin{tikzpicture}[scale=0.7, value/.style={black,fill=black,radius=0.2mm}]
+          \draw<2->[draw=uibkorange, fill=uibkorangel] (2.05,1) rectangle (2.15,-5.9);
+          \node<2-> at (3.6, -6.3) {\textcolor{uibkorange}{Function over input, with constant secret}};
+
+          \begin{scope}
+            \node at (-1.2, .5) {$\textup{i}_1$};
+            \input{tikz/hypo1.tikz}
+            \draw[->] (0,0) -- (0,1.2) node[midway, above,rotate=90] {\small{power}};
+            \draw[->] (0,0) -- (10,0) node[midway, below] {\small{secret}};
+          \end{scope}
+
+          \begin{scope}[yshift=-2.5cm]
+            \node at (-1.2, .4) {$\textup{i}_2$};
+            \input{tikz/hypo2.tikz}
+            \draw[->] (0,-.5) -- (0,1.2) node[midway, above,rotate=90] {\small{power}};
+            \draw[->] (0,-.5) -- (10,-.5) node[midway, below] {\small{secret}};
+          \end{scope}
+      
+          \begin{scope}[yshift=-5cm]
+            \node at (-1.2, .4) {$\textup{i}_3$};
+            \input{tikz/hypo3.tikz}
+            \draw[->] (0,-.5) -- (0,1.2) node[midway, above,rotate=90] {\small{power}};
+            \draw[->] (0,-.5) -- (10,-.5) node[midway, below] {\small{secret}};
+          \end{scope}
+        \end{tikzpicture}
+      \end{figure}      
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\againframe<2>{traces}
+
+\begin{frame}
+  \frametitle{Power analysis cont.}
+  Actual consumption:
+  \begin{figure}
+    \hfill
+    \begin{tikzpicture}[value/.style={black,fill=black,radius=0.2mm}]
+      \begin{scope}
+        \input{tikz/secret2.tikz}
+        \draw[->] (0,0) -- (0,1.2) node[midway, above,rotate=90] {\small{power}};
+        \draw[->] (0,0) -- (10,0) node[midway, below] {\small{input}};
+      \end{scope}
+    \end{tikzpicture}
+    \hspace{1.5cm}
+  \end{figure}
+  Hypothetical consumptions:
+  \begin{figure}
+    \hfill
+    \begin{tikzpicture}[value/.style={black,fill=black,radius=0.2mm}]
+      \begin{scope}
+        \input{tikz/secret1.tikz}
+        \draw[->] (0,0) -- (0,1.2) node[midway, left] {\small{$\textup{Secret}_1$}};
+        \draw[->] (0,0) -- (10,0);
+      \end{scope}
+
+      \begin{scope}[yshift=-1.3cm]
+        \draw<2>[thick,uibkorange,fill=uibkorangel] (-0.07, 1.22) rectangle (10.02,-0.07);
+        \input{tikz/secret2.tikz}
+        \draw[->] (0,0) -- (0,1.2) node[midway, left] {\small{$\textup{Secret}_2$}};
+        \draw[->] (0,0) -- (10,0);
+      \end{scope}
+      
+      \begin{scope}[yshift=-2.6cm]
+        \input{tikz/secret3.tikz}
+        \draw[->] (0,0) -- (0,1.2) node[midway, left] {\small{$\textup{Secret}_3$}};
+        \draw[->] (0,0) -- (10,0);
+      \end{scope}
+    \end{tikzpicture}
+    \hspace{1.5cm}
+  \end{figure}
+\end{frame}

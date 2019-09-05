@@ -41,6 +41,9 @@
 %% ------------------------------------------------------------------
 
 \usepackage{tikz}
+\usetikzlibrary{arrows}
+\tikzset{>=stealth}
+
 \usepackage{adjustbox}
 \usepackage{bm}
 \usepackage{amsmath}
@@ -84,6 +87,7 @@
   \endgroup
 }
 \hyphenation{consumption}
+\hyphenation{algorithm}
 
 \newcommand{\hex}[1]{\texttt{0x#1}}
 
@@ -99,7 +103,7 @@
 \newcommand{\binp}[5]{\ensuremath{\%#1 &= #2 &&\bsep #3 &&\bsep #4 &&\bsep #5 &&}}
 \newcommand{\btrans}[6]{\ensuremath{\%#1 &= #2 &&\bsep #3 &&\bsep #4 &&\bsep #5 && \;|\ #6}}
 
-
+\newcommand{\vq}{\vphantom{q}}
 
 \begin{document}
 
@@ -133,191 +137,132 @@
 %% this sets the first PDF bookmark and triggers generation of the title page
 \section{Bookmark Title}
 
+\begin{frame}
+  \frametitle{Motivation}
+  \begin{figure}
+    \centering
+    \includegraphics[width=0.4\textwidth]{hue.jpeg}
+  \end{figure}
+  \blfootnote{\tiny https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/HJCC2?wid=1144\&hei=1144\&fmt=jpeg\&qlt=95\&op\_usm=0.5,0.5\&.v=0}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Motivation}
+  \begin{figure}
+    \centering
+    \begin{tikzpicture}[every node/.style={draw}]
+      \node (input) at (-4, 2) {\vq Input};
+      \node (secret) at (-4, -2) {\vq Secret};
+      \node (result) at (-0.5,0) {\vq Result};
+      \node[text width=2.5cm, align=center] (power) at (4,0) {\vq Power Consumption};
+
+      \draw[->] (input) -- (result);
+      \draw[->] (secret) -- (result);
+      \draw[->] (result) -- (power);
+
+      \onslide<2>{
+      \draw[->, uibkorange, line width=0.4mm] (5,-3.5) -- (-4.5, -3.5) node[midway, above, draw=none] {Power Analysis Attack};}
+      \onslide<3>{
+        \draw[->, uibkblue, line width=0.4mm] (5,-3.5) -- (-4.5, -3.5) node[midway, above, draw=none] {Power Analysis Attack};
+        \node[uibkorange, thick] (mask) at (-4, 0) {\vq Mask};
+        \draw[uibkorange, thick, ->] (mask) -- (result);
+
+        \draw[uibkorange, line width=0.4mm] (1.45,0.15) -- (1.15,-0.15);
+        \draw[uibkorange, line width=0.4mm] (1.15,0.15) -- (1.45,-0.15);
+
+        \draw[uibkorange, thick,<-] (1.3,-0.3) -- (1.3,-1) node[below, draw=none] {Dual-Rail Logic};
+      }
+    \end{tikzpicture}
+  \end{figure}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Motivation}
+  \vfill
+  \begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+      \begin{block}{Masking}
+        Increases analysis complexity
+        \begin{itemize}
+        \item[+] Runs on standard hardware
+        \item[-] Built into algorithm
+        \item[-] Requires expert knowledge
+        \end{itemize}
+      \end{block}
+    \end{column}
+    %% \hfill
+    \begin{column}{0.48\textwidth}
+      \begin{block}{Dual-Rail logic}
+        Balances power consumption
+        \begin{itemize}
+        \item[+] Can run any program
+        \item[-] Specialized hardware
+        \item[] \vq
+        \end{itemize}
+      \end{block}
+    \end{column}
+  \end{columns}
+  \vfill
+  \onslide<2>{
+    \begin{alertblock}{Best of both worlds}
+      Apply balancing similar to Dual-Rail logic in software
+    \end{alertblock}
+  }
+  \vfill
+\end{frame}
+
 %% this just generates PDF bookmarks
 \subsection{Overview}
 
 %% first slide
-\begin{frame}
-
+\begin{frame}<1-2>[label=overview]
   \frametitle{Overview}
+  \vfill
   \textbf{Content}
-  
+
   \begin{itemize}
-  \item Power analysis
-  \item Approach
-  \item Arithmetic
-  \item Compiler Pass
-  \item Results
-  \item Future Work
+  \item Motivation
+  \item \textcolor<2>{uibkorange}{Balancing}
+  \item \textcolor<3>{uibkorange}{Arithmetic}
+  \item \textcolor<4>{uibkorange}{Code Transformation}
+  \item \textcolor<5>{uibkorange}{Results}
+  \item \textcolor<6>{uibkorange}{Future Work \& Conclusion}
   \end{itemize}
-
-\end{frame}
-
-\begin{frame}
-  \frametitle{Platform}
-  \center
-  \vfill
-  \begin{tikzpicture}
-    \node (in) at (-4, 0) {input};
-    \node (pcb) at (0,0) {\includegraphics[width=3cm]{pcb.jpg}};
-    \node(trace) at (0,-3) {
-      \begin{adjustbox}{width=3cm}
-      \begin{tikzpicture}
-        \input{tikz/trace1.tikz}
-      \end{tikzpicture}
-      \end{adjustbox}
-    };
-    \node (out) at (4, 0) {output};
-
-    \draw[->] (in) -- (pcb);
-    \draw[->] (pcb) -- (out);
-
-    \draw (-1.5,-1) -- (-1.5,-3.7);
-    \draw (1.5,-1) -- (1.5,-3.7);
-  \end{tikzpicture}
-  \vfill
-  \blfootnote{https://www.tinytronics.nl/shop/en/communication/wemos-d1-mini-v3-esp8266-ch340}
-\end{frame}
-
-\begin{frame}
-  \frametitle{Power analysis}
-  \vfill
-  Power trace:
-  \begin{figure}
-    \begin{tikzpicture}[scale=1.3]
-      \input{tikz/trace1.tikz}
-      \draw[->] (0,-.5) -- (0,1.2) node[midway, above,rotate=90] {\small{power}};
-      \draw[->] (0,-.5) -- (10,-.5) node[midway, below] {\small{time}};
-    \end{tikzpicture}
-  \end{figure}
-
-  \begin{block}{Traces as functions}
-    Power traces are functions over time, with constant input
-  \end{block}
   \vfill
 \end{frame}
 
+\subsection{Balancing}
 \begin{frame}
-  \frametitle{Power analysis cont.}
-  \begin{figure}
+  \frametitle{Balancing}
+  \vfill
+  \textbf{Working assumption:}\\
+  Power consumption is directly proportional to Hamming weight\\
+  $\rightarrow$ constant Hamming weight = constant power consumption
+  \onslide<2->{
+  \begin{alertblock}{Approach}
+    Extend register size, and store inverse along with actual value
+  \end{alertblock}
+  \vspace{0.3cm}
+  \begin{center}
     \begin{tikzpicture}
-      \draw<2->[draw=uibkorange, fill=uibkorangel] (3.05,1) rectangle (3.15,-4.8);
-      \node<2-> at (3.1, -5.1) {\textcolor{uibkorange}{Function over input, at constant time}};
-      \begin{scope}
-        \node at (-1.2, .4) {$\textup{Input}_1$};
-        \input{tikz/trace1.tikz}
-        \draw[->] (0,-.5) -- (0,1.2) node[midway, above,rotate=90] {\small{power}};
-        \draw[->] (0,-.5) -- (10,-.5) node[midway, below] {\small{time}};
-      \end{scope}
+      \foreach \i in {0,8}{
+        \draw (8-\i/4,0.2) -- (8-\i/4,-0.2);
+        \node at (8-\i/4,-0.5) {\tiny \i};
+      }
+      \node at (7, 0) {\Large\texttt{x}};         
 
-      \begin{scope}[yshift=-2cm]
-        \node at (-1.2, .4) {$\textup{Input}_2$};
-        \input{tikz/trace2.tikz}
-        \draw[->] (0,-.5) -- (0,1.2) node[midway, above,rotate=90] {\small{power}};
-        \draw[->] (0,-.5) -- (10,-.5) node[midway, below] {\small{time}};
-      \end{scope}
-      
-      \begin{scope}[yshift=-4cm]
-        \node at (-1.2, .4) {$\textup{Input}_3$};
-        \input{tikz/trace3.tikz}
-        \draw[->] (0,-.5) -- (0,1.2) node[midway, above,rotate=90] {\small{power}};
-        \draw[->] (0,-.5) -- (10,-.5) node[midway, below] {\small{time}};
-      \end{scope}
+      \onslide<3>{
+      \foreach \i in {16,24,32}{
+        \draw (8-\i/4,0.2) -- (8-\i/4,-0.2);
+        \node at (8-\i/4,-0.5) {\tiny \i};
+      }
+      \node at (5, 0) {\Large\texttt{0}};
+      \node[uibkorange] at (3, 0) {\Large\neg{\texttt{x}}};
+      \node at (1, 0) {\Large\texttt{0}};
+      }
     \end{tikzpicture}
-  \end{figure}
-  \hfill
-\end{frame}
-
-\begin{frame}[fragile]
-  \frametitle{Power analysis cont.}
-  \begin{columns}[T]
-    \begin{column}{0.35\textwidth}
-      \begin{block}{Secret}
-        Power consumption depends on input\\
-        \textbf{and secret}
-      \end{block}
-      \vfill
-      \begin{lstlisting}[language=C,basicstyle=\small]
-for(i=0;i<4;++i)
-  for(j = 0; j < 4; ++j)
-    state[i][j] =
-            input[i][j] ^
-            `\tikzmarkin{secret}`secret[i][j];`\tikzmarkend{secret}`
-      \end{lstlisting}
-    \end{column}
-    %% \hfill
-    \begin{column}{0.6\textwidth}
-      Generate ``hypothetical'' power traces:
-      \begin{figure}
-        \begin{tikzpicture}[scale=0.7, value/.style={black,fill=black,radius=0.2mm}]
-          \draw<2->[draw=uibkorange, fill=uibkorangel] (2.05,1) rectangle (2.15,-5.9);
-          \node<2-> at (3.6, -6.3) {\textcolor{uibkorange}{Function over input, with constant secret}};
-
-          \begin{scope}
-            \node at (-1.2, .5) {$\textup{i}_1$};
-            \input{tikz/hypo1.tikz}
-            \draw[->] (0,0) -- (0,1.2) node[midway, above,rotate=90] {\small{power}};
-            \draw[->] (0,0) -- (10,0) node[midway, below] {\small{secret}};
-          \end{scope}
-
-          \begin{scope}[yshift=-2.5cm]
-            \node at (-1.2, .4) {$\textup{i}_2$};
-            \input{tikz/hypo2.tikz}
-            \draw[->] (0,-.5) -- (0,1.2) node[midway, above,rotate=90] {\small{power}};
-            \draw[->] (0,-.5) -- (10,-.5) node[midway, below] {\small{secret}};
-          \end{scope}
-      
-          \begin{scope}[yshift=-5cm]
-            \node at (-1.2, .4) {$\textup{i}_3$};
-            \input{tikz/hypo3.tikz}
-            \draw[->] (0,-.5) -- (0,1.2) node[midway, above,rotate=90] {\small{power}};
-            \draw[->] (0,-.5) -- (10,-.5) node[midway, below] {\small{secret}};
-          \end{scope}
-        \end{tikzpicture}
-      \end{figure}      
-    \end{column}
-  \end{columns}
-\end{frame}
-
-\begin{frame}
-  \frametitle{Power analysis cont.}
-  Actual consumption:
-  \begin{figure}
-    \hfill
-    \begin{tikzpicture}[value/.style={black,fill=black,radius=0.2mm}]
-      \begin{scope}
-        \input{tikz/secret2.tikz}
-        \draw[->] (0,0) -- (0,1.2) node[midway, above,rotate=90] {\small{power}};
-        \draw[->] (0,0) -- (10,0) node[midway, below] {\small{input}};
-      \end{scope}
-    \end{tikzpicture}
-    \hspace{1.5cm}
-  \end{figure}
-  Hypothetical consumptions:
-  \begin{figure}
-    \hfill
-    \begin{tikzpicture}[value/.style={black,fill=black,radius=0.2mm}]
-      \begin{scope}
-        \input{tikz/secret1.tikz}
-        \draw[->] (0,0) -- (0,1.2) node[midway, left] {\small{$\textup{Secret}_1$}};
-        \draw[->] (0,0) -- (10,0);
-      \end{scope}
-
-      \begin{scope}[yshift=-1.3cm]
-        \draw<2>[thick,uibkorange,fill=uibkorangel] (-0.07, 1.22) rectangle (10.02,-0.07);
-        \input{tikz/secret2.tikz}
-        \draw[->] (0,0) -- (0,1.2) node[midway, left] {\small{$\textup{Secret}_2$}};
-        \draw[->] (0,0) -- (10,0);
-      \end{scope}
-      
-      \begin{scope}[yshift=-2.6cm]
-        \input{tikz/secret3.tikz}
-        \draw[->] (0,0) -- (0,1.2) node[midway, left] {\small{$\textup{Secret}_3$}};
-        \draw[->] (0,0) -- (10,0);
-      \end{scope}
-    \end{tikzpicture}
-    \hspace{1.5cm}
-  \end{figure}
+  \end{center}
+  }
 \end{frame}
 
 \subsection{Approach}
@@ -333,17 +278,21 @@ for(i=0;i<4;++i)
     \draw[->] (consumption) -- (intermediate);
     \draw[->] (intermediate) -- (secret);
 
+    \onslide<2>{
     \draw[uibkorange, line width=0.3mm] (2.45,0.15) -- (2.15,-0.15);
     \draw[uibkorange, line width=0.3mm] (2.15,0.15) -- (2.45,-0.15);
 
     \draw[uibkorange, line width=0.3mm, ->] (2.3,-1.5) -- (2.3, -0.5);
 
     \node[uibkorange] at (2.3,-2) {weaken this link};
+    }
   \end{tikzpicture}
   \end{center}
-  \begin{block}{Working assumption}
-    Power consumption is proportional to Hamming weight
-  \end{block}
+  \onslide<2>{
+    \begin{block}{Working assumption}
+      Power consumption is proportional to Hamming weight
+    \end{block}
+  }
   \vfill
 \end{frame}
 
@@ -382,6 +331,8 @@ for(i=0;i<4;++i)
     \end{tikzpicture}
   \end{center}
 \end{frame}
+
+\againframe<4>{overview}
 
 \subsection{Arithmetic}
 \begin{frame}
@@ -483,13 +434,15 @@ m = MultiStepOperation([
   \end{columns}
 \end{frame}
 
+\againframe<5>{overview}
+
 \subsection{Compiler Pass}
 \begin{frame}
   \frametitle{Applying the changes}
   Possibilities for automatic balancing:
   \begin{itemize}
   \item Transform source
-  \item During compilation
+  \item Transform during compilation
   \end{itemize}
 
   \vfill
@@ -666,6 +619,9 @@ ret i32 %9
   \end{columns}
 \end{frame}
 
+\subsection{Results}
+
+\againframe<6>{overview}
 
 \subsection{Evaluation}
 \begin{frame}
@@ -689,8 +645,6 @@ ret i32 %9
     Execute instruction by instruction, dump registers every time
   \end{alertblock}
 \end{frame}
-
-\subsection{Results}
 
 \begin{frame}[label=results]
   \frametitle{Results}
@@ -773,6 +727,8 @@ ret i32 %9
   Note: no filtering applied to unbalanced variant
   \vfill
 \end{frame}
+
+\againframe<7>{overview}
 
 \subsection{Future Work}
 \begin{frame}
