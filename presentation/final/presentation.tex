@@ -192,7 +192,7 @@
     \end{column}
     %% \hfill
     \begin{column}{0.48\textwidth}
-      \begin{block}{Dual-Rail logic}
+      \begin{block}{Dual-Rail Logic}
         Balances power consumption
         \begin{itemize}
         \item[+] Can run any program
@@ -204,7 +204,7 @@
   \end{columns}
   \vfill
   \onslide<2>{
-    \begin{alertblock}{Best of both worlds}
+    \begin{alertblock}{Best of both worlds?}
       Apply balancing similar to Dual-Rail logic in software
     \end{alertblock}
   }
@@ -236,7 +236,7 @@
   \frametitle{Balancing}
   \vfill
   \textbf{Working assumption:}\\
-  Power consumption is directly proportional to Hamming weight\\
+  Power consumption is proportional to Hamming weight\\
   $\rightarrow$ constant Hamming weight = constant power consumption
   \onslide<2->{
   \begin{alertblock}{Approach}
@@ -265,74 +265,7 @@
   }
 \end{frame}
 
-\subsection{Approach}
-\begin{frame}
-  \frametitle{Approach}
-  \begin{center}
-  \vfill
-  \begin{tikzpicture}
-    \node[draw] (secret) at (-4.5,0) {secret};
-    \node[draw,text width=2.2cm, align=center] (intermediate) at (0,0) {intermediate result};
-    \node[draw,text width=2.2cm, align=center] (consumption) at (4.5,0) {power consumption};
-
-    \draw[->] (consumption) -- (intermediate);
-    \draw[->] (intermediate) -- (secret);
-
-    \onslide<2>{
-    \draw[uibkorange, line width=0.3mm] (2.45,0.15) -- (2.15,-0.15);
-    \draw[uibkorange, line width=0.3mm] (2.15,0.15) -- (2.45,-0.15);
-
-    \draw[uibkorange, line width=0.3mm, ->] (2.3,-1.5) -- (2.3, -0.5);
-
-    \node[uibkorange] at (2.3,-2) {weaken this link};
-    }
-  \end{tikzpicture}
-  \end{center}
-  \onslide<2>{
-    \begin{block}{Working assumption}
-      Power consumption is proportional to Hamming weight
-    \end{block}
-  }
-  \vfill
-\end{frame}
-
-\begin{frame}
-  \frametitle{Approach cont.}
-  \begin{center}
-    constant Hamming weight $\rightarrow$ constant power consumption\\
-  \end{center}
-  \vspace{0.5cm}
-  char:\\
-  \begin{center}
-    \begin{tikzpicture}
-      
-      \foreach \i in {0,8,...,32}{
-        \draw (8-\i/4,0.2) -- (8-\i/4,-0.2);
-        \node at (8-\i/4,-0.5) {\tiny \i};
-      }
-      \node at (7, 0) {\Large\texttt{x}};         
-      \node at (5, 0) {\Large\texttt{0}};
-      \node at (3, 0) {\Large\texttt{0}};
-      \node at (1, 0) {\Large\texttt{0}};
-    \end{tikzpicture}
-  \end{center}
-  \vspace{0.1cm}
-  balanced char:
-  \begin{center}
-    \begin{tikzpicture}
-      \foreach \i in {0,8,...,32}{
-        \draw (8-\i/4,0.2) -- (8-\i/4,-0.2);
-        \node at (8-\i/4,-0.5) {\tiny \i};
-      }
-      \node at (7, 0) {\Large\texttt{x}};         
-      \node at (5, 0) {\Large\texttt{0}};
-      \node[uibkorange] at (3, 0) {\Large\neg{\texttt{x}}};
-      \node at (1, 0) {\Large\texttt{0}};
-    \end{tikzpicture}
-  \end{center}
-\end{frame}
-
-\againframe<4>{overview}
+\againframe<3>{overview}
 
 \subsection{Arithmetic}
 \begin{frame}
@@ -367,8 +300,8 @@
   \end{center}
 \end{frame}
 
-\begin{frame}
-  \frametitle{Arithmetic cont.}
+\begin{frame}[fragile]
+  \frametitle{Arithmetic}
 
   \begin{columns}[T] % align columns
     \begin{column}{.28\textwidth}
@@ -386,21 +319,22 @@
       \end{itemize}
     \end{column}%
     \hfill%
-    \only<2>{\vrule}
+    \pause
+    \vrule
     \hfill
     \begin{column}{.6\textwidth}
-      \only<2>{
-      \begin{align*}
-        \binp{1}{0}{\neg{x}}{0}{x}\\
-        \binp{2}{0}{\neg{y}}{0}{y}\\
-        \binp{3}{0}{\neg{x} \borr \neg{y}}{0}{x \borr y}\\
-        \binp{4}{0}{\neg{x} \band \neg{y}}{0}{x \band y}\\
-        \binp{5}{\neg{x} \band \neg{y}}{\neg{x} \borr \neg{y}}{x \band y}{x \borr y}\\
-        \binp{6}{\neg{x \borr y}}{0}{0}{x \borr y}\\
-        \binp{7}{\hex{FF}}{\neg{x \borr y}}{0}{x \borr y}\\
-        \binp{8}{0}{\neg{x \borr y}}{0}{x \borr y}
-      \end{align*}
-      }
+      \vspace{1cm}
+      \begin{lstlisting}[language=C, basicstyle=\small]
+int balanced_or(int lhs,
+        int rhs) {
+  int temp_or = lhs | rhs;
+  int temp_and = lhs & rhs;
+  int combined = (temp_and << 8)
+          | temp_or;
+  combined &= 0xff0000ff;
+  return balanced_2_1(combined);
+}
+      \end{lstlisting}
     \end{column}
   \end{columns}
 \end{frame}
@@ -559,7 +493,7 @@ void balanceLoad(LoadInst *load,
     \begin{column}{.48\textwidth}
       \vspace{0.7cm}
       \begin{lstlisting}[language=C, basicstyle=\small]
-uint32_t balanced_or(uint32_t lhs,
+int balanced_or(uint32_t lhs,
         uint32_t rhs) {
   uint32_t temp_or = lhs | rhs;
   uint32_t temp_and = lhs & rhs;
@@ -575,7 +509,7 @@ uint32_t balanced_or(uint32_t lhs,
 
 
 \begin{frame}[fragile]
-  \frametitle{Optimizer Pass cont.}
+  \frametitle{Optimizer Pass}
   \begin{columns}[T]
     \begin{column}{0.4\textwidth}
       \begin{lstlisting}[language=LLVM, basicstyle=\small]

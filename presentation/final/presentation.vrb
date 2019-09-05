@@ -1,4 +1,4 @@
-\frametitle{Optimizer Pass cont.}
+\frametitle{Optimizer Pass}
   \begin{columns}[T]
     \begin{column}{0.4\textwidth}
       \begin{lstlisting}[language=LLVM, basicstyle=\small]
