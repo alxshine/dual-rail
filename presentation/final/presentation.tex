@@ -6,6 +6,8 @@
 %% - aspectratio=169: Set paper aspect ratio to 16:9.
 %% ------------------------------------------------------------------
 
+% \usepackage{enumitem}
+
 \usetheme[]{uibk}
 %% ------------------------------------------------------------------
 %% - foot: Add a footer line for conference name and date.
@@ -41,7 +43,7 @@
 %% ------------------------------------------------------------------
 
 \usepackage{tikz}
-\usetikzlibrary{arrows}
+\usetikzlibrary{arrows,decorations.pathreplacing}
 \tikzset{>=stealth}
 
 \usepackage{adjustbox}
@@ -196,7 +198,7 @@
         Balances power consumption
         \begin{itemize}
         \item[+] Can run any program
-        \item[-] Specialized hardware
+        \item[-] Requires specialized hardware
         \item[] \vq
         \end{itemize}
       \end{block}
@@ -339,27 +341,23 @@ int balanced_or(int lhs,
   \end{columns}
 \end{frame}
 
-\begin{frame}[fragile]
+\begin{frame}
   \frametitle{Verifying the arithmetic}
   Perform exhaustive search of the input space:
   \begin{columns}[T]
     \begin{column}{0.48\textwidth}
-      \begin{lstlisting}[language=python,basicstyle=\small]
-m = MultiStepOperation([
-  BinaryOperation(0, 1,
-      lambda x, y: x | y),
-  BinaryOperation(0, 1,
-      lambda x, y: x & y),
-  BinaryOperation(2, 3,
-      lambda x, y: x | (y << wordsize)),
-  UnaryOperation(4,
-      lambda x: x & scheme2_filter),
-  Convert_2_1(5)
-])
-      \end{lstlisting}
+      \begin{block}{Test framework}
+        \begin{itemize}
+        \item Takes individual steps as lambdas
+        \item Executes over all inputs
+        \item Stores intermediate values
+        \item \textcolor<2>{uibkorange}{Checks correctness}
+        \item \textcolor<3>{uibkorange}{Plots Hamming weight histograms}
+        \end{itemize}        
+      \end{block}
     \end{column}
     \hfill
-    \onslide<2>{
+    \onslide<3>{
     \begin{column}{0.48\textwidth}
       \centering
       \includegraphics[width=\textwidth]{orr.png}
@@ -368,16 +366,14 @@ m = MultiStepOperation([
   \end{columns}
 \end{frame}
 
-\againframe<5>{overview}
+\againframe<4>{overview}
 
-\subsection{Compiler Pass}
+\subsection{Code Transformation}
 \begin{frame}
   \frametitle{Applying the changes}
-  Possibilities for automatic balancing:
-  \begin{itemize}
-  \item Transform source
-  \item Transform during compilation
-  \end{itemize}
+  \begin{alertblock}{Automatic balancing}
+    Rewrite code during compilation
+  \end{alertblock}
 
   \vfill
   \onslide<2->{
@@ -390,6 +386,8 @@ m = MultiStepOperation([
     \node[draw, minimum width=1.3cm, minimum height=0.6cm] at (-2.5, -0.5) (Haskell) {Haskell};
     \node[draw, minimum width=1.3cm, minimum height=0.6cm] at (-2.5, -1.5) (otherl) {...};
     \node[draw] at (-0.75, 0) (irl) {IR};
+
+    \draw[decoration={brace,mirror,amplitude=6pt}, decorate, line width=0.3mm, uibkgray!70] (-3.3,-1.9) -- (-1.7, -1.9) node[midway, below, yshift=-3pt] {\scriptsize Frontends};
     
     \node[draw, label=Optimizer Passes, minimum width=4cm, minimum height=1.3cm] at (2,0) (optimization) {};
     \node[draw, minimum size=0.5cm] at (0.6,0) {};
@@ -403,6 +401,8 @@ m = MultiStepOperation([
     \node[draw, minimum width=1.3cm, minimum height=0.6cm] at (6.5,0) (arm) {ARM};
     \node[draw, minimum width=1.3cm, minimum height=0.6cm] at (6.5,-1) (otherr) {...};
 
+    \draw[decoration={brace,mirror,amplitude=6pt}, decorate, line width=0.3mm, uibkgray!70] (5.7,-1.9) -- (7.3, -1.9) node[midway, below, yshift=-3pt] {\scriptsize Backends};
+    
     \draw[->] (C) -- (irl);
     \draw[->] (C++) -- (irl);
     \draw[->] (Haskell) -- (irl);
