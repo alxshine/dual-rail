@@ -8,7 +8,7 @@
 
 % \usepackage{enumitem}
 
-\usetheme[]{uibk}
+\usetheme[nototalframenumber]{uibk}
 %% ------------------------------------------------------------------
 %% - foot: Add a footer line for conference name and date.
 %% - logo: Add the university logo in the footer (only if 'foot' set).
@@ -45,6 +45,28 @@
 \usepackage{tikz}
 \usetikzlibrary{arrows,decorations.pathreplacing}
 \tikzset{>=stealth}
+
+% argument #1: any options
+\newenvironment{customlegend}[1][]{%
+    \begingroup
+    % inits/clears the lists (which might be populated from previous
+    % axes):
+    \csname pgfplots@init@cleared@structures\endcsname
+    \pgfplotsset{#1}%
+}{%
+    % draws the legend:
+    \csname pgfplots@createlegend\endcsname
+    \endgroup
+}%
+
+% makes \addlegendimage available (typically only available within an
+% axis environment):
+\def\addlegendimage{\csname pgfplots@addlegendimage\endcsname}
+
+\tikzset{candidate/.style={draw, align=center, rounded corners=0.1cm, fill=white}}
+\tikzset{balanced/.append style={draw=uibkorange, thick, fill=uibkorange!40}}
+\tikzset{todo/.append style={draw=uibkorange, thick, pattern=north west lines, pattern color=uibkorang!40}}
+\tikzset{target/.style={align=center, draw, thick, fill=white}}
 
 \usepackage{adjustbox}
 \usepackage{bm}
@@ -137,15 +159,30 @@
 
 
 %% this sets the first PDF bookmark and triggers generation of the title page
-\section{Bookmark Title}
-
+\section{Motivation}
 \begin{frame}
   \frametitle{Motivation}
   \begin{figure}
-    \centering
-    \includegraphics[width=0.4\textwidth]{hue.jpeg}
+    \begin{columns}[T]
+      \begin{column}{0.48\textwidth}
+        \centering
+        \vfill
+        \includegraphics[width=0.8\textwidth]{hue.jpeg}
+        \vfill
+      \end{column}
+      \hfill
+      \begin{column}{0.48\textwidth}
+        \centering
+        \vspace{1cm}
+        \includegraphics[width=0.7\textwidth]{bank-card.jpg}
+        \vfill
+      \end{column}
+    \end{columns}
   \end{figure}
-  \blfootnote{\tiny https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/HJCC2?wid=1144\&hei=1144\&fmt=jpeg\&qlt=95\&op\_usm=0.5,0.5\&.v=0}
+  \blfootnote{\tiny
+https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/HJCC2?wid=1144\&hei=1144\&fmt=jpeg\&qlt=95\&op\_usm=0.5,0.5\&.v=0}
+  \blfootnote{\tiny
+    https://www.liberaldictionary.com/wp-content/uploads/2019/01/bank-card-8123.jpg}
 \end{frame}
 
 \begin{frame}
@@ -153,8 +190,8 @@
   \begin{figure}
     \centering
     \begin{tikzpicture}[every node/.style={draw}]
-      \node (input) at (-4, 2) {\vq Input};
-      \node (secret) at (-4, -2) {\vq Secret};
+      \node (input) at (-3, 2) {\vq \only<1>{Input}\only<2>{\textcolor{uibkorange}{Known Input}}\only<3->{Known Input}};
+      \node (secret) at (-3, -2) {\vq Secret};
       \node (result) at (-0.5,0) {\vq Result};
       \node[text width=2.5cm, align=center] (power) at (4,0) {\vq Power Consumption};
 
@@ -163,10 +200,16 @@
       \draw[->] (result) -- (power);
 
       \onslide<2>{
-      \draw[->, uibkorange, line width=0.4mm] (5,-3.5) -- (-4.5, -3.5) node[midway, above, draw=none] {Power Analysis Attack};}
+        % \node[uibkorange,thick] (known) at (-1.5, 2) {\vq known};
+        % \draw[->, uibkorange, line width=0.4mm] (known) -- (input);
+        \draw[->, uibkorange, line width=0.4mm] (6,-3.5) -- (-4.5, -3.5) node[midway, above, draw=none] {Power Analysis Attack};
+      }
       \onslide<3>{
-        \draw[->, uibkblue, line width=0.4mm] (5,-3.5) -- (-4.5, -3.5) node[midway, above, draw=none] {Power Analysis Attack};
-        \node[uibkorange, thick] (mask) at (-4, 0) {\vq Mask};
+        % \node[uibkblue, thick] (knownb) at (-1.5, 2) {\vq known};
+        % \draw[->, uibkblue, line width=0.4mm] (knownb) -- (input);
+        
+        \draw[->, uibkblue, line width=0.4mm] (6,-3.5) -- (-4.5, -3.5) node[midway, above, draw=none] {Power Analysis Attack};
+        \node[uibkorange, thick] (mask) at (-3, 0) {\vq Mask};
         \draw[uibkorange, thick, ->] (mask) -- (result);
 
         \draw[uibkorange, line width=0.4mm] (1.45,0.15) -- (1.15,-0.15);
@@ -187,8 +230,8 @@
         Increases analysis complexity
         \begin{itemize}
         \item[+] Runs on standard hardware
-        \item[-] Built into algorithm
-        \item[-] Requires expert knowledge
+        \item[--\hspace{0.4mm}] Built into algorithm
+        \item[--\hspace{0.4mm}] Requires expert knowledge
         \end{itemize}
       \end{block}
     \end{column}
@@ -198,7 +241,7 @@
         Balances power consumption
         \begin{itemize}
         \item[+] Can run any program
-        \item[-] Requires specialized hardware
+        \item[--\hspace{0.4mm}] Requires specialized hardware
         \item[] \vq
         \end{itemize}
       \end{block}
@@ -214,10 +257,10 @@
 \end{frame}
 
 %% this just generates PDF bookmarks
-\subsection{Overview}
+% \section{Overview}
 
 %% first slide
-\begin{frame}<1-2>[label=overview]
+\begin{frame}<1>[label=overview]
   \frametitle{Overview}
   \vfill
   \textbf{Content}
@@ -228,17 +271,17 @@
   \item \textcolor<3>{uibkorange}{Arithmetic}
   \item \textcolor<4>{uibkorange}{Code Transformation}
   \item \textcolor<5>{uibkorange}{Results}
-  \item \textcolor<6>{uibkorange}{Future Work \& Conclusion}
+  \item \textcolor<6>{uibkorange}{Conclusion}
   \end{itemize}
   \vfill
 \end{frame}
 
-\subsection{Balancing}
+% \section{Balancing}
 \begin{frame}
   \frametitle{Balancing}
   \vfill
   \textbf{Working assumption:}\\
-  Power consumption is proportional to Hamming weight\\
+  Power consumption is proportional to Hamming weight (number of 1s)\\
   $\rightarrow$ constant Hamming weight = constant power consumption
   \onslide<2->{
   \begin{alertblock}{Approach}
@@ -267,9 +310,9 @@
   }
 \end{frame}
 
-\againframe<3>{overview}
+% \againframe<3>{overview}
 
-\subsection{Arithmetic}
+% \section{Arithmetic}
 \begin{frame}
   \frametitle{Arithmetic}
   Regular operators will not work:
@@ -297,7 +340,7 @@
       \node at (3, -2) {\Large$\neg{\texttt{x}} \bm{\lor} \neg{\texttt{y}}$};
 
       \node[uibkorange] at (3, -2.6) {\Large$\bm{\neq}$};
-      \node at (3, -3.2) {\Large$\neg{\texttt{x} \bm{\lor} \texttt{y}}$};
+      \node at (3.91, -3.2) {\Large$\neg{\texttt{x} \bm{\lor} \texttt{y}} = \neg{\texttt{x}} \bm{\land} \neg{\texttt{y}}$};
   \end{tikzpicture}
   \end{center}
 \end{frame}
@@ -366,9 +409,9 @@ int balanced_or(int lhs,
   \end{columns}
 \end{frame}
 
-\againframe<4>{overview}
+% \againframe<4>{overview}
 
-\subsection{Code Transformation}
+% \section{Code Transformation}
 \begin{frame}
   \frametitle{Applying the changes}
   \begin{alertblock}{Automatic balancing}
@@ -424,140 +467,123 @@ int balanced_or(int lhs,
   }
 \end{frame}
 
-\begin{frame}[fragile]
+\begin{frame}
+  \frametitle{Optimizer Pass}
+  \centering
+  \begin{tikzpicture}[scale=0.6, every node/.style={transform shape}]
+    \draw[fill=uibkblue!10] (1.7, 0.4) ellipse (7cm and 5.7cm);
+    \node[align=center] at (-2.8, -2.1) {HEAP / GLOBALS};
+
+    \draw[fill=uibkorange!10] (1.2,2) ellipse (5.7cm and 3.7cm);
+    \node at (-1.7, 0) {STACK / LOCALS};
+
+    \node at (-4.5, -4.2) {BUSSES};
+
+    \node (literals) [candidate] at (-1.7,3.7) {literals};
+    \node (ops) [candidate] at (-3,1.5) {binary \\ operations};
+    \node (lvars) [candidate] at (0.8,2) {local \\ variables};
+    \node (larrs) [candidate] at (1.7,-0.5) {local \\ arrays};
+    \node (params) [candidate] at (3.5, 4) {function \\ parameters};
+    \node (returns) [candidate] at (4, 2.5) {return \\ values};
+    \node (registers) [target] at (4.3, 0) {registers};
+
+    \draw[->] (literals) -> (lvars);
+    \draw[->] (ops) -> (lvars);
+    \draw[->] (lvars) -> (larrs);
+    \draw[<->] (lvars) -> (params);
+    \draw[<->] (lvars) -> (returns);
+
+    \draw[->] (lvars) -> (registers);
+    \draw[->] (larrs) -> (registers);
+
+    \node (gvars) [candidate] at (0.5, -2.7) {global \\variables};
+    \node (garrs) [candidate] at (3.2, -2.6) {global \\arrays};
+    \node (constants) [candidate] at (0.8, -3.9) {constants};
+    \node (memory) [target] at (3.4, -4.2) {main \\memory};
+    \node (pointers) [candidate] at (6.9, -1.0) {pointers};
+
+    \draw[->] (lvars) -> (gvars);
+    \draw[->] (larrs) -> (garrs);
+    \draw[->] (constants) -> (gvars);
+    \draw[->] (gvars) -> (memory);
+    \draw[->] (garrs) -> (memory);
+
+    \node (databus) [target] at (6.7, -4.7) {data \\ bus};
+    \node (addressbus) [target] at (8.9, -3.0) {address \\ bus};
+
+    \draw[->] (registers) -> (databus);
+    \draw[->] (memory) -> (databus);
+    \draw[->] (pointers) -> (addressbus);
+  \end{tikzpicture}
+\end{frame}
+
+\begin{frame}[label=implemented]
+  \frametitle{Optimizer Pass}
+  \centering
+  \begin{tikzpicture}[scale=0.6, every node/.style={transform shape}]
+    \draw[fill=uibkblue!10] (1.7, 0.4) ellipse (7cm and 5.7cm);
+    \node[align=center] at (-2.8, -2.1) {HEAP / GLOBALS};
+
+    \draw[fill=uibkorange!10] (1.2,2) ellipse (5.7cm and 3.7cm);
+    \node at (-1.7, 0) {STACK / LOCALS};
+
+    \node at (-4.5, -4.2) {BUSSES};
+
+    \node (literals) [candidate, balanced] at (-1.7,3.7) {literals};
+    \node (ops) [candidate, balanced] at (-3,1.5) {binary \\ operations};
+    \node (lvars) [candidate, balanced] at (0.8,2) {local \\ variables};
+    \node (larrs) [candidate, balanced] at (1.7,-0.5) {local \\ arrays};
+    \node (params) [candidate, balanced] at (3.5, 4) {function \\ parameters};
+    \node (returns) [candidate, balanced] at (4, 2.5) {return \\ values};
+    \node (registers) [target, balanced] at (4.3, 0) {registers};
+
+    \draw[->] (literals) -> (lvars);
+    \draw[->] (ops) -> (lvars);
+    \draw[->] (lvars) -> (larrs);
+    \draw[<->] (lvars) -> (params);
+    \draw[<->] (lvars) -> (returns);
+
+    \draw[->] (lvars) -> (registers);
+    \draw[->] (larrs) -> (registers);
+
+    \node (gvars) [candidate] at (0.5, -2.7) {global \\variables};
+    \node (garrs) [candidate] at (3.2, -2.6) {global \\arrays};
+    \node (constants) [candidate] at (0.8, -3.9) {constants};
+    \node (memory) [target] at (3.4, -4.2) {main \\memory};
+    \node (pointers) [candidate] at (6.9, -1.0) {pointers};
+
+    \draw[->] (lvars) -> (gvars);
+    \draw[->] (larrs) -> (garrs);
+    \draw[->] (constants) -> (gvars);
+    \draw[->] (gvars) -> (memory);
+    \draw[->] (garrs) -> (memory);
+
+    \node (databus) [target] at (6.7, -4.7) {data \\ bus};
+    \node (addressbus) [target] at (8.9, -3.0) {address \\ bus};
+
+    \draw[->] (registers) -> (databus);
+    \draw[->] (memory) -> (databus);
+    \draw[->] (pointers) -> (addressbus);
+  \end{tikzpicture}
+\end{frame}
+
+\begin{frame}
   \frametitle{Optimizer Pass}
 
-  \begin{columns}[T]
-    \begin{column}{0.3\textwidth}
-      Transforms:
-      \begin{itemize}
-      \item function arguments
-      \item allocations
-      \item stores
-      \item \textcolor<2>{uibkorange}{loads} \quad \onslide<2>{\tikz[baseline=-0.5ex]{\draw[->, uibkorange, line width=0.3mm](0,0) -- (2,0);}}
-      \item casts
-      \item binary operators
-      \item getElementPtr
-      \item compares
-      \item returns
-      \item function calls
-      \end{itemize}
-    \end{column}
-    \hfill
-    \pause
-    \vrule
-    \hfill
-    \begin{column}{0.6\textwidth}
-      \begin{lstlisting}[language=C++,basicstyle=\small]
-void balanceLoad(LoadInst *load,
-    IRBuilder<> builder,
-    vector<Instruction *> &to_remove,
-    unordered_set<Value *> &balanced_values) {
-  if (balanced_values
-      .count(load->getPointerOperand())) {
-    `\tikzmarkin{a}(3.3,-.15)(-0.1,.3)`auto *new_load = builder
-        .CreateLoad(load->getPointerOperand());
-    load->replaceAllUsesWith(new_load);
-    balanced_values.insert(new_load);
-    to_remove.push_back(load);`\tikzmarkend{a}`
-    return;
-  }
-}
-      \end{lstlisting}
-    \end{column}
-  \end{columns}
+  \vfill
+  Additionally transform:
+  \begin{itemize}
+  \item stores
+  \item loads
+  \item casts
+  \item array indexing
+  \item compares
+  \item function calls
+  \end{itemize}
+  \vfill
 \end{frame}
 
-\begin{frame}[fragile]
-  \frametitle{Binary operators}
-  \begin{columns}[T]
-    \begin{column}{.48\textwidth}
-      \begin{itemize}
-      \item[] written as C functions
-      \item[] linked into same module
-      \item[] llvm operators changed to calls
-      \end{itemize}
-      \vfill
-      \begin{block}{Tradeoff}
-        \begin{itemize}
-        \item[+] simplicity
-        \item[+] modularity
-        \item[+] small binaries
-        \item[-] (currently) on inlining
-        \item[-] overhead
-        \end{itemize}
-      \end{block}
-    \end{column}
-    \hfill
-    \pause
-    \begin{column}{.48\textwidth}
-      \vspace{0.7cm}
-      \begin{lstlisting}[language=C, basicstyle=\small]
-int balanced_or(uint32_t lhs,
-        uint32_t rhs) {
-  uint32_t temp_or = lhs | rhs;
-  uint32_t temp_and = lhs & rhs;
-  uint32_t combined = (temp_and << 8)
-          | temp_or;
-  combined &= 0xff0000ff;
-  return balanced_2_1(combined);
-}
-      \end{lstlisting}
-    \end{column}
-  \end{columns}
-\end{frame}
-
-
-\begin{frame}[fragile]
-  \frametitle{Optimizer Pass}
-  \begin{columns}[T]
-    \begin{column}{0.4\textwidth}
-      \begin{lstlisting}[language=LLVM, basicstyle=\small]
-%2 = alloca i8, align 1
-store i8 %0, i8* %2, align 1
-%3 = load i8, i8* %2, align 1
-%4 = zext i8 %3 to i32
-%5 = shl i32 %4, 1
-%6 = load i8, i8* %2, align 1
-%7 = zext i8 %6 to i32
-%8 = ashr i32 %7, 7
-%9 = and i32 %8, 1
-%10 = mul nsw i32 %9, 27
-%11 = xor i32 %5, %10
-%12 = trunc i32 %11 to i8
-ret i8 %12
-      \end{lstlisting}
-    \end{column}
-    %% \hfill
-    \vrule
-    \hfill
-    \begin{column}{0.48\textwidth}
-      \begin{lstlisting}[language=LLVM, basicstyle=\small]
-%2 = alloca i32
-store i32 %0, i32* %2, align 1
-%3 = load i32, i32* %2
-%4 = call i32
-  @balanced_shl(i32 %3, i32 0xfe0001)
-%5 = load i32, i32* %2
-%6 = call i32
-  @balanced_ashr(i32 %5, i32 0xf80007)
-%7 = call i32
-  @balanced_and(i32 %6, i32 0xfe0001)
-%8 = call i32
-  @balanced_mul(i32 %7, i32 0xe4001b)
-%9 = call i32
-  @balanced_xor(i32 %4, i32 %8)
-ret i32 %9
-      \end{lstlisting}
-    \end{column}
-  \end{columns}
-\end{frame}
-
-\subsection{Results}
-
-\againframe<6>{overview}
-
-\subsection{Evaluation}
+% \section{Results}
 \begin{frame}
   \frametitle{Evaluation}
 
@@ -566,15 +592,15 @@ ret i32 %9
   \begin{block}{Qemu alone}
     \begin{itemize}
     \item[+] fast
-    \item[-] wrong resolution
+    \item[--\hspace{0.4mm}] incorrect view
     \end{itemize}
   \end{block}
-
+  \pause
   \begin{alertblock}{Qemu + gdb}
     \begin{itemize}
-    \item[+] correct resolution
+    \item[+] correct view
     \item[+] includes program location information
-    \item[-] \textbf{very} slow
+    \item[--\hspace{0.4mm}] \textbf{very} slow
     \end{itemize}
     Execute instruction by instruction, dump registers every time
   \end{alertblock}
@@ -582,7 +608,11 @@ ret i32 %9
 
 \begin{frame}[label=results]
   \frametitle{Results}
+  \begin{alertblock}{No attack}
+    No attack was mounted, instead performed statistical analysis
+  \end{alertblock}
   \center
+  \onslide<2->{
   \vfill
   \begin{tabular}{|l|l|l|}
     \hline
@@ -590,16 +620,86 @@ ret i32 %9
     \cline{2-3}
     & unbalanced & balanced \\
     \cline{2-3}
-    No. of instructions & 22 876 & 339 168 \\
+    Executed instructions & 22 876 & 339 168 \\
     Relative increase & 1 & 14.888 \\
     Balanced operations & 20 571 & 334 521 \\
-    Unbalanced operations & 2211 & 4647 \\
     Balancedness      & 0.903 & 0.986 \\
-    Code size         & 76 KB & 78 KB \\
+    Unbalanced operations & 2211 & 4647 \\
     \hline
   \end{tabular}
+  }
   \vfill
 \end{frame}
+
+% \againframe<4>{results}
+
+% \section{Conclusion}
+% \againframe<6>{overview}
+
+\begin{frame}
+  \frametitle{Summary}
+  \vfill
+  \begin{itemize}
+  \item Arithmetic is \emph{mostly} proven to be correct
+  \item Works without programmer work
+  \item Balances everything on stack
+  \item Requires more powerful, but standard hardware
+  \item Does not explode code size
+  \end{itemize}
+  \vfill
+\end{frame}
+
+\begin{frame}
+  \frametitle{Limitations}
+  \vfill
+  \begin{itemize}
+  \item Works only on stack
+  \item Only tested on some code samples
+  \item Correctness of \texttt{REM} and \texttt{DIV} not proven
+  \item Not attacked, only evaluated
+  \item Greatly increased execution time
+  \end{itemize}
+  \vfill
+\end{frame}
+
+\begin{frame}
+  \frametitle{Future work}
+  Improve on thesis:
+  \begin{itemize}
+  \item Test on actual hardware
+  \item Balance globals
+  \item Improve operators
+  \item Mark balancing targets
+  \end{itemize}
+  \vspace{0.5cm}
+  Similar ideas:
+  \begin{itemize}
+  \item Move balancing to type system
+  \item Other power analysis defenses
+  \item Control flow randomization
+  \item Move more security tools to LLVM
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Conclusion}
+  \begin{itemize}
+  \item Debugging optimizer passes is hard
+  \item Security and performance likely mutually exclusive
+  \item Backend cannot entirely be ignored
+  \item Qemu is not a processor emulator
+  \end{itemize}
+  \vfill
+  \begin{block}{LLVM IR}
+    LLVM's intermediate representation offers many avenues for future work,\\
+    not only for optimizition, but also for security.
+  \end{block}
+\end{frame}
+
+\begin{frame}
+\end{frame}
+
+\appendix
 
 \begin{frame}
   \begin{figure}
@@ -636,69 +736,28 @@ ret i32 %9
   \end{figure}
 \end{frame}
 
-\againframe{results}
-
-\begin{frame}
-  \frametitle{Filtered Results}
+\begin{frame}[label=results]
+  \frametitle{Results}
+  \begin{alertblock}{No attack}
+    No attack was mounted, instead performed statistical analysis
+  \end{alertblock}
+  \center
   \vfill
-  \begin{center}
-  \begin{tabular}{|l|l|l|}
+  \begin{tabular}{|l|c|c|c|}
     \hline
-    & \multicolumn{2}{c|}{AES} \\
-    \cline{2-3}
-    & unbalanced & balanced \\
-    \cline{2-3}
-    No. of instructions & 22 876 & 339 168 \\
-    Relative increase & 1 & 14.888 \\
-    Balanced operations & 20 571 & \textcolor{uibkorange}{\textbf{337 852}} \\
-    Unbalanced operations & 2211 & \textcolor{uibkorange}{\textbf{1316}} \\
-    Balancedness      & 0.903 & \textcolor{uibkorange}{\textbf{0.996}} \\
-    Code size         & 76 KB & 78 KB \\
+    & \multicolumn{3}{c|}{AES} \\
+    \cline{2-4}
+    & unbalanced & balanced & filtered balanced \\
+    \cline{2-4}
+    Executed instructions & 22 876 & 339 168 & 339 168\\
+    Relative increase & 1 & 14.888 & 14.888 \\
+    Balanced operations & 20 571 & 334 521 & 337 852\\
+    Unbalanced operations & 2211 & 4647 & 1316 \\
+    Balancedness      & 0.903 & 0.986 & 0.996\\
     \hline
   \end{tabular}
-  \end{center}
-  \vspace{1ex}
-  Note: no filtering applied to unbalanced variant
   \vfill
 \end{frame}
 
-\againframe<7>{overview}
-
-\subsection{Future Work}
-\begin{frame}
-  \frametitle{Future work}
-  Same idea with different methods:
-  \begin{itemize}
-  \item Test on actual hardware
-  \item Balance globals
-  \item Improve operators
-  \item Mark balancing targets
-  \item Move balancing to type system
-  \end{itemize}
-  \vspace{0.5cm}
-  Different ideas with same method:
-  \begin{itemize}
-  \item Other power analysis defenses
-  \item Control flow randomization
-  \item Move more security tools to LLVM
-  \end{itemize}
-\end{frame}
-
-\subsection{Conclusion}
-\begin{frame}
-  \frametitle{Conclusion}
-  \begin{itemize}
-  \item Increased robustness without program modifications
-  \item Requires more powerful, but standard hardware
-  \item Security and performance likely mutually exclusive
-  \item Backend cannot entirely be ignored
-  \item Qemu is not a processor emulator
-  \end{itemize}
-  \vfill
-  \begin{block}{LLVM IR}
-    LLVM's intermediate representation offers many avenues for future work,\\
-    not only for optimizition, but also for security.
-  \end{block}
-\end{frame}
-
+\input{poweranalysis.tex}
 \end{document}
