@@ -19,7 +19,7 @@ startup.o: startup.s
 	$(CROSS_COMPILE)-as -ggdb $(CPU) startup.s -o startup.o
 
 run: program.bin
-	~/Projects/qemu-eval/arm-softmmu/qemu-system-arm -M versatilepb -m 128M -nographic -kernel program.bin
+	qemu-system-arm -M versatilepb -m 128M -nographic -kernel program.bin
 
 .PHONY: clean
 clean:

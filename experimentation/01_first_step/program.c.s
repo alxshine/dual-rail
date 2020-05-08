@@ -50,6 +50,7 @@ c_entry:
 	ble	.L3
 	.loc 1 6 1
 	nop
+	nop
 	add	sp, fp, #0
 	.cfi_def_cfa_register 13
 	@ sp needed
@@ -192,11 +193,12 @@ c_entry:
 	.section	.debug_str,"MS",%progbits,1
 .LASF3:
 	.ascii	"c_entry\000"
-.LASF2:
-	.ascii	"/home/bambusbjorn/Projects/dual-rail/first_step\000"
 .LASF0:
-	.ascii	"GNU C99 8.3.0 -mcpu=arm926ej-s -mfloat-abi=soft -ma"
+	.ascii	"GNU C99 9.2.0 -mcpu=arm926ej-s -mfloat-abi=soft -ma"
 	.ascii	"rm -march=armv5tej -ggdb -O0 -std=gnu99\000"
 .LASF1:
 	.ascii	"program.c\000"
-	.ident	"GCC: (Arch Repository) 8.3.0"
+.LASF2:
+	.ascii	"/home/alex/Projects/dual-rail/experimentation/01_fi"
+	.ascii	"rst_step\000"
+	.ident	"GCC: (Fedora 9.2.0-4.fc32) 9.2.0"

@@ -28,7 +28,7 @@ program.elf: program.o startup.ld tinyAES.o startup.o
 	$(CROSS_COMPILE)-ld -T startup.ld program.o tinyAES.o startup.o -o program.elf
 
 run: program.bin
-	~/Projects/qemu-eval/arm-softmmu/qemu-system-arm -M versatilepb -m 128M -nographic -kernel program.bin
+	qemu-system-arm -M versatilepb -m 128M -nographic -kernel program.bin
 
 .PHONY: clean
 clean:

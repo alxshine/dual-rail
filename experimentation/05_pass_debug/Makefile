@@ -27,7 +27,7 @@ program.elf: startup.o startup.ld optimized.o
 	$(CROSS_COMPILE)-ld -T startup.ld startup.o optimized.o -o program.elf
 
 run: program.bin
-	~/Projects/qemu-eval/arm-softmmu/qemu-system-arm -M versatilepb -m 128M -nographic -kernel program.bin
+	qemu-system-arm -M versatilepb -m 128M -nographic -kernel program.bin
 
 .PHONY: clean
 clean:

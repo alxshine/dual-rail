@@ -2,10 +2,9 @@ import argparse
 import csv
 import json
 import matplotlib.pyplot as plt
-plt.style.use('uibk')
 
 import numpy as np
-import matplotlib2tikz
+#  import matplotlib2tikz
 
 parser = argparse.ArgumentParser(description='Visualize eval.json files')
 parser.add_argument('files', metavar='eval.json', type=str, nargs='+', help='a json file to visualize')
