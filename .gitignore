@@ -20,3 +20,4 @@ trace-*
 *.bbl
 *.nav
 *.snm
+aes/aes_test
