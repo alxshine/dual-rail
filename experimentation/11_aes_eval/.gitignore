@@ -1,4 +1,4 @@
 **.txt
-binaries*
+**/*.elf
 **.csv
 **.npy
