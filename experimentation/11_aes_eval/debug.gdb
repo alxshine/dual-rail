@@ -1,6 +1,3 @@
-set logging on
-set log file trace_debug.csv
-
 target remote localhost:1234
 break balanced_c_entry 
 c

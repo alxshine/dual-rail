@@ -43,13 +43,12 @@ if {$force_conservative} {
 
 
 set timeout -1
-spawn /home/alex/Projects/qemu/arm-softmmu/qemu-system-arm -M versatilepb -m 256 -cpu arm1176 -nographic -kernel program.bin
+spawn qemu-system-arm -M versatilepb -m 256 -cpu arm1176 -nographic -kernel program.elf -S -s
 match_max 100000
-expect -exact "done\r
+expect "done\r
 "
 send -- "c"
-expect -exact "QEMU 4.0.91 monitor - type 'help' for more information\r\r
-(qemu) "
+expect "(qemu) "
 send -- "q"
 expect -exact "q\[K"
 send -- "\r"
