@@ -21,3 +21,4 @@ trace-*
 *.nav
 *.snm
 aes/aes_test
+*.pyc
