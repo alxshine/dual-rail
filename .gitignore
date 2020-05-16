@@ -22,3 +22,6 @@ trace-*
 *.snm
 aes/aes_test
 *.pyc
+*.tar.gz
+.vscode
+plaintexts.txt
