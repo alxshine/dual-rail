@@ -4,12 +4,16 @@ import sys
 
 def validate_files(log_dir):
     path = pathlib.Path(log_dir)
-    balanced_log_files = path.glob('balanced_00[12].log')
+    balanced_log_files = path.glob('balanced_*.log')
     filtered_balanced = filter_files(balanced_log_files)
+
+    mnemonic_re = re.compile('(\d+\s*)(.*$)')
 
     all_equal = True
     for lines in zip(*filtered_balanced):
-        if any(l != lines[0] for l in lines[1:]):
+        mnemonics = [mnemonic_re.search(l)[2] for l in lines if mnemonic_re.match(l)]
+
+        if any(m != mnemonics[0] for m in mnemonics[1:]):
             print("ERROR: not all execution paths are equal.\nOffending lines:\n", file=sys.stderr)
             all_equal = False
             for l in lines:
@@ -32,6 +36,7 @@ def filter_files(balanced_log_files):
 if __name__ == "__main__":
     if len(sys.argv) < 2:
         print(f"Usage: {sys.argv[0]} log_dir")
+        sys.exit(1)
 
     log_dir = sys.argv[1]
     validate_files(log_dir)
