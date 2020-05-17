@@ -6,7 +6,7 @@
 # 	exit 1
 # fi
 
-for i in {1..3}; do
+for i in {1..10}; do
 	echo `printf "Compiling binary number %03d" $i`
 	make clean
 	make
