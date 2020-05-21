@@ -15,14 +15,14 @@ for i in {1..10}; do
 	mv balanced.elf program.elf
 	./script.exp &
 	sleep 1
-	gdb-multiarch --batch -q -x debug.gdb program.elf > `printf "balanced_%03d.log" $i`
+	gdb-multiarch --batch -q -x balanced.gdb program.elf > `printf "balanced_%03d.log" $i`
 	wait
 
 	echo "Evaluating unbalanced"
 	mv unbalanced.elf program.elf
 	./script.exp &
 	sleep 1
-	gdb-multiarch --batch -q -x debug.gdb program.elf > `printf "unbalanced_%03d.log" $i`
+	gdb-multiarch --batch -q -x unbalanced.gdb program.elf > `printf "unbalanced_%03d.log" $i`
 	wait
 done
 
